@@ -14,6 +14,8 @@ class Config:
     speech_volume: int = 90
     gaze_timeout_s: float = 60.0
     gaze_poll_interval_s: float = 2.0
+    fast_gaze_poll_interval_s: float = 0.6
+    fast_gaze_poll_window_s: float = 8.0
     max_attempts: int = 3
     shake_amplitude_deg: int = 60
     shake_period_s: float = 0.6
