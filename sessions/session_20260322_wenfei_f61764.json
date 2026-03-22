@@ -1,0 +1,133 @@
+{
+  "session_id": "session_20260322_wenfei_f61764",
+  "participant_id": "wenfei",
+  "start_time": "2026-03-22T19:02:26.913317-04:00",
+  "end_time": "2026-03-22T19:03:05.245910-04:00",
+  "screen_observations": [],
+  "events": [
+    {
+      "timestamp": "2026-03-22T19:02:27.685426-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-22T19:02:34.333747-04:00",
+      "name": "camera_capture_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "camera_connect_timeout",
+        "source": null
+      }
+    },
+    {
+      "timestamp": "2026-03-22T19:02:40.371485-04:00",
+      "name": "camera_capture_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "camera_connect_timeout",
+        "source": null
+      }
+    },
+    {
+      "timestamp": "2026-03-22T19:02:46.616054-04:00",
+      "name": "camera_capture_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "camera_connect_timeout",
+        "source": null
+      }
+    },
+    {
+      "timestamp": "2026-03-22T19:02:52.760864-04:00",
+      "name": "camera_capture_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "camera_connect_timeout",
+        "source": null
+      }
+    },
+    {
+      "timestamp": "2026-03-22T19:02:58.699629-04:00",
+      "name": "camera_capture_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "camera_connect_timeout",
+        "source": null
+      }
+    },
+    {
+      "timestamp": "2026-03-22T19:03:05.196913-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Session complete. I observed 0 distraction events and used 0 voice prompts. Great effort today!",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Session complete. I observed 0 distraction events and used 0 voice prompts. Great effort today!`."
+          }
+        }
+      }
+    }
+  ],
+  "distraction_events": [],
+  "total_distraction_count": 0,
+  "total_voice_prompts": 0
+}

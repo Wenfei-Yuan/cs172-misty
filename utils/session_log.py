@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 
-def _utc_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+def _local_iso() -> str:
+    return datetime.now().astimezone().isoformat()
 
 
 class SessionLog:
     def __init__(self, session_id: str, cfg):
         self.session_id = session_id
         self.cfg = cfg
-        self.start_time = _utc_iso()
+        self.start_time = _local_iso()
         self.end_time = None
         self.screen_observations = []
         self.distraction_events = []
@@ -23,7 +23,7 @@ class SessionLog:
     def record(self, name: str, **payload) -> None:
         self.events.append(
             {
-                "timestamp": _utc_iso(),
+                "timestamp": _local_iso(),
                 "name": name,
                 "payload": payload,
             }
@@ -32,7 +32,7 @@ class SessionLog:
     def record_screen_observation(self, analysis: str) -> None:
         self.screen_observations.append(
             {
-                "timestamp": _utc_iso(),
+                "timestamp": _local_iso(),
                 "analysis": analysis,
             }
         )
@@ -41,16 +41,26 @@ class SessionLog:
         self.distraction_events.append(
             {
                 "event_index": len(self.distraction_events) + 1,
-                "distraction_start_time": _utc_iso(),
+                "distraction_start_time": _local_iso(),
                 "distraction_end_time": None,
                 "distraction_end_signal_received": False,
                 "distraction_duration_s": None,
                 "gaze_detected": False,
                 "gaze_latency_s": None,
+                "exit_reason": None,
                 "voice_prompt_used": False,
                 "voice_prompt_count": 0,
             }
         )
+
+    def _close_distraction_event(self, current: dict) -> None:
+        if current["distraction_end_time"] is not None:
+            return
+        end_ts = _local_iso()
+        current["distraction_end_time"] = end_ts
+        start = datetime.fromisoformat(current["distraction_start_time"])
+        end = datetime.fromisoformat(end_ts)
+        current["distraction_duration_s"] = round((end - start).total_seconds(), 2)
 
     def record_distraction_gaze(self, gaze_seen: bool, latency_s) -> None:
         if not self.distraction_events:
@@ -59,19 +69,23 @@ class SessionLog:
         current["gaze_detected"] = bool(gaze_seen)
         current["gaze_latency_s"] = round(latency_s, 2) if latency_s is not None else None
 
+    def record_distraction_result(self, outcome: str, gaze_seen: bool, latency_s) -> None:
+        if not self.distraction_events:
+            return
+        current = self.distraction_events[-1]
+        current["gaze_detected"] = bool(gaze_seen)
+        current["gaze_latency_s"] = round(latency_s, 2) if latency_s is not None else None
+        current["exit_reason"] = outcome
+        self._close_distraction_event(current)
+
     def record_distraction_end(self) -> None:
         if not self.distraction_events:
             return
         current = self.distraction_events[-1]
         if current["distraction_end_signal_received"]:
             return
-        end_ts = _utc_iso()
-        current["distraction_end_time"] = end_ts
         current["distraction_end_signal_received"] = True
-
-        start = datetime.fromisoformat(current["distraction_start_time"])
-        end = datetime.fromisoformat(end_ts)
-        current["distraction_duration_s"] = round((end - start).total_seconds(), 2)
+        self._close_distraction_event(current)
 
     def record_voice_prompt(self, attempt: int) -> None:
         self.total_voice_prompts += 1
@@ -102,7 +116,7 @@ class SessionLog:
         }
 
     def save_to_file(self) -> Path:
-        self.end_time = _utc_iso()
+        self.end_time = _local_iso()
         directory = Path("sessions")
         directory.mkdir(parents=True, exist_ok=True)
         output_path = directory / f"{self.session_id}.json"

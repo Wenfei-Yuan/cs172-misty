@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from misty2py.basic_skills.speak import speak
-
 from config import Config
 from stages.bootup import run_bootup
 from stages.distraction import run_distraction
 from stages.no_response_prompt import run_no_response
 from stages.screen_watch import run_screen_watch
 from stages.summary import run_summary
+from utils.audio import speak_text
 from utils.session_id import generate_session_id
 from utils.session_log import SessionLog
 from utils.triggers import ExternalSignalReceiver
@@ -25,43 +24,56 @@ def run(misty, cfg: Config) -> None:
     try:
         screen_pos = run_bootup(misty, cfg, log)
         while True:
-            if signal_rx.shutdown_received():
+            if signal_rx.has_shutdown_event():
                 break
 
             screen_pos = run_screen_watch(misty, cfg, log, screen_pos)
+            if screen_pos is None:
+                log.record("screen_retry_pending")
+                continue
 
-            event = signal_rx.wait_for_start()
-            if event == "shutdown":
+            speak_text(
+                misty,
+                cfg,
+                "Let's start reading, I am ready.",
+                log=log,
+                stage="screen_watch_success",
+            )
+
+            log.record("waiting_for_start_signal")
+            start_signal = signal_rx.wait_for_start()
+            if start_signal.stale_stop_events_cleared:
+                log.record("stale_stop_events_cleared", count=start_signal.stale_stop_events_cleared)
+            log.record("start_signal_received", event=start_signal.event)
+            if start_signal.event == "shutdown":
                 break
 
-            gaze_seen = run_distraction(
+            distraction = run_distraction(
                 misty,
                 cfg,
                 log,
                 screen_pos,
-                should_interrupt=lambda: signal_rx.has_end_event() or signal_rx.shutdown_received(),
+                consume_interrupt=signal_rx.consume_interrupt,
             )
 
-            stop_received = signal_rx.end_received()
-            if stop_received:
+            if distraction.outcome == "stop":
                 log.record_distraction_end()
 
-            if signal_rx.shutdown_received():
+            if distraction.outcome == "shutdown":
                 break
 
-            if gaze_seen:
-                speak(misty, "I see you! Let me check what you were working on.")
+            if distraction.outcome == "gaze":
+                speak_text(misty, cfg, "I see you! Let me check what you were working on.", log=log, stage="gaze_recovered")
                 log.record("gaze_recovered")
                 attempt = 0
                 continue
 
-            if stop_received:
+            if distraction.outcome == "stop":
+                attempt = 0
                 continue
 
             attempt += 1
             run_no_response(misty, cfg, log, attempt)
-            if attempt >= cfg.max_attempts:
-                break
     finally:
         signal_rx.stop()
         run_summary(misty, cfg, log)

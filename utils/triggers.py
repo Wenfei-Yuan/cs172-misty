@@ -4,7 +4,14 @@ import json
 import threading
 import time
 from collections import deque
+from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+
+@dataclass(frozen=True)
+class StartSignalResult:
+    event: str
+    stale_stop_events_cleared: int = 0
 
 
 class ExternalSignalReceiver:
@@ -61,29 +68,86 @@ class ExternalSignalReceiver:
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=2)
 
-    def wait_for_start(self) -> str:
+    def wait_for_start(self) -> StartSignalResult:
+        stale_stop_events_cleared = 0
         while not self._stop_event.is_set():
             with self._lock:
                 if self._events:
-                    event = self._events.popleft()
-                    if event in {"start", "shutdown"}:
-                        return event
-                    if event == "stop":
-                        self._events.appendleft(event)
+                    retained_events = deque()
+                    start_seen = False
+                    shutdown_seen = False
+
+                    while self._events:
+                        event = self._events.popleft()
+                        if event == "stop":
+                            stale_stop_events_cleared += 1
+                            continue
+                        if event == "shutdown":
+                            shutdown_seen = True
+                            continue
+                        if event == "start":
+                            start_seen = True
+                            continue
+                        retained_events.append(event)
+
+                    self._events = retained_events
+
+                    if shutdown_seen:
+                        return StartSignalResult(event="shutdown", stale_stop_events_cleared=stale_stop_events_cleared)
+                    if start_seen:
+                        return StartSignalResult(event="start", stale_stop_events_cleared=stale_stop_events_cleared)
             time.sleep(0.1)
-        return "shutdown"
+        return StartSignalResult(event="shutdown", stale_stop_events_cleared=stale_stop_events_cleared)
+
+    def consume_interrupt(self) -> str | None:
+        with self._lock:
+            for event in list(self._events):
+                if event == "shutdown":
+                    self._events.remove("shutdown")
+                    return "shutdown"
+
+            stop_count = 0
+            retained_events = deque()
+            start_retained = False
+            while self._events:
+                event = self._events.popleft()
+                if event == "stop":
+                    stop_count += 1
+                    continue
+                if event == "start":
+                    if start_retained:
+                        continue
+                    start_retained = True
+                    retained_events.append(event)
+                    continue
+                retained_events.append(event)
+            self._events = retained_events
+            if stop_count:
+                return "stop"
+        return None
 
     def end_received(self) -> bool:
         with self._lock:
-            for event in list(self._events):
+            removed = False
+            retained_events = deque()
+            while self._events:
+                event = self._events.popleft()
                 if event == "stop":
-                    self._events.remove("stop")
-                    return True
+                    removed = True
+                    continue
+                retained_events.append(event)
+            self._events = retained_events
+            if removed:
+                return True
         return False
 
     def has_end_event(self) -> bool:
         with self._lock:
             return "stop" in self._events
+
+    def has_shutdown_event(self) -> bool:
+        with self._lock:
+            return "shutdown" in self._events
 
     def shutdown_received(self) -> bool:
         with self._lock:
@@ -98,18 +162,30 @@ class StubTrigger:
     def __init__(self, start_after_s: float = 3.0, stop_after_s: float = 8.0):
         self.start_after_s = start_after_s
         self.stop_after_s = stop_after_s
-        self._start_time = time.time()
+        self._waiting_since = time.time()
+        self._active_since = None
 
-    def wait_for_start(self) -> str:
+    def wait_for_start(self) -> StartSignalResult:
         while True:
-            if time.time() - self._start_time >= self.start_after_s:
-                return "start"
+            if self._active_since is None and (time.time() - self._waiting_since) >= self.start_after_s:
+                self._active_since = time.time()
+                return StartSignalResult(event="start")
             time.sleep(0.1)
 
+    def consume_interrupt(self) -> str | None:
+        if self._active_since is not None and (time.time() - self._active_since) >= self.stop_after_s:
+            self._active_since = None
+            self._waiting_since = time.time()
+            return "stop"
+        return None
+
     def end_received(self) -> bool:
-        return (time.time() - self._start_time) >= self.stop_after_s
+        return self.consume_interrupt() == "stop"
 
     def shutdown_received(self) -> bool:
+        return False
+
+    def has_shutdown_event(self) -> bool:
         return False
 
     def start(self) -> None:
