@@ -1,0 +1,3 @@
+{ "chat.instructionsFilesLocations": 
+{ ".github/instructions": true, 
+".claude/rules": true } }

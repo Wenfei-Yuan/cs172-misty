@@ -1,0 +1,110 @@
+from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+def _utc_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+class SessionLog:
+    def __init__(self, session_id: str, cfg):
+        self.session_id = session_id
+        self.cfg = cfg
+        self.start_time = _utc_iso()
+        self.end_time = None
+        self.screen_observations = []
+        self.distraction_events = []
+        self.total_voice_prompts = 0
+        self.events = []
+
+    def record(self, name: str, **payload) -> None:
+        self.events.append(
+            {
+                "timestamp": _utc_iso(),
+                "name": name,
+                "payload": payload,
+            }
+        )
+
+    def record_screen_observation(self, analysis: str) -> None:
+        self.screen_observations.append(
+            {
+                "timestamp": _utc_iso(),
+                "analysis": analysis,
+            }
+        )
+
+    def record_distraction_start(self) -> None:
+        self.distraction_events.append(
+            {
+                "event_index": len(self.distraction_events) + 1,
+                "distraction_start_time": _utc_iso(),
+                "distraction_end_time": None,
+                "distraction_end_signal_received": False,
+                "distraction_duration_s": None,
+                "gaze_detected": False,
+                "gaze_latency_s": None,
+                "voice_prompt_used": False,
+                "voice_prompt_count": 0,
+            }
+        )
+
+    def record_distraction_gaze(self, gaze_seen: bool, latency_s) -> None:
+        if not self.distraction_events:
+            return
+        current = self.distraction_events[-1]
+        current["gaze_detected"] = bool(gaze_seen)
+        current["gaze_latency_s"] = round(latency_s, 2) if latency_s is not None else None
+
+    def record_distraction_end(self) -> None:
+        if not self.distraction_events:
+            return
+        current = self.distraction_events[-1]
+        if current["distraction_end_signal_received"]:
+            return
+        end_ts = _utc_iso()
+        current["distraction_end_time"] = end_ts
+        current["distraction_end_signal_received"] = True
+
+        start = datetime.fromisoformat(current["distraction_start_time"])
+        end = datetime.fromisoformat(end_ts)
+        current["distraction_duration_s"] = round((end - start).total_seconds(), 2)
+
+    def record_voice_prompt(self, attempt: int) -> None:
+        self.total_voice_prompts += 1
+        if not self.distraction_events:
+            return
+        current = self.distraction_events[-1]
+        current["voice_prompt_used"] = True
+        current["voice_prompt_count"] = int(attempt)
+
+    def generate_summary(self) -> str:
+        distraction_count = len(self.distraction_events)
+        return (
+            f"Session complete. I observed {distraction_count} distraction events and "
+            f"used {self.total_voice_prompts} voice prompts. Great effort today!"
+        )
+
+    def as_dict(self) -> dict:
+        return {
+            "session_id": self.session_id,
+            "participant_id": self.cfg.participant_id,
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "screen_observations": self.screen_observations,
+            "events": self.events,
+            "distraction_events": self.distraction_events,
+            "total_distraction_count": len(self.distraction_events),
+            "total_voice_prompts": self.total_voice_prompts,
+        }
+
+    def save_to_file(self) -> Path:
+        self.end_time = _utc_iso()
+        directory = Path("sessions")
+        directory.mkdir(parents=True, exist_ok=True)
+        output_path = directory / f"{self.session_id}.json"
+        output_path.write_text(json.dumps(self.as_dict(), indent=2), encoding="utf-8")
+        return output_path
