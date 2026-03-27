@@ -9,7 +9,7 @@ def look_at_screen(misty, screen_pos) -> None:
         {
             "Yaw": screen_pos.yaw,
             "Pitch": screen_pos.pitch,
-            "Velocity": 50,
+            "Velocity": 90,
         },
     )
 
