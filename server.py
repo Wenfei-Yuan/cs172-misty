@@ -20,6 +20,11 @@ EVENT_TO_PATH = {
 
 DISENGAGED_STOP_STREAK = int(os.getenv("DISENGAGED_STOP_STREAK", "6"))
 CLIENT_ROLES = {"webcam", "extension"}
+DISENGAGEMENT_START_ALIASES = {
+    "covert_disengagement=true",
+    "covert_disengagemnt=true",
+    "covert_disengagemnt=ture",
+}
 
 connected_clients = set()
 client_roles = {}
@@ -101,6 +106,8 @@ def parse_message_signal(message: str) -> str | None:
     lowered = text.lower()
     if lowered in EVENT_TO_PATH:
         return lowered
+    if lowered in DISENGAGEMENT_START_ALIASES:
+        return "disengaged_true"
     if lowered == "disengaged=true":
         return "disengaged_true"
     if lowered == "disengaged=false":
@@ -163,7 +170,9 @@ async def notify_extension_redirect(event: str, forwarded: bool) -> None:
     await extension_socket.send(ROBOT_REDIRECT_MESSAGE)
 
 
-async def notify_extension_posture_disengagement(signal: str | None, event: str | None, forwarded: bool) -> None:
+async def notify_extension_posture_disengagement(source_role: str | None, signal: str | None, event: str | None, forwarded: bool) -> None:
+    if source_role == "extension":
+        return
     if signal != "disengaged_true" or event != "start" or not forwarded:
         return
     extension_socket = role_clients.get("extension")
@@ -212,7 +221,7 @@ async def handler(websocket):
             receiver_role = client_roles.get(websocket, "unregistered")
             print(f"WebSocket 定向发送 -> {receiver_role}: {json.dumps(response, ensure_ascii=False)}")
             await websocket.send(json.dumps(response))
-            await notify_extension_posture_disengagement(signal, event, ok)
+            await notify_extension_posture_disengagement(receiver_role, signal, event, ok)
             await notify_extension_redirect(event, ok)
 
     except websockets.exceptions.ConnectionClosed:
@@ -228,7 +237,7 @@ async def main():
     print(f"监听地址: ws://{WS_HOST}:{WS_PORT}")
     print(f"触发器目标: http://{TRIGGER_HOST}:{TRIGGER_PORT}")
     print('客户端可先发送 JSON 注册身份: {"client": "webcam"} 或 {"client": "extension"}')
-    print("支持消息: start, stop, shutdown, disengaged=true, disengaged=false")
+    print("支持消息: start, stop, shutdown, disengaged=true, disengaged=false, covert_disengagemnt=ture")
     print('也支持 JSON: {"event": "start"} 或 {"disengaged": true}')
     await server.wait_closed()
 

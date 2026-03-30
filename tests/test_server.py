@@ -48,6 +48,10 @@ class ServerEventMappingTests(unittest.TestCase):
             self.assertIsNone(server.parse_message_event('{"disengaged": false}'))
         self.assertEqual(server.parse_message_event('{"disengaged": false}'), "stop")
 
+    def test_extension_covert_disengagement_alias_starts_distraction(self) -> None:
+        self.assertEqual(server.parse_message_event("covert_disengagemnt=ture"), "start")
+        self.assertIsNone(server.parse_message_event("covert_disengagemnt=ture"))
+
     def test_unrecognized_messages_are_ignored(self) -> None:
         self.assertIsNone(server.parse_message_event("hello"))
         self.assertIsNone(server.parse_message_event('{"event": "unknown"}'))
@@ -124,6 +128,19 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(len(webcam_socket.sent_messages), 1)
         self.assertEqual(json.loads(webcam_socket.sent_messages[0])["event"], "start")
         self.assertEqual(extension_socket.sent_messages, [server.POSTURE_DISENGAGEMENT_MESSAGE])
+
+    def test_extension_covert_disengagement_message_triggers_start(self) -> None:
+        async def fake_forward_event(event: str) -> tuple[bool, str]:
+            return True, json.dumps({"event": event})
+
+        server.forward_event = fake_forward_event
+        extension_socket = FakeWebSocket(["covert_disengagemnt=ture"])
+        server.register_client(extension_socket, "extension")
+
+        asyncio.run(server.handler(extension_socket))
+
+        self.assertEqual(len(extension_socket.sent_messages), 1)
+        self.assertEqual(json.loads(extension_socket.sent_messages[0])["event"], "start")
 
     def test_extension_notifications_are_skipped_when_no_extension_registered(self) -> None:
         async def fake_forward_event(event: str) -> tuple[bool, str]:

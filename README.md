@@ -41,6 +41,7 @@ Supported plain text messages:
 
 - `disengaged=true`
 - `disengaged=false`
+- `covert_disengagemnt=ture` (extension-side start alias)
 - `start`
 - `stop`
 - `shutdown`
@@ -112,6 +113,7 @@ ROBOT_REDIRECT
 ### Distraction state rules
 
 - The first `disengaged=true` starts a distraction event and is forwarded to Misty as `POST /distraction/start` on port `5050`
+- The extension message `covert_disengagemnt=ture` is treated as the same start signal and also forwards `POST /distraction/start` on port `5050`
 - While already in distraction, repeated `disengaged=true` messages do not retrigger start
 - After distraction has started, `disengaged=false` must be observed for 6 consecutive messages before the bridge forwards `POST /distraction/stop`
 - If a `disengaged=true` arrives before the count reaches 6, the recovery count resets
