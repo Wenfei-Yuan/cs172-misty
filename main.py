@@ -30,7 +30,16 @@ def _build_misty() -> Misty:
     misty_ip = env_loader.get_ip()
     if not misty_ip:
         raise EnvironmentError("MISTY_IP_ADDRESS not set in .env")
-    return Misty(misty_ip)
+    misty = Misty(misty_ip)
+
+    try:
+        misty.get_info("device")
+        print(f"Connected to Misty at {misty_ip}")
+    except Exception as exc:
+        print(f"Failed to connect to Misty at {misty_ip}: {exc}")
+        raise
+
+    return misty
 
 
 def _resolve_username(args: argparse.Namespace) -> str:
