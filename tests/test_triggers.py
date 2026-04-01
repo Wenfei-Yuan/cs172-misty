@@ -61,6 +61,14 @@ class TriggerTests(unittest.TestCase):
         with self.receiver._lock:
             self.assertEqual(list(self.receiver._events), ["stop"])
 
+    def test_consume_current_text_drains_fifo(self) -> None:
+        with self.receiver._lock:
+            self.receiver._current_texts.extend(["line 1", "line 2"])
+
+        self.assertEqual(self.receiver.consume_current_text(), "line 1")
+        self.assertEqual(self.receiver.consume_current_text(), "line 2")
+        self.assertIsNone(self.receiver.consume_current_text())
+
 
 if __name__ == "__main__":
     unittest.main()

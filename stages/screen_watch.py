@@ -88,15 +88,24 @@ def run_screen_watch(misty, cfg, log, screen_pos: ScreenPos | None) -> ScreenPos
     result = _check_screen_alignment(misty, cfg, log=log, stage="screen_watch")
     if result.status != "aligned":
         log.record("screen_verification_error", reason=result.reason or result.status)
-        retry = find_screen_position_with_vlm(misty, cfg, log=log)
-        position = retry.position
-        if position is not None:
-            look_at_screen(misty, position)
-            time.sleep(cfg.screen_settle_s)
-            result = _check_screen_alignment(misty, cfg, log=log, stage="screen_watch_retry")
+        if screen_pos is None:
+            retry = find_screen_position_with_vlm(misty, cfg, log=log)
+            position = retry.position
+            if position is not None:
+                look_at_screen(misty, position)
+                time.sleep(cfg.screen_settle_s)
+                result = _check_screen_alignment(misty, cfg, log=log, stage="screen_watch_retry")
+            else:
+                result = VisionCheckResult(ok=False, status="search_exhausted", reason=retry.reason)
         else:
-            result = VisionCheckResult(ok=False, status="search_exhausted", reason=retry.reason)
-    if result.status != "aligned":
+            log.record(
+                "screen_position_reused",
+                yaw=screen_pos.yaw,
+                pitch=screen_pos.pitch,
+                source="bootup",
+            )
+            position = screen_pos
+    if result.status != "aligned" and screen_pos is None:
         position = None
 
     show_image(misty, SPEAKING_FACE)

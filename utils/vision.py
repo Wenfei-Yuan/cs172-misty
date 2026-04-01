@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import base64
+import binascii
+import io
 from dataclasses import dataclass
+from functools import lru_cache
 
 import openai
 import requests
+from PIL import Image, ImageOps
 
 
 @dataclass(frozen=True)
@@ -22,6 +26,32 @@ class VisionCheckResult:
     status: str
     reason: str | None = None
     model_output: str | None = None
+
+
+def _openai_timeout_s(cfg) -> float:
+    return max(1.0, float(getattr(cfg, "openai_timeout_s", 20.0)))
+
+
+@lru_cache(maxsize=8)
+def _cached_openai_client(api_key: str, timeout_s: float):
+    return openai.OpenAI(api_key=api_key, timeout=timeout_s)
+
+
+def _openai_client(cfg):
+    return _cached_openai_client(cfg.openai_api_key, _openai_timeout_s(cfg))
+
+
+def _vision_model(cfg) -> str:
+    return str(getattr(cfg, "vision_model", "gpt-4o"))
+
+
+def _vision_max_image_dim_px(cfg) -> int:
+    return max(0, int(getattr(cfg, "vision_max_image_dim_px", 640)))
+
+
+def _vision_jpeg_quality(cfg) -> int:
+    quality = int(getattr(cfg, "vision_jpeg_quality", 60))
+    return max(1, min(95, quality))
 
 
 def _camera_url(misty) -> str:
@@ -115,6 +145,34 @@ def capture_frame(misty) -> str:
     return capture_frame_result(misty).base64
 
 
+def _prepare_vision_frame(frame: FrameCaptureResult, cfg) -> FrameCaptureResult:
+    if not frame.ok or not frame.base64:
+        return frame
+
+    try:
+        raw_bytes = base64.b64decode(frame.base64, validate=True)
+        with Image.open(io.BytesIO(raw_bytes)) as image:
+            image = ImageOps.exif_transpose(image)
+            if image.mode != "RGB":
+                image = image.convert("RGB")
+
+            max_dimension = _vision_max_image_dim_px(cfg)
+            if max_dimension > 0 and max(image.size) > max_dimension:
+                image.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
+
+            output = io.BytesIO()
+            image.save(output, format="JPEG", optimize=True, quality=_vision_jpeg_quality(cfg))
+        return FrameCaptureResult(
+            ok=True,
+            base64=base64.b64encode(output.getvalue()).decode("utf-8"),
+            reason=frame.reason,
+            source=frame.source,
+            mime_type="image/jpeg",
+        )
+    except (binascii.Error, OSError, ValueError):
+        return frame
+
+
 def _data_uri(frame: FrameCaptureResult) -> str:
     mime_type = frame.mime_type or "image/jpeg"
     return f"data:{mime_type};base64,{frame.base64}"
@@ -124,9 +182,10 @@ def analyze_screen_capture(frame: FrameCaptureResult, cfg) -> VisionCheckResult:
     if not frame.ok:
         return VisionCheckResult(ok=False, status="capture_error", reason=frame.reason)
     try:
-        client = openai.OpenAI(api_key=cfg.openai_api_key, timeout=20)
+        client = _openai_client(cfg)
+        prepared_frame = _prepare_vision_frame(frame, cfg)
         result = client.chat.completions.create(
-            model="gpt-4o",
+            model=_vision_model(cfg),
             messages=[
                 {
                     "role": "user",
@@ -144,7 +203,7 @@ def analyze_screen_capture(frame: FrameCaptureResult, cfg) -> VisionCheckResult:
                         },
                         {
                             "type": "image_url",
-                            "image_url": {"url": _data_uri(frame)},
+                            "image_url": {"url": _data_uri(prepared_frame)},
                         },
                     ],
                 }
@@ -170,9 +229,10 @@ def analyze_gaze_capture(frame: FrameCaptureResult, cfg) -> VisionCheckResult:
     if not frame.ok:
         return VisionCheckResult(ok=False, status="capture_error", reason=frame.reason)
     try:
-        client = openai.OpenAI(api_key=cfg.openai_api_key, timeout=20)
+        client = _openai_client(cfg)
+        prepared_frame = _prepare_vision_frame(frame, cfg)
         result = client.chat.completions.create(
-            model="gpt-4o",
+            model=_vision_model(cfg),
             messages=[
                 {
                     "role": "user",
@@ -189,7 +249,7 @@ def analyze_gaze_capture(frame: FrameCaptureResult, cfg) -> VisionCheckResult:
                         },
                         {
                             "type": "image_url",
-                            "image_url": {"url": _data_uri(frame)},
+                            "image_url": {"url": _data_uri(prepared_frame)},
                         },
                     ],
                 }

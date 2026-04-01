@@ -1,0 +1,251 @@
+{
+  "session_id": "session_20260331_wenfei_83da58",
+  "participant_id": "wenfei",
+  "start_time": "2026-03-31T19:10:08.964431-04:00",
+  "end_time": "2026-03-31T19:15:42.474330-04:00",
+  "screen_observations": [
+    {
+      "timestamp": "2026-03-31T19:10:20.006773-04:00",
+      "analysis": "Screen alignment not yet verified (screen_visible_not_centered)."
+    }
+  ],
+  "events": [
+    {
+      "timestamp": "2026-03-31T19:10:09.654056-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:10:14.359555-04:00",
+      "name": "screen_search_verified",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0,
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:10:14.359652-04:00",
+      "name": "screen_position_initialized",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:10:15.081594-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_found",
+        "utterance": "I've found the screen!",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I've found the screen!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:10:15.140425-04:00",
+      "name": "bootup_complete",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-03-31T19:10:18.641650-04:00",
+      "name": "screen_verification_error",
+      "payload": {
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:10:18.641703-04:00",
+      "name": "screen_position_reused",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:10:19.955195-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "screen_watch",
+        "utterance": "I'm still adjusting to find and face your screen.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I'm still adjusting to find and face your screen.`."
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:10:20.652584-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "screen_watch_success",
+        "utterance": "Let's start reading, I am ready.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading, I am ready.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:10:20.652637-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-03-31T19:15:42.424564-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Session complete. I observed 0 distraction events and used 0 voice prompts. Great effort today!",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Session complete. I observed 0 distraction events and used 0 voice prompts. Great effort today!`."
+          }
+        }
+      }
+    }
+  ],
+  "distraction_events": [],
+  "total_distraction_count": 0,
+  "total_voice_prompts": 0
+}

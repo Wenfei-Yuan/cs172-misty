@@ -39,9 +39,12 @@ The webcam client can send either plain text or JSON.
 
 Supported plain text messages:
 
-- `disengaged=true`
-- `disengaged=false`
-- `covert_disengagemnt=ture` (extension-side start alias)
+- `posture_disengaged=true` (webcam-side distraction start)
+- `posture_disengaged=false` (webcam-side re-engagement)
+- `covert_disengagement=true` (extension-side distraction start)
+- `covert_disengagemnt=ture` (legacy typo alias, still supported)
+- `re-engagement` (webcam-side re-engagement alias)
+- `re-engament` (legacy typo alias, still supported)
 - `start`
 - `stop`
 - `shutdown`
@@ -49,11 +52,23 @@ Supported plain text messages:
 Supported JSON messages:
 
 ```json
-{"disengaged": true}
+{"posture_disengaged": true}
 ```
 
 ```json
-{"disengaged": false}
+{"posture_disengaged": false}
+```
+
+```json
+{"covert_disengagement": true}
+```
+
+```json
+{"re_engagement": true}
+```
+
+```json
+{"re_engament": true}
 ```
 
 ```json
@@ -67,6 +82,21 @@ Supported JSON messages:
 ```json
 {"event": "shutdown"}
 ```
+
+### Extension -> server current text message
+
+When extension needs to pass reading context to Misty, it can send:
+
+```json
+{"currentText": "the text user is currently reading"}
+```
+
+This is used in both cases:
+
+- extension receives `posture_disengaged=true` from server, then replies with `{"currentText":"..."}`
+- extension itself detects covert disengagement and sends `{"currentText":"..."}`
+
+In both cases, server forwards this payload to `POST /current_text` on port `5050` (Misty side).
 
 ### Server -> webcam responses
 
@@ -100,33 +130,36 @@ These notifications are only sent to the client registered as `extension`.
 
 When the webcam sends a disengagement-start signal that successfully becomes a distraction start event, the extension receives:
 
-```text
-posture_disengagement=true
+```json
+{"posture_disengaged": true}
 ```
 
 When the distraction end condition is satisfied and `stop` is successfully forwarded, the extension receives:
 
-```text
-ROBOT_REDIRECT
+```json
+{"re_engagement": true}
 ```
 
 ### Distraction state rules
 
-- The first `disengaged=true` starts a distraction event and is forwarded to Misty as `POST /distraction/start` on port `5050`
-- The extension message `covert_disengagemnt=ture` is treated as the same start signal and also forwards `POST /distraction/start` on port `5050`
-- While already in distraction, repeated `disengaged=true` messages do not retrigger start
-- After distraction has started, `disengaged=false` must be observed for 6 consecutive messages before the bridge forwards `POST /distraction/stop`
-- If a `disengaged=true` arrives before the count reaches 6, the recovery count resets
+- `posture_disengaged=true` (webcam) or `covert_disengagement=true` (extension) both map to the same distraction-start signal and forward `POST /distraction/start` to port `5050`
+- While already in distraction, repeated start-side signals do not retrigger start
+- `posture_disengaged=false` (webcam) or webcam-side `re-engagement` / `{"re_engagement": true}` map to distraction stop and forward `POST /distraction/stop` to port `5050`
+- extension-side re-engagement messages are ignored and do not trigger stop
+- While already recovered, repeated recovery signals do not retrigger stop
+- extension `{"currentText":"..."}` messages are forwarded to `POST /current_text` on port `5050`
 
 ### Typical flow
 
 1. `extension` connects and sends `{"client":"extension"}`
 2. `webcam` connects and sends `{"client":"webcam"}`
-3. `webcam` sends `disengaged=true`
+3. `webcam` sends `{"posture_disengaged": true}`
 4. Server forwards `start` to Misty on port `5050`
 5. Server returns a JSON success response to `webcam`
-6. Server sends `posture_disengagement=true` to `extension`
-7. `webcam` later sends consecutive `disengaged=false` messages
-8. On the 6th consecutive `disengaged=false`, server forwards `stop` to Misty on port `5050`
-9. Server returns a JSON success response to `webcam`
-10. Server sends `ROBOT_REDIRECT` to `extension`
+6. Server sends `{"posture_disengaged": true}` to `extension`
+7. `extension` sends `{"currentText":"..."}` to server
+8. Server forwards that text to Misty on `POST /current_text` (port `5050`)
+9. `webcam` later sends `{"posture_disengaged": false}` (or webcam-side `re-engagement`)
+10. Server forwards `stop` to Misty on port `5050`
+11. Server returns a JSON success response to `webcam`
+12. Server sends `{"re_engagement": true}` to `extension`

@@ -14,11 +14,14 @@ class Config:
     speech_volume: int = 90
     gaze_timeout_s: float = 60.0
     gaze_poll_interval_s: float = 2.0
-    fast_gaze_poll_interval_s: float = 0.6
+    fast_gaze_poll_interval_s: float = 0.3
     fast_gaze_poll_window_s: float = 8.0
+    vision_max_image_dim_px: int = 640
+    vision_jpeg_quality: int = 60
     max_attempts: int = 3
     shake_amplitude_deg: int = 60
     shake_period_s: float = 0.6
+    shake_pause_s: float = 0.5
     signal_host: str = "127.0.0.1"
     signal_port: int = 5050
     default_screen_yaw: float = -40.0

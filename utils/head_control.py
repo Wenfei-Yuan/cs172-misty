@@ -14,7 +14,12 @@ def look_at_screen(misty, screen_pos) -> None:
     )
 
 
+def _wait_or_stop(stop_event, duration_s: float) -> bool:
+    return stop_event.wait(timeout=max(0.0, duration_s))
+
+
 def shake_head_only(misty, cfg, stop_event) -> None:
+    pause_s = float(getattr(cfg, "shake_pause_s", 0.5))
     while not stop_event.is_set():
         misty.perform_action(
             "head_move",
@@ -23,8 +28,9 @@ def shake_head_only(misty, cfg, stop_event) -> None:
                 "Velocity": 80,
             },
         )
-        time.sleep(cfg.shake_period_s)
-        if stop_event.is_set():
+        if _wait_or_stop(stop_event, cfg.shake_period_s):
+            break
+        if _wait_or_stop(stop_event, pause_s):
             break
         misty.perform_action(
             "head_move",
@@ -33,4 +39,7 @@ def shake_head_only(misty, cfg, stop_event) -> None:
                 "Velocity": 80,
             },
         )
-        time.sleep(cfg.shake_period_s)
+        if _wait_or_stop(stop_event, cfg.shake_period_s):
+            break
+        if _wait_or_stop(stop_event, pause_s):
+            break

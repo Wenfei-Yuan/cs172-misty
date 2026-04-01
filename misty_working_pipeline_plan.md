@@ -364,9 +364,13 @@ def shake_head_only(misty, cfg, stop_event):
             {"Yaw": cfg.shake_amplitude_deg, "Velocity": 80})
         time.sleep(cfg.shake_period_s)
         if stop_event.is_set(): break
+        time.sleep(cfg.shake_pause_s)
+        if stop_event.is_set(): break
         misty.perform_action("head_move",
             {"Yaw": -cfg.shake_amplitude_deg, "Velocity": 80})
         time.sleep(cfg.shake_period_s)
+        if stop_event.is_set(): break
+        time.sleep(cfg.shake_pause_s)
 ```
 
 ### Stage 4 — Recovery (inline in pipeline.py)
@@ -416,8 +420,9 @@ class Config:
 
     # Behavior
     max_attempts: int = 3              # max no-response attempts before session close
-    shake_amplitude_deg: int = 35      # degrees left/right for head shake (head only)
-    shake_period_s: float = 0.6        # seconds per half-oscillation
+    shake_amplitude_deg: int = 75      # degrees left/right for head shake (head only)
+    shake_period_s: float = 0.6        # seconds used to reach each end position
+    shake_pause_s: float = 0.5         # seconds to hold at the left/right endpoints
 
     # External signal receiver
     signal_host: str = "127.0.0.1"

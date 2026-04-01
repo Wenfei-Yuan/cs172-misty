@@ -1,0 +1,734 @@
+{
+  "session_id": "session_20260331_wenfei_d6a809",
+  "participant_id": "wenfei",
+  "start_time": "2026-03-31T19:29:27.691256-04:00",
+  "end_time": "2026-03-31T19:32:03.835077-04:00",
+  "screen_observations": [
+    {
+      "timestamp": "2026-03-31T19:29:38.491855-04:00",
+      "analysis": "Screen alignment not yet verified (screen_visible_not_centered)."
+    },
+    {
+      "timestamp": "2026-03-31T19:30:39.157978-04:00",
+      "analysis": "Screen alignment not yet verified (screen_visible_not_centered)."
+    },
+    {
+      "timestamp": "2026-03-31T19:31:14.288225-04:00",
+      "analysis": "Screen alignment not yet verified (screen_visible_not_centered)."
+    },
+    {
+      "timestamp": "2026-03-31T19:31:28.219336-04:00",
+      "analysis": "Screen alignment not yet verified (screen_visible_not_centered)."
+    }
+  ],
+  "events": [
+    {
+      "timestamp": "2026-03-31T19:29:28.668070-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:29:33.529194-04:00",
+      "name": "screen_search_verified",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0,
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:29:33.529286-04:00",
+      "name": "screen_position_initialized",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:29:34.216819-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_found",
+        "utterance": "I've found the screen!",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I've found the screen!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:29:34.253357-04:00",
+      "name": "bootup_complete",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-03-31T19:29:37.827905-04:00",
+      "name": "screen_verification_error",
+      "payload": {
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:29:37.827971-04:00",
+      "name": "screen_position_reused",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:29:38.451309-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "screen_watch",
+        "utterance": "I'm still adjusting to find and face your screen.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I'm still adjusting to find and face your screen.`."
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:29:39.419445-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "screen_watch_success",
+        "utterance": "Let's start reading, I am ready.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading, I am ready.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:29:39.419520-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-03-31T19:30:22.827434-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:30:34.614601-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "gaze_recovered",
+        "utterance": "I see you! Let me check what you were working on.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I see you! Let me check what you were working on.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:30:34.614673-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-03-31T19:30:38.192983-04:00",
+      "name": "screen_verification_error",
+      "payload": {
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:30:38.193019-04:00",
+      "name": "screen_position_reused",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:30:39.118281-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "screen_watch",
+        "utterance": "I'm still adjusting to find and face your screen.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I'm still adjusting to find and face your screen.`."
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:30:39.805894-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "screen_watch_success",
+        "utterance": "Let's start reading, I am ready.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading, I am ready.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:30:39.805954-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-03-31T19:31:05.539730-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:05.539792-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:13.312977-04:00",
+      "name": "screen_verification_error",
+      "payload": {
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:13.313007-04:00",
+      "name": "screen_position_reused",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:14.242893-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "screen_watch",
+        "utterance": "I'm still adjusting to find and face your screen.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I'm still adjusting to find and face your screen.`."
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:14.861830-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "screen_watch_success",
+        "utterance": "Let's start reading, I am ready.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading, I am ready.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:14.861937-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-03-31T19:31:14.862027-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:22.949600-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "gaze_recovered",
+        "utterance": "I see you! Let me check what you were working on.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I see you! Let me check what you were working on.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:22.949674-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-03-31T19:31:27.243612-04:00",
+      "name": "screen_verification_error",
+      "payload": {
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:27.243683-04:00",
+      "name": "screen_position_reused",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:28.167389-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "screen_watch",
+        "utterance": "I'm still adjusting to find and face your screen.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I'm still adjusting to find and face your screen.`."
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:28.698932-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "screen_watch_success",
+        "utterance": "Let's start reading, I am ready.",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading, I am ready.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:28.699007-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-03-31T19:31:44.043861-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:31:44.043939-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-03-31T19:32:03.796437-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Session complete. I observed 4 distraction events and used 0 voice prompts. Great effort today!",
+        "success": true,
+        "audio_setup": {
+          "audio_enable": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          },
+          "volume_settings": {
+            "misty2py_response": {
+              "success": true
+            },
+            "overall_success": true,
+            "rest_response": {
+              "result": true,
+              "success": true
+            }
+          }
+        },
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Session complete. I observed 4 distraction events and used 0 voice prompts. Great effort today!`."
+          }
+        }
+      }
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-03-31T19:30:22.827546-04:00",
+      "distraction_end_time": "2026-03-31T19:30:33.905899-04:00",
+      "distraction_end_signal_received": false,
+      "distraction_duration_s": 11.08,
+      "gaze_detected": true,
+      "gaze_latency_s": 10.71,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-03-31T19:31:05.539825-04:00",
+      "distraction_end_time": "2026-03-31T19:31:10.617692-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.08,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 3,
+      "distraction_start_time": "2026-03-31T19:31:14.862057-04:00",
+      "distraction_end_time": "2026-03-31T19:31:22.450554-04:00",
+      "distraction_end_signal_received": false,
+      "distraction_duration_s": 7.59,
+      "gaze_detected": true,
+      "gaze_latency_s": 7.49,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 4,
+      "distraction_start_time": "2026-03-31T19:31:44.043971-04:00",
+      "distraction_end_time": null,
+      "distraction_end_signal_received": false,
+      "distraction_duration_s": null,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    }
+  ],
+  "total_distraction_count": 4,
+  "total_voice_prompts": 0
+}

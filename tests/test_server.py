@@ -9,7 +9,7 @@ import server
 
 class ServerEventMappingTests(unittest.TestCase):
     def setUp(self) -> None:
-        server.tracker = server.DisengagementTracker(stop_streak=6)
+        server.tracker = server.DisengagementTracker()
         server.client_roles.clear()
         server.role_clients.clear()
 
@@ -18,10 +18,8 @@ class ServerEventMappingTests(unittest.TestCase):
         self.assertEqual(server.parse_message_event("stop"), "stop")
         self.assertEqual(server.parse_message_event("shutdown"), "shutdown")
 
-    def test_legacy_disengaged_flags_are_debounced(self) -> None:
+    def test_legacy_disengaged_flags_trigger_start_stop(self) -> None:
         self.assertEqual(server.parse_message_event("disengaged=true"), "start")
-        for _ in range(5):
-            self.assertIsNone(server.parse_message_event("disengaged=false"))
         self.assertEqual(server.parse_message_event("disengaged=false"), "stop")
 
     def test_repeated_disengaged_true_does_not_retrigger_start(self) -> None:
@@ -31,31 +29,60 @@ class ServerEventMappingTests(unittest.TestCase):
     def test_disengaged_false_without_active_distraction_is_ignored(self) -> None:
         self.assertIsNone(server.parse_message_event("disengaged=false"))
 
-    def test_false_streak_resets_when_disengaged_true_returns(self) -> None:
+    def test_repeated_disengaged_false_does_not_retrigger_stop(self) -> None:
         self.assertEqual(server.parse_message_event("disengaged=true"), "start")
-        for _ in range(3):
-            self.assertIsNone(server.parse_message_event("disengaged=false"))
-        self.assertIsNone(server.parse_message_event("disengaged=true"))
-        for _ in range(5):
-            self.assertIsNone(server.parse_message_event("disengaged=false"))
         self.assertEqual(server.parse_message_event("disengaged=false"), "stop")
+        self.assertIsNone(server.parse_message_event("disengaged=false"))
 
     def test_json_payloads_are_supported(self) -> None:
         self.assertEqual(server.parse_message_event('{"event": "start"}'), "start")
         self.assertEqual(server.parse_message_event('{"event": "shutdown"}'), "shutdown")
         self.assertEqual(server.parse_message_event('{"disengaged": true}'), "start")
-        for _ in range(5):
-            self.assertIsNone(server.parse_message_event('{"disengaged": false}'))
         self.assertEqual(server.parse_message_event('{"disengaged": false}'), "stop")
+        self.assertEqual(server.parse_message_event('{"disengage": true}'), "start")
+        self.assertEqual(server.parse_message_event('{"disengage": false}'), "stop")
+
+    def test_string_bool_payloads_are_supported(self) -> None:
+        self.assertEqual(server.parse_message_event('{"posture_disengaged": "true"}'), "start")
+        self.assertEqual(server.parse_message_event('{"posture_disengaged": "false"}'), "stop")
+        self.assertEqual(server.parse_message_event('{"disengage": "true"}'), "start")
+        self.assertEqual(server.parse_message_event('{"disengage": "false"}'), "stop")
 
     def test_extension_covert_disengagement_alias_starts_distraction(self) -> None:
         self.assertEqual(server.parse_message_event("covert_disengagemnt=ture"), "start")
         self.assertIsNone(server.parse_message_event("covert_disengagemnt=ture"))
 
+    def test_posture_disengaged_and_reengagement_are_supported(self) -> None:
+        self.assertEqual(server.parse_message_event("posture_disengaged=true"), "start")
+        self.assertEqual(server.parse_message_event("re-engagement"), "stop")
+        self.assertEqual(server.parse_message_event('{"posture_disengaged": true}'), "start")
+        self.assertEqual(server.parse_message_event('{"re_engagement": true}'), "stop")
+        self.assertEqual(server.parse_message_event('{"posture_disengaged": true}'), "start")
+        self.assertEqual(server.parse_message_event("re-engament"), "stop")
+        self.assertEqual(server.parse_message_event('{"posture_disengaged": true}'), "start")
+        self.assertEqual(server.parse_message_event('{"re_engament": true}'), "stop")
+
+    def test_extension_reengagement_signal_is_ignored(self) -> None:
+        self.assertEqual(server.parse_message_event("posture_disengaged=true"), "start")
+        self.assertIsNone(server.parse_message_event("re-engagement", source_role="extension"))
+        self.assertIsNone(server.parse_message_event('{"re_engagement": true}', source_role="extension"))
+
     def test_unrecognized_messages_are_ignored(self) -> None:
         self.assertIsNone(server.parse_message_event("hello"))
         self.assertIsNone(server.parse_message_event('{"event": "unknown"}'))
         self.assertIsNone(server.parse_message_event(""))
+
+    def test_current_text_payload_is_supported(self) -> None:
+        self.assertEqual(server.parse_current_text('{"currentText":"reading page 2"}'), "reading page 2")
+        self.assertIsNone(server.parse_current_text('{"currentText":"   "}'))
+        self.assertIsNone(server.parse_current_text('{"text":"missing key"}'))
+
+    def test_posture_payload_with_client_field_is_not_treated_as_registration(self) -> None:
+        payload = (
+            '{"client":"webcam","source":"webcam","type":"posture",'
+            '"disengage":true,"face_present":true}'
+        )
+        self.assertIsNone(server.parse_client_registration(payload))
 
 
 class FakeWebSocket:
@@ -79,13 +106,15 @@ class FakeWebSocket:
 
 class ServerHandlerTests(unittest.TestCase):
     def setUp(self) -> None:
-        server.tracker = server.DisengagementTracker(stop_streak=1)
+        server.tracker = server.DisengagementTracker()
         self.original_forward_event = server.forward_event
+        self.original_forward_current_text = server.forward_current_text
         server.client_roles.clear()
         server.role_clients.clear()
 
     def tearDown(self) -> None:
         server.forward_event = self.original_forward_event
+        server.forward_current_text = self.original_forward_current_text
         server.client_roles.clear()
         server.role_clients.clear()
 
@@ -97,7 +126,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(len(websocket.sent_messages), 1)
         self.assertEqual(json.loads(websocket.sent_messages[0]), {"ok": True, "type": "registered", "client": "extension"})
 
-    def test_stop_event_sends_robot_redirect_message_to_extension(self) -> None:
+    def test_stop_event_sends_reengagement_message_to_extension(self) -> None:
         async def fake_forward_event(event: str) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
@@ -112,22 +141,28 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(len(webcam_socket.sent_messages), 2)
         self.assertEqual(json.loads(webcam_socket.sent_messages[0])["event"], "start")
         self.assertEqual(json.loads(webcam_socket.sent_messages[1])["event"], "stop")
-        self.assertEqual(extension_socket.sent_messages, [server.POSTURE_DISENGAGEMENT_MESSAGE, server.ROBOT_REDIRECT_MESSAGE])
+        self.assertEqual(
+            extension_socket.sent_messages,
+            [
+                server.POSTURE_DISENGAGED_MESSAGE,
+                server.REENGAGEMENT_MESSAGE,
+            ],
+        )
 
-    def test_disengaged_true_sends_posture_disengagement_message_to_extension(self) -> None:
+    def test_posture_disengaged_true_sends_posture_disengaged_message_to_extension(self) -> None:
         async def fake_forward_event(event: str) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
         server.forward_event = fake_forward_event
         extension_socket = FakeWebSocket([])
-        webcam_socket = FakeWebSocket(["disengaged=true"])
+        webcam_socket = FakeWebSocket(['{"posture_disengaged": true}'])
         server.register_client(extension_socket, "extension")
 
         asyncio.run(server.handler(webcam_socket))
 
         self.assertEqual(len(webcam_socket.sent_messages), 1)
         self.assertEqual(json.loads(webcam_socket.sent_messages[0])["event"], "start")
-        self.assertEqual(extension_socket.sent_messages, [server.POSTURE_DISENGAGEMENT_MESSAGE])
+        self.assertEqual(extension_socket.sent_messages, [server.POSTURE_DISENGAGED_MESSAGE])
 
     def test_extension_covert_disengagement_message_triggers_start(self) -> None:
         async def fake_forward_event(event: str) -> tuple[bool, str]:
@@ -142,6 +177,20 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(len(extension_socket.sent_messages), 1)
         self.assertEqual(json.loads(extension_socket.sent_messages[0])["event"], "start")
 
+    def test_extension_reengagement_message_is_rejected(self) -> None:
+        async def fake_forward_event(event: str) -> tuple[bool, str]:
+            return True, json.dumps({"event": event})
+
+        server.forward_event = fake_forward_event
+        server.tracker.distraction_active = True
+        extension_socket = FakeWebSocket(["re-engagement"])
+        server.register_client(extension_socket, "extension")
+
+        asyncio.run(server.handler(extension_socket))
+
+        self.assertEqual(len(extension_socket.sent_messages), 1)
+        self.assertEqual(json.loads(extension_socket.sent_messages[0]), {"ok": False, "reason": "unrecognized_message"})
+
     def test_extension_notifications_are_skipped_when_no_extension_registered(self) -> None:
         async def fake_forward_event(event: str) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
@@ -154,6 +203,22 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(len(webcam_socket.sent_messages), 2)
         self.assertEqual(json.loads(webcam_socket.sent_messages[0])["event"], "start")
         self.assertEqual(json.loads(webcam_socket.sent_messages[1])["event"], "stop")
+
+    def test_extension_current_text_is_forwarded_to_trigger(self) -> None:
+        async def fake_forward_current_text(current_text: str) -> tuple[bool, str]:
+            return True, json.dumps({"event": "current_text", "currentText": current_text})
+
+        server.forward_current_text = fake_forward_current_text
+        extension_socket = FakeWebSocket(['{"currentText":"I was reading chapter 3"}'])
+        server.register_client(extension_socket, "extension")
+
+        asyncio.run(server.handler(extension_socket))
+
+        self.assertEqual(len(extension_socket.sent_messages), 1)
+        response = json.loads(extension_socket.sent_messages[0])
+        self.assertEqual(response["event"], "current_text")
+        self.assertEqual(response["currentText"], "I was reading chapter 3")
+        self.assertTrue(response["ok"])
 
 
 if __name__ == "__main__":
