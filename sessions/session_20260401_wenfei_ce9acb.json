@@ -1,0 +1,143 @@
+{
+  "session_id": "session_20260401_wenfei_ce9acb",
+  "participant_id": "wenfei",
+  "start_time": "2026-04-01T09:37:50.359285-04:00",
+  "end_time": "2026-04-01T09:43:59.298215-04:00",
+  "screen_observations": [
+    {
+      "timestamp": "2026-04-01T09:38:07.427934-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    }
+  ],
+  "events": [
+    {
+      "timestamp": "2026-04-01T09:37:51.237010-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-01T09:37:56.152413-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-01T09:37:59.414148-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 32.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-01T09:38:02.486774-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 52.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-01T09:38:06.147691-04:00",
+      "name": "screen_search_verified",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 7.0,
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-01T09:38:06.147738-04:00",
+      "name": "screen_position_initialized",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-01T09:38:06.416788-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_found",
+        "utterance": "I've found the screen!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I've found the screen!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-01T09:38:06.584468-04:00",
+      "name": "bootup_complete",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-01T09:38:07.427826-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-01T09:38:07.813614-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "screen_watch_success",
+        "utterance": "Let's start reading, I am ready.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading, I am ready.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-01T09:38:07.813643-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-01T09:43:59.043711-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Session complete. I observed 0 distraction events and used 0 voice prompts. Great effort today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Session complete. I observed 0 distraction events and used 0 voice prompts. Great effort today!`."
+          }
+        }
+      }
+    }
+  ],
+  "distraction_events": [],
+  "total_distraction_count": 0,
+  "total_voice_prompts": 0
+}

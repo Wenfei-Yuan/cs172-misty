@@ -28,6 +28,10 @@ class Config:
     screen_init_left_front_pitch: float = 7.0
     screen_search_yaw_offsets: tuple[float, ...] = (0.0, -10.0, 10.0, -20.0, 20.0, -30.0, 30.0)
     screen_search_pitch_offsets: tuple[float, ...] = (0.0, -8.0, 8.0, -15.0, 15.0)
+    screen_search_fine_yaw_offsets: tuple[float, ...] = (0.0, -5.0, 5.0, -10.0, 10.0)
+    screen_search_fine_pitch_offsets: tuple[float, ...] = (0.0, -4.0, 4.0, -8.0, 8.0)
+    screen_alignment_confirm_checks: int = 2
+    screen_alignment_confirm_settle_s: float = 0.4
     screen_settle_s: float = 0.7
     cache_screen_pos: bool = True
     escalation_prompts: tuple[str, ...] = (

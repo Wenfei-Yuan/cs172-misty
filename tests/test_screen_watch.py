@@ -95,6 +95,51 @@ class ScreenWatchTests(unittest.TestCase):
         self.assertEqual(look_calls, [screen_pos])
         self.assertIn(("screen_position_reused", {"yaw": 18.0, "pitch": -6.0, "source": "bootup"}), log.records)
 
+    def test_search_uses_fine_adjustment_after_visible_detection(self) -> None:
+        look_calls = []
+        statuses = iter(
+            [
+                SimpleNamespace(ok=True, status="visible", reason="screen_visible_not_centered"),
+                SimpleNamespace(ok=True, status="visible", reason="screen_visible_not_centered"),
+                SimpleNamespace(ok=True, status="aligned", reason=None),
+                SimpleNamespace(ok=True, status="aligned", reason=None),
+            ]
+        )
+
+        screen_watch.look_at_screen = lambda misty, position: look_calls.append(position)
+        screen_watch._check_screen_alignment = lambda *args, **kwargs: next(statuses)
+        screen_watch.time = SimpleNamespace(sleep=lambda seconds: None)
+
+        cfg = SimpleNamespace(
+            screen_settle_s=0.0,
+            screen_search_yaw_offsets=(0.0,),
+            screen_search_pitch_offsets=(0.0,),
+            screen_search_fine_yaw_offsets=(0.0, 5.0),
+            screen_search_fine_pitch_offsets=(0.0,),
+            screen_alignment_confirm_checks=2,
+            screen_alignment_confirm_settle_s=0.0,
+        )
+        log = _FakeLog()
+        seed = screen_watch.ScreenPos(yaw=10.0, pitch=2.0)
+
+        result = screen_watch._search_screen_position_with_vlm(
+            misty=object(),
+            cfg=cfg,
+            seed=seed,
+            log=log,
+        )
+
+        self.assertEqual(result.status, "verified")
+        self.assertEqual(result.position, screen_watch.ScreenPos(yaw=15.0, pitch=2.0))
+        self.assertEqual(
+            look_calls,
+            [
+                screen_watch.ScreenPos(yaw=10.0, pitch=2.0),
+                screen_watch.ScreenPos(yaw=10.0, pitch=2.0),
+                screen_watch.ScreenPos(yaw=15.0, pitch=2.0),
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -47,25 +47,90 @@ def _check_screen_alignment(misty, cfg, log=None, stage: str = "screen_watch") -
     return result
 
 
-def _search_screen_position_with_vlm(misty, cfg, seed: ScreenPos, log=None) -> ScreenSearchResult:
+def _confirm_alignment(misty, cfg, candidate: ScreenPos, log=None, stage: str = "screen_search") -> bool:
+    checks = max(1, int(getattr(cfg, "screen_alignment_confirm_checks", 2)))
+    settle_s = max(0.0, float(getattr(cfg, "screen_alignment_confirm_settle_s", cfg.screen_settle_s)))
+    for check_idx in range(1, checks):
+        time.sleep(settle_s)
+        verify = _check_screen_alignment(misty, cfg, log=log, stage=f"{stage}_confirm")
+        if verify.status != "aligned":
+            if log is not None:
+                log.record(
+                    "screen_alignment_unstable",
+                    yaw=candidate.yaw,
+                    pitch=candidate.pitch,
+                    check=check_idx + 1,
+                    reason=verify.reason or verify.status,
+                )
+            return False
+    return True
+
+
+def _run_grid_search(
+    misty,
+    cfg,
+    seed: ScreenPos,
+    yaw_offsets: tuple[float, ...],
+    pitch_offsets: tuple[float, ...],
+    log=None,
+    stage: str = "screen_search",
+) -> tuple[ScreenPos | None, ScreenPos | None, str | None]:
+    first_visible: ScreenPos | None = None
     last_reason = None
-    for pitch_offset in cfg.screen_search_pitch_offsets:
-        for yaw_offset in cfg.screen_search_yaw_offsets:
+
+    for pitch_offset in pitch_offsets:
+        for yaw_offset in yaw_offsets:
             candidate = ScreenPos(
                 yaw=_clamp(seed.yaw + yaw_offset, -90.0, 90.0),
                 pitch=_clamp(seed.pitch + pitch_offset, -40.0, 40.0),
             )
             look_at_screen(misty, candidate)
             time.sleep(cfg.screen_settle_s)
-            result = _check_screen_alignment(misty, cfg, log=log, stage="screen_search")
+            result = _check_screen_alignment(misty, cfg, log=log, stage=stage)
             last_reason = result.reason or result.status
-            if result.status == "aligned":
-                return ScreenSearchResult(status="verified", position=candidate)
-            if log is not None and result.status == "visible":
-                log.record("screen_verification_visible", yaw=candidate.yaw, pitch=candidate.pitch, reason=result.reason)
-    if log is not None and last_reason:
-        log.record("screen_search_error", reason=last_reason)
-    return ScreenSearchResult(status="not_found", reason=last_reason or "screen_not_found")
+            if result.status == "aligned" and _confirm_alignment(misty, cfg, candidate, log=log, stage=stage):
+                return candidate, first_visible, last_reason
+            if result.status == "visible":
+                if first_visible is None:
+                    first_visible = candidate
+                if log is not None:
+                    log.record("screen_verification_visible", yaw=candidate.yaw, pitch=candidate.pitch, reason=result.reason)
+
+    return None, first_visible, last_reason
+
+
+def _search_screen_position_with_vlm(misty, cfg, seed: ScreenPos, log=None) -> ScreenSearchResult:
+    coarse_position, first_visible, last_reason = _run_grid_search(
+        misty,
+        cfg,
+        seed=seed,
+        yaw_offsets=cfg.screen_search_yaw_offsets,
+        pitch_offsets=cfg.screen_search_pitch_offsets,
+        log=log,
+        stage="screen_search",
+    )
+    if coarse_position is not None:
+        return ScreenSearchResult(status="verified", position=coarse_position)
+
+    fine_seed = first_visible or seed
+    fine_yaw_offsets = tuple(getattr(cfg, "screen_search_fine_yaw_offsets", (0.0, -5.0, 5.0, -10.0, 10.0)))
+    fine_pitch_offsets = tuple(getattr(cfg, "screen_search_fine_pitch_offsets", (0.0, -4.0, 4.0, -8.0, 8.0)))
+    fine_position, _, fine_last_reason = _run_grid_search(
+        misty,
+        cfg,
+        seed=fine_seed,
+        yaw_offsets=fine_yaw_offsets,
+        pitch_offsets=fine_pitch_offsets,
+        log=log,
+        stage="screen_search_fine",
+    )
+    if fine_position is not None:
+        return ScreenSearchResult(status="verified", position=fine_position)
+
+    final_reason = fine_last_reason or last_reason or "screen_not_found"
+    if log is not None:
+        log.record("screen_search_error", reason=final_reason)
+    return ScreenSearchResult(status="not_found", reason=final_reason)
 
 
 def find_screen_position_with_vlm(misty, cfg, log=None) -> ScreenSearchResult:
