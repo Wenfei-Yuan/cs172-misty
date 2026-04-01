@@ -22,12 +22,15 @@ class ScreenSearchResult:
     reason: str | None = None
 
 
-def default_screen_position(cfg) -> ScreenPos:
-    return ScreenPos(yaw=cfg.default_screen_yaw, pitch=cfg.default_screen_pitch)
-
-
 def _clamp(value: float, low: float, high: float) -> float:
     return max(low, min(high, value))
+
+
+def default_screen_position(cfg) -> ScreenPos:
+    return ScreenPos(
+        yaw=_clamp(cfg.screen_init_left_front_yaw, -90.0, 90.0),
+        pitch=_clamp(cfg.screen_init_left_front_pitch, -40.0, 40.0),
+    )
 
 
 def _check_screen_alignment(misty, cfg, log=None, stage: str = "screen_watch") -> VisionCheckResult:
@@ -76,6 +79,13 @@ def find_screen_position_with_vlm(misty, cfg, log=None) -> ScreenSearchResult:
 
 
 def run_screen_watch(misty, cfg, log, screen_pos: ScreenPos | None) -> ScreenPos | None:
+    if screen_pos is not None and getattr(cfg, "cache_screen_pos", True):
+        show_image(misty, READING_FACE)
+        look_at_screen(misty, screen_pos)
+        time.sleep(cfg.screen_settle_s)
+        log.record("screen_cache_hit", yaw=screen_pos.yaw, pitch=screen_pos.pitch)
+        log.record_screen_observation("Screen alignment verified via cached position.")
+        return screen_pos
     if screen_pos is None:
         search = find_screen_position_with_vlm(misty, cfg, log=log)
         position = search.position

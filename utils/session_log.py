@@ -62,13 +62,6 @@ class SessionLog:
         end = datetime.fromisoformat(end_ts)
         current["distraction_duration_s"] = round((end - start).total_seconds(), 2)
 
-    def record_distraction_gaze(self, gaze_seen: bool, latency_s) -> None:
-        if not self.distraction_events:
-            return
-        current = self.distraction_events[-1]
-        current["gaze_detected"] = bool(gaze_seen)
-        current["gaze_latency_s"] = round(latency_s, 2) if latency_s is not None else None
-
     def record_distraction_result(self, outcome: str, gaze_seen: bool, latency_s) -> None:
         if not self.distraction_events:
             return

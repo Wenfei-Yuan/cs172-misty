@@ -4,9 +4,9 @@ from config import Config
 from stages.bootup import run_bootup
 from stages.distraction import run_distraction
 from stages.no_response_prompt import run_no_response
-from stages.screen_watch import run_screen_watch
+from stages.screen_watch import run_screen_watch, default_screen_position
 from stages.summary import run_summary
-from utils.audio import speak_text
+from utils.audio import ensure_audio_ready, speak_text
 from utils.session_id import generate_session_id
 from utils.session_log import SessionLog
 from utils.triggers import ExternalSignalReceiver
@@ -20,8 +20,10 @@ def run(misty, cfg: Config) -> None:
 
     screen_pos = None
     attempt = 0
+    screen_search_retries = 0
 
     try:
+        ensure_audio_ready(misty, cfg)
         screen_pos = run_bootup(misty, cfg, log)
         while True:
             if signal_rx.has_shutdown_event():
@@ -29,7 +31,15 @@ def run(misty, cfg: Config) -> None:
 
             screen_pos = run_screen_watch(misty, cfg, log, screen_pos)
             if screen_pos is None:
-                log.record("screen_retry_pending")
+                screen_search_retries += 1
+                if screen_search_retries >= 3:
+                    log.record("screen_search_exhausted", retries=screen_search_retries)
+                    speak_text(misty, cfg, "I'm having trouble seeing your screen. Let me try a default position.",
+                               log=log, stage="screen_fallback")
+                    screen_pos = default_screen_position(cfg)
+                    screen_search_retries = 0
+                else:
+                    log.record("screen_retry_pending", attempt=screen_search_retries)
                 continue
 
             speak_text(
@@ -74,6 +84,9 @@ def run(misty, cfg: Config) -> None:
 
             attempt += 1
             run_no_response(misty, cfg, log, attempt)
+            if attempt >= cfg.max_attempts:
+                log.record("max_attempts_reached", attempt=attempt)
+                break
     finally:
         signal_rx.stop()
         run_summary(misty, cfg, log)

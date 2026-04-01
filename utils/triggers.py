@@ -19,7 +19,6 @@ class ExternalSignalReceiver:
         self.host = host
         self.port = port
         self._events = deque()
-        self._current_texts = deque()
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
         self._server = None
@@ -42,20 +41,6 @@ class ExternalSignalReceiver:
                     event = "stop"
                 elif self.path == "/shutdown":
                     event = "shutdown"
-                elif self.path == "/current_text":
-                    try:
-                        payload = json.loads(raw_body.decode("utf-8") or "{}")
-                    except (UnicodeDecodeError, json.JSONDecodeError):
-                        payload = {}
-                    current_text = payload.get("currentText")
-                    if isinstance(current_text, str) and current_text.strip():
-                        with parent._lock:
-                            parent._current_texts.append(current_text.strip())
-                        self.send_response(200)
-                        self.send_header("Content-Type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps({"ok": True, "event": "current_text"}).encode("utf-8"))
-                        return
 
                 if event:
                     with parent._lock:
@@ -142,42 +127,11 @@ class ExternalSignalReceiver:
                 return "stop"
         return None
 
-    def end_received(self) -> bool:
-        with self._lock:
-            removed = False
-            retained_events = deque()
-            while self._events:
-                event = self._events.popleft()
-                if event == "stop":
-                    removed = True
-                    continue
-                retained_events.append(event)
-            self._events = retained_events
-            if removed:
-                return True
-        return False
-
-    def has_end_event(self) -> bool:
-        with self._lock:
-            return "stop" in self._events
-
     def has_shutdown_event(self) -> bool:
         with self._lock:
             return "shutdown" in self._events
 
-    def shutdown_received(self) -> bool:
-        with self._lock:
-            for event in list(self._events):
-                if event == "shutdown":
-                    self._events.remove("shutdown")
-                    return True
-        return False
 
-    def consume_current_text(self) -> str | None:
-        with self._lock:
-            if not self._current_texts:
-                return None
-            return self._current_texts.popleft()
 
 
 class StubTrigger:
@@ -200,12 +154,6 @@ class StubTrigger:
             self._waiting_since = time.time()
             return "stop"
         return None
-
-    def end_received(self) -> bool:
-        return self.consume_interrupt() == "stop"
-
-    def shutdown_received(self) -> bool:
-        return False
 
     def has_shutdown_event(self) -> bool:
         return False

@@ -26,11 +26,9 @@ def ensure_audio_ready(misty, cfg) -> dict[str, dict]:
 
 
 def speak_text(misty, cfg, utterance: str, log=None, stage: str | None = None, **extra) -> dict:
-    audio_setup = ensure_audio_ready(misty, cfg)
     speech_result = speak(misty, utterance)
     combined = {
         "overall_success": bool(speech_result.get("overall_success")),
-        "audio_setup": audio_setup,
         "speech": speech_result,
     }
     print("Speech result:", combined)
@@ -39,7 +37,6 @@ def speak_text(misty, cfg, utterance: str, log=None, stage: str | None = None, *
             "stage": stage,
             "utterance": utterance,
             "success": bool(speech_result.get("overall_success")),
-            "audio_setup": audio_setup,
             "response": speech_result,
         }
         payload.update(extra)

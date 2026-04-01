@@ -58,6 +58,9 @@ def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None) -> Dist
                 break
             poll_interval_s = _gaze_poll_interval(cfg, elapsed)
             frame = capture_frame_result(misty)
+            if frame.reason == "camera_busy":
+                time.sleep(0.3)
+                continue
             result = analyze_gaze_capture(frame, cfg)
             if result.status in {"capture_error", "vlm_error"}:
                 log.record("gaze_check_error", reason=result.reason, status=result.status)

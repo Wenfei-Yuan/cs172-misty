@@ -72,10 +72,6 @@ class ServerEventMappingTests(unittest.TestCase):
         self.assertIsNone(server.parse_message_event('{"event": "unknown"}'))
         self.assertIsNone(server.parse_message_event(""))
 
-    def test_current_text_payload_is_supported(self) -> None:
-        self.assertEqual(server.parse_current_text('{"currentText":"reading page 2"}'), "reading page 2")
-        self.assertIsNone(server.parse_current_text('{"currentText":"   "}'))
-        self.assertIsNone(server.parse_current_text('{"text":"missing key"}'))
 
     def test_posture_payload_with_client_field_is_not_treated_as_registration(self) -> None:
         payload = (
@@ -108,13 +104,11 @@ class ServerHandlerTests(unittest.TestCase):
     def setUp(self) -> None:
         server.tracker = server.DisengagementTracker()
         self.original_forward_event = server.forward_event
-        self.original_forward_current_text = server.forward_current_text
         server.client_roles.clear()
         server.role_clients.clear()
 
     def tearDown(self) -> None:
         server.forward_event = self.original_forward_event
-        server.forward_current_text = self.original_forward_current_text
         server.client_roles.clear()
         server.role_clients.clear()
 
@@ -203,23 +197,6 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(len(webcam_socket.sent_messages), 2)
         self.assertEqual(json.loads(webcam_socket.sent_messages[0])["event"], "start")
         self.assertEqual(json.loads(webcam_socket.sent_messages[1])["event"], "stop")
-
-    def test_extension_current_text_is_forwarded_to_trigger(self) -> None:
-        async def fake_forward_current_text(current_text: str) -> tuple[bool, str]:
-            return True, json.dumps({"event": "current_text", "currentText": current_text})
-
-        server.forward_current_text = fake_forward_current_text
-        extension_socket = FakeWebSocket(['{"currentText":"I was reading chapter 3"}'])
-        server.register_client(extension_socket, "extension")
-
-        asyncio.run(server.handler(extension_socket))
-
-        self.assertEqual(len(extension_socket.sent_messages), 1)
-        response = json.loads(extension_socket.sent_messages[0])
-        self.assertEqual(response["event"], "current_text")
-        self.assertEqual(response["currentText"], "I was reading chapter 3")
-        self.assertTrue(response["ok"])
-
 
 if __name__ == "__main__":
     unittest.main()

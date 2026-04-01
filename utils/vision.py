@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import binascii
 import io
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -97,6 +98,8 @@ def _extract_base64_from_payload(payload: dict) -> tuple[str, str | None]:
 def capture_frame_result(misty) -> FrameCaptureResult:
     try:
         response = requests.get(_camera_url(misty), timeout=5)
+        if response.status_code == 409:
+            return FrameCaptureResult(ok=False, reason="camera_busy")
         response.raise_for_status()
 
         content_type = (response.headers.get("content-type") or "").lower()
@@ -139,10 +142,6 @@ def capture_frame_result(misty) -> FrameCaptureResult:
         return FrameCaptureResult(ok=False, reason=f"camera_http_error:{exc}")
     except Exception as exc:
         return FrameCaptureResult(ok=False, reason=f"camera_request_failed:{exc}")
-
-
-def capture_frame(misty) -> str:
-    return capture_frame_result(misty).base64
 
 
 def _prepare_vision_frame(frame: FrameCaptureResult, cfg) -> FrameCaptureResult:
@@ -214,11 +213,11 @@ def analyze_screen_capture(frame: FrameCaptureResult, cfg) -> VisionCheckResult:
             return VisionCheckResult(ok=False, status="vlm_error", reason="non_string_response")
         normalized = message.strip().lower()
         print("Screen VLM response:", normalized)
-        if normalized.startswith("aligned"):
+        if re.search(r'\baligned\b', normalized):
             return VisionCheckResult(ok=True, status="aligned", model_output=message)
-        if normalized.startswith("visible"):
+        if re.search(r'\bvisible\b', normalized):
             return VisionCheckResult(ok=True, status="visible", reason="screen_visible_not_centered", model_output=message)
-        if normalized.startswith("none"):
+        if re.search(r'\bnone\b', normalized):
             return VisionCheckResult(ok=True, status="no_screen", model_output=message)
         return VisionCheckResult(ok=False, status="vlm_error", reason=f"unexpected_response:{normalized}", model_output=message)
     except Exception as exc:
@@ -259,20 +258,10 @@ def analyze_gaze_capture(frame: FrameCaptureResult, cfg) -> VisionCheckResult:
         if not isinstance(message, str):
             return VisionCheckResult(ok=False, status="vlm_error", reason="non_string_response")
         normalized = message.strip().lower()
-        if normalized.startswith("yes"):
+        if re.search(r'\byes\b', normalized):
             return VisionCheckResult(ok=True, status="gazing", model_output=message)
-        if normalized.startswith("no"):
+        if re.search(r'\bno\b', normalized):
             return VisionCheckResult(ok=True, status="not_gazing", model_output=message)
         return VisionCheckResult(ok=False, status="vlm_error", reason=f"unexpected_response:{normalized}", model_output=message)
     except Exception as exc:
         return VisionCheckResult(ok=False, status="vlm_error", reason=str(exc))
-
-
-def vlm_is_facing_screen(b64: str, cfg) -> bool:
-    frame = FrameCaptureResult(ok=bool(b64), base64=b64, reason=None if b64 else "empty_frame", mime_type="image/jpeg")
-    return analyze_screen_capture(frame, cfg).status == "aligned"
-
-
-def vlm_is_gazing(b64: str, cfg) -> bool:
-    frame = FrameCaptureResult(ok=bool(b64), base64=b64, reason=None if b64 else "empty_frame", mime_type="image/jpeg")
-    return analyze_gaze_capture(frame, cfg).status == "gazing"

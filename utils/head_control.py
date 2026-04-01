@@ -4,14 +4,17 @@ import time
 
 
 def look_at_screen(misty, screen_pos) -> None:
-    misty.perform_action(
-        "head_move",
-        {
-            "Yaw": screen_pos.yaw,
-            "Pitch": screen_pos.pitch,
-            "Velocity": 90,
-        },
-    )
+    try:
+        misty.perform_action(
+            "head_move",
+            {
+                "Yaw": screen_pos.yaw,
+                "Pitch": screen_pos.pitch,
+                "Velocity": 90,
+            },
+        )
+    except Exception as exc:
+        print(f"Error moving head to screen position: {exc}")
 
 
 def _wait_or_stop(stop_event, duration_s: float) -> bool:
@@ -21,24 +24,32 @@ def _wait_or_stop(stop_event, duration_s: float) -> bool:
 def shake_head_only(misty, cfg, stop_event) -> None:
     pause_s = float(getattr(cfg, "shake_pause_s", 0.5))
     while not stop_event.is_set():
-        misty.perform_action(
-            "head_move",
-            {
-                "Yaw": cfg.shake_amplitude_deg,
-                "Velocity": 80,
-            },
-        )
+        try:
+            misty.perform_action(
+                "head_move",
+                {
+                    "Yaw": cfg.shake_amplitude_deg,
+                    "Velocity": 80,
+                },
+            )
+        except Exception as exc:
+            print(f"Error in head shake: {exc}")
+            break
         if _wait_or_stop(stop_event, cfg.shake_period_s):
             break
         if _wait_or_stop(stop_event, pause_s):
             break
-        misty.perform_action(
-            "head_move",
-            {
-                "Yaw": -cfg.shake_amplitude_deg,
-                "Velocity": 80,
-            },
-        )
+        try:
+            misty.perform_action(
+                "head_move",
+                {
+                    "Yaw": -cfg.shake_amplitude_deg,
+                    "Velocity": 80,
+                },
+            )
+        except Exception as exc:
+            print(f"Error in head shake: {exc}")
+            break
         if _wait_or_stop(stop_event, cfg.shake_period_s):
             break
         if _wait_or_stop(stop_event, pause_s):

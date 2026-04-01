@@ -17,8 +17,6 @@ EVENT_TO_PATH = {
     "stop": "/distraction/stop",
     "shutdown": "/shutdown",
 }
-CURRENT_TEXT_PATH = "/current_text"
-
 CLIENT_ROLES = {"webcam", "extension"}
 DISENGAGEMENT_START_ALIASES = {
     "covert_disengagement=true",
@@ -170,43 +168,11 @@ def parse_message_signal(message: str) -> str | None:
     if covert_disengagemnt:
         return "disengaged_true"
 
-    re_engagement = coerce_bool(payload.get("re_engagement"))
-    if re_engagement:
-        return "disengaged_false"
-    re_engagement_hyphen = coerce_bool(payload.get("re-engagement"))
-    if re_engagement_hyphen:
-        return "disengaged_false"
-    reengagement = coerce_bool(payload.get("reengagement"))
-    if reengagement:
-        return "disengaged_false"
-    re_engament = coerce_bool(payload.get("re_engament"))
-    if re_engament:
-        return "disengaged_false"
-    re_engament_hyphen = coerce_bool(payload.get("re-engament"))
-    if re_engament_hyphen:
-        return "disengaged_false"
-    reengament = coerce_bool(payload.get("reengament"))
-    if reengament:
-        return "disengaged_false"
+    for key in ("re_engagement", "re-engagement", "reengagement", "re_engament", "re-engament", "reengament"):
+        if coerce_bool(payload.get(key)):
+            return "disengaged_false"
 
     return None
-
-
-def parse_current_text(message: str) -> str | None:
-    text = message.strip()
-    if not text:
-        return None
-    try:
-        payload = json.loads(text)
-    except json.JSONDecodeError:
-        return None
-    current_text = payload.get("currentText")
-    if not isinstance(current_text, str):
-        return None
-    normalized = current_text.strip()
-    if not normalized:
-        return None
-    return normalized
 
 
 def is_signal_allowed_for_role(signal: str, source_role: str | None) -> bool:
@@ -236,10 +202,6 @@ def trigger_url_for_event(event: str) -> str:
     return f"http://{TRIGGER_HOST}:{TRIGGER_PORT}{EVENT_TO_PATH[event]}"
 
 
-def trigger_url_for_current_text() -> str:
-    return f"http://{TRIGGER_HOST}:{TRIGGER_PORT}{CURRENT_TEXT_PATH}"
-
-
 def post_trigger_event(event: str) -> tuple[bool, str]:
     endpoint = trigger_url_for_event(event)
     req = request.Request(endpoint, data=b"{}", method="POST")
@@ -253,26 +215,8 @@ def post_trigger_event(event: str) -> tuple[bool, str]:
         return False, str(exc)
 
 
-def post_current_text(current_text: str) -> tuple[bool, str]:
-    endpoint = trigger_url_for_current_text()
-    data = json.dumps({"currentText": current_text}).encode("utf-8")
-    req = request.Request(endpoint, data=data, method="POST")
-    req.add_header("Content-Type", "application/json")
-
-    try:
-        with request.urlopen(req, timeout=5) as response:
-            body = response.read().decode("utf-8") or "{}"
-        return True, body
-    except error.URLError as exc:
-        return False, str(exc)
-
-
 async def forward_event(event: str) -> tuple[bool, str]:
     return await asyncio.to_thread(post_trigger_event, event)
-
-
-async def forward_current_text(current_text: str) -> tuple[bool, str]:
-    return await asyncio.to_thread(post_current_text, current_text)
 
 
 async def notify_extension_redirect(event: str, forwarded: bool) -> None:
@@ -317,29 +261,10 @@ async def handler(websocket):
                 continue
 
             receiver_role = client_roles.get(websocket, "unregistered")
-            current_text = parse_current_text(message)
-            current_text_response = None
-            if current_text is not None and receiver_role != "webcam":
-                text_ok, text_detail = await forward_current_text(current_text)
-                current_text_response = {
-                    "ok": text_ok,
-                    "event": "current_text",
-                    "currentText": current_text,
-                }
-                if text_ok:
-                    current_text_response["trigger_response"] = text_detail
-                    print(f"已转发 currentText -> {trigger_url_for_current_text()}")
-                else:
-                    current_text_response["reason"] = text_detail
-                    print(f"转发 currentText 失败: {text_detail}")
 
             signal = parse_message_signal_for_role(message, receiver_role)
             event = parse_message_event(message, receiver_role)
             if not event:
-                if current_text_response:
-                    print(f"WebSocket 定向发送 -> {receiver_role}: {json.dumps(current_text_response, ensure_ascii=False)}")
-                    await websocket.send(json.dumps(current_text_response))
-                    continue
                 reason = "state_not_changed" if signal else "unrecognized_message"
                 print(f"只是收到消息但没触发: {reason}")
                 await websocket.send(json.dumps({"ok": False, "reason": reason}))
@@ -355,10 +280,6 @@ async def handler(websocket):
                 response["reason"] = detail
                 print(f"只是收到消息但没触发: {event} -> {detail}")
                 print(f"转发事件失败 {event}: {detail}")
-            if current_text_response:
-                response["current_text_forwarded"] = current_text_response["ok"]
-                if not current_text_response["ok"]:
-                    response["current_text_reason"] = current_text_response.get("reason")
             print(f"WebSocket 定向发送 -> {receiver_role}: {json.dumps(response, ensure_ascii=False)}")
             await websocket.send(json.dumps(response))
             await notify_extension_posture_disengagement(receiver_role, signal, event, ok)

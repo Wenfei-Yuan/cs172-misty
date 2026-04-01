@@ -48,7 +48,38 @@ class ScreenWatchTests(unittest.TestCase):
         )
         screen_watch.time = SimpleNamespace(sleep=lambda seconds: None)
 
-        cfg = SimpleNamespace(screen_settle_s=0.0)
+        cfg = SimpleNamespace(screen_settle_s=0.0, cache_screen_pos=True)
+        log = _FakeLog()
+        screen_pos = screen_watch.ScreenPos(yaw=18.0, pitch=-6.0)
+
+        result = screen_watch.run_screen_watch(
+            misty=object(),
+            cfg=cfg,
+            log=log,
+            screen_pos=screen_pos,
+        )
+
+        self.assertEqual(result, screen_pos)
+        self.assertEqual(search_calls, [])
+        self.assertEqual(look_calls, [screen_pos])
+        self.assertIn(("screen_cache_hit", {"yaw": 18.0, "pitch": -6.0}), log.records)
+
+    def test_reuses_position_with_vlm_check_when_cache_disabled(self) -> None:
+        look_calls = []
+        search_calls = []
+
+        screen_watch.show_image = lambda *args, **kwargs: None
+        screen_watch.look_at_screen = lambda misty, position: look_calls.append(position)
+        screen_watch.speak_text = lambda *args, **kwargs: None
+        screen_watch.find_screen_position_with_vlm = lambda *args, **kwargs: search_calls.append(True)
+        screen_watch._check_screen_alignment = lambda *args, **kwargs: SimpleNamespace(
+            ok=False,
+            status="visible",
+            reason="needs_recheck",
+        )
+        screen_watch.time = SimpleNamespace(sleep=lambda seconds: None)
+
+        cfg = SimpleNamespace(screen_settle_s=0.0, cache_screen_pos=False)
         log = _FakeLog()
         screen_pos = screen_watch.ScreenPos(yaw=18.0, pitch=-6.0)
 

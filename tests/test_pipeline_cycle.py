@@ -38,9 +38,6 @@ class FakeReceiver:
     def stop(self) -> None:
         self.stopped = True
 
-    def shutdown_received(self) -> bool:
-        return False
-
     def has_shutdown_event(self) -> bool:
         return False
 
@@ -63,6 +60,7 @@ class PipelineCycleTests(unittest.TestCase):
             "run_no_response": pipeline.run_no_response,
             "run_summary": pipeline.run_summary,
             "speak_text": pipeline.speak_text,
+            "ensure_audio_ready": pipeline.ensure_audio_ready,
         }
 
     def tearDown(self) -> None:
@@ -96,8 +94,9 @@ class PipelineCycleTests(unittest.TestCase):
         pipeline.run_no_response = lambda misty, cfg, log, attempt: calls.__setitem__("no_response", calls["no_response"] + 1)
         pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
         pipeline.speak_text = lambda misty, cfg, text, **kwargs: calls["speeches"].append(text)
+        pipeline.ensure_audio_ready = lambda misty, cfg: {}
 
-        cfg = SimpleNamespace(participant_id="wenfei", signal_host="127.0.0.1", signal_port=5050)
+        cfg = SimpleNamespace(participant_id="wenfei", signal_host="127.0.0.1", signal_port=5050, max_attempts=3)
 
         pipeline.run(misty=object(), cfg=cfg)
 
