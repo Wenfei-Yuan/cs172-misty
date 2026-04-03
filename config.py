@@ -22,6 +22,11 @@ class Config:
     shake_amplitude_deg: int = 60
     shake_period_s: float = 0.6
     shake_pause_s: float = 0.5
+    arm_swing_up_deg: int = -80
+    arm_swing_down_deg: int = 80
+    arm_swing_velocity: int = 55
+    arm_swing_period_s: float = 0.5
+    arm_swing_pause_s: float = 0.2
     signal_host: str = "127.0.0.1"
     signal_port: int = 5050
     screen_init_left_front_yaw: float = 42.0
@@ -33,6 +38,7 @@ class Config:
     screen_alignment_confirm_checks: int = 2
     screen_alignment_confirm_settle_s: float = 0.4
     screen_settle_s: float = 0.7
+    return_to_screen_pause_s: float = 2.0
     cache_screen_pos: bool = True
     escalation_prompts: tuple[str, ...] = (
         "Hey, are you still with me? Don't forget to focus!",

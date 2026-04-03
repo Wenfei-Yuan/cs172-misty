@@ -83,7 +83,7 @@ def run(misty, cfg: Config) -> None:
                 continue
 
             attempt += 1
-            run_no_response(misty, cfg, log, attempt)
+            run_no_response(misty, cfg, log, attempt, current_text=signal_rx.current_text())
             if attempt >= cfg.max_attempts:
                 log.record("max_attempts_reached", attempt=attempt)
                 break

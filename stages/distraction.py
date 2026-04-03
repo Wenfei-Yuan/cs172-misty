@@ -5,7 +5,7 @@ import time
 from dataclasses import dataclass
 
 from utils.expressions import DISTRACTION_FACE, show_image
-from utils.head_control import look_at_screen, shake_head_only
+from utils.head_control import look_at_screen, shake_head_only, swing_arms_only
 from utils.vision import analyze_gaze_capture, capture_frame_result
 
 
@@ -25,6 +25,12 @@ def _gaze_poll_interval(cfg, elapsed_s: float) -> float:
     return default_interval
 
 
+def _pause_before_return_to_screen(cfg) -> None:
+    pause_s = max(0.0, float(getattr(cfg, "return_to_screen_pause_s", 2.0)))
+    if pause_s > 0:
+        time.sleep(pause_s)
+
+
 def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None) -> DistractionResult:
     log.record_distraction_start()
     show_image(misty, DISTRACTION_FACE)
@@ -35,7 +41,13 @@ def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None) -> Dist
         args=(misty, cfg, stop_shake),
         daemon=True,
     )
+    arm_thread = threading.Thread(
+        target=swing_arms_only,
+        args=(misty, cfg, stop_shake),
+        daemon=True,
+    )
     shake_thread.start()
+    arm_thread.start()
 
     poll_start = time.time()
     gaze_seen = False
@@ -77,7 +89,9 @@ def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None) -> Dist
     finally:
         stop_shake.set()
         shake_thread.join(timeout=2)
+        arm_thread.join(timeout=2)
         if screen_pos is not None:
+            _pause_before_return_to_screen(cfg)
             look_at_screen(misty, screen_pos)
 
     log.record_distraction_result(outcome=outcome, gaze_seen=gaze_seen, latency_s=gaze_latency)

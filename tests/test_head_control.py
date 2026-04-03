@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from types import SimpleNamespace
 
-from utils.head_control import shake_head_only
+from utils.head_control import shake_head_only, swing_arms_only
 
 
 class _FakeMisty:
@@ -43,6 +43,44 @@ class HeadControlTests(unittest.TestCase):
             ],
         )
         self.assertEqual(stop_event.wait_calls, [0.6, 0.5, 0.6, 0.5])
+
+    def test_swing_arms_only_pauses_at_both_endpoints(self) -> None:
+        misty = _FakeMisty()
+        cfg = SimpleNamespace(
+            arm_swing_up_deg=-80,
+            arm_swing_down_deg=80,
+            arm_swing_velocity=55,
+            arm_swing_period_s=0.5,
+            arm_swing_pause_s=0.2,
+        )
+        stop_event = _FakeStopEvent([False, False, False, True])
+
+        swing_arms_only(misty, cfg, stop_event)
+
+        self.assertEqual(
+            misty.actions,
+            [
+                (
+                    "arms_move",
+                    {
+                        "LeftArmPosition": -80,
+                        "RightArmPosition": -80,
+                        "LeftArmVelocity": 55,
+                        "RightArmVelocity": 55,
+                    },
+                ),
+                (
+                    "arms_move",
+                    {
+                        "LeftArmPosition": 80,
+                        "RightArmPosition": 80,
+                        "LeftArmVelocity": 55,
+                        "RightArmVelocity": 55,
+                    },
+                ),
+            ],
+        )
+        self.assertEqual(stop_event.wait_calls, [0.5, 0.2, 0.5, 0.2])
 
 
 if __name__ == "__main__":

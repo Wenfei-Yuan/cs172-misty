@@ -40,6 +40,7 @@ class DistractionTimingTests(unittest.TestCase):
         self.originals = {
             "show_image": distraction.show_image,
             "shake_head_only": distraction.shake_head_only,
+            "swing_arms_only": distraction.swing_arms_only,
             "look_at_screen": distraction.look_at_screen,
             "capture_frame_result": distraction.capture_frame_result,
             "analyze_gaze_capture": distraction.analyze_gaze_capture,
@@ -72,6 +73,7 @@ class DistractionTimingTests(unittest.TestCase):
         distraction.time = SimpleNamespace(time=clock.time, monotonic=clock.monotonic, sleep=fake_sleep)
         distraction.show_image = lambda *args, **kwargs: None
         distraction.shake_head_only = lambda *args, **kwargs: None
+        distraction.swing_arms_only = lambda *args, **kwargs: None
         distraction.look_at_screen = lambda *args, **kwargs: None
         distraction.capture_frame_result = lambda misty: SimpleNamespace(ok=True, base64="frame")
 

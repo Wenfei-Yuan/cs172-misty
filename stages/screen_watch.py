@@ -26,6 +26,12 @@ def _clamp(value: float, low: float, high: float) -> float:
     return max(low, min(high, value))
 
 
+def _pause_before_return_to_screen(cfg) -> None:
+    pause_s = max(0.0, float(getattr(cfg, "return_to_screen_pause_s", 2.0)))
+    if pause_s > 0:
+        time.sleep(pause_s)
+
+
 def default_screen_position(cfg) -> ScreenPos:
     return ScreenPos(
         yaw=_clamp(cfg.screen_init_left_front_yaw, -90.0, 90.0),
@@ -146,6 +152,7 @@ def find_screen_position_with_vlm(misty, cfg, log=None) -> ScreenSearchResult:
 def run_screen_watch(misty, cfg, log, screen_pos: ScreenPos | None) -> ScreenPos | None:
     if screen_pos is not None and getattr(cfg, "cache_screen_pos", True):
         show_image(misty, READING_FACE)
+        _pause_before_return_to_screen(cfg)
         look_at_screen(misty, screen_pos)
         time.sleep(cfg.screen_settle_s)
         log.record("screen_cache_hit", yaw=screen_pos.yaw, pitch=screen_pos.pitch)
@@ -157,6 +164,7 @@ def run_screen_watch(misty, cfg, log, screen_pos: ScreenPos | None) -> ScreenPos
     else:
         show_image(misty, READING_FACE)
         position = screen_pos
+        _pause_before_return_to_screen(cfg)
         look_at_screen(misty, position)
         time.sleep(cfg.screen_settle_s)
 

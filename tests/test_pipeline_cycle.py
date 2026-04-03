@@ -47,6 +47,9 @@ class FakeReceiver:
     def consume_interrupt(self) -> str | None:
         return None
 
+    def current_text(self) -> str:
+        return "test reading text"
+
 
 class PipelineCycleTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -91,7 +94,7 @@ class PipelineCycleTests(unittest.TestCase):
             return outcomes.pop(0)
 
         pipeline.run_distraction = fake_run_distraction
-        pipeline.run_no_response = lambda misty, cfg, log, attempt: calls.__setitem__("no_response", calls["no_response"] + 1)
+        pipeline.run_no_response = lambda misty, cfg, log, attempt, **kwargs: calls.__setitem__("no_response", calls["no_response"] + 1)
         pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
         pipeline.speak_text = lambda misty, cfg, text, **kwargs: calls["speeches"].append(text)
         pipeline.ensure_audio_ready = lambda misty, cfg: {}

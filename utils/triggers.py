@@ -19,6 +19,7 @@ class ExternalSignalReceiver:
         self.host = host
         self.port = port
         self._events = deque()
+        self._current_text = ""
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
         self._server = None
@@ -41,6 +42,31 @@ class ExternalSignalReceiver:
                     event = "stop"
                 elif self.path == "/shutdown":
                     event = "shutdown"
+                elif self.path == "/current_text":
+                    text_payload = ""
+                    if raw_body:
+                        try:
+                            payload = json.loads(raw_body.decode("utf-8"))
+                            for key in ("text", "currentText", "current_text"):
+                                value = payload.get(key)
+                                if isinstance(value, str) and value.strip():
+                                    text_payload = value.strip()
+                                    break
+                        except json.JSONDecodeError:
+                            text_payload = ""
+                    if text_payload:
+                        with parent._lock:
+                            parent._current_text = text_payload
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"ok": True, "event": "current_text_updated"}).encode("utf-8"))
+                        return
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"ok": False, "reason": "missing_text"}).encode("utf-8"))
+                    return
 
                 if event:
                     with parent._lock:
@@ -130,6 +156,10 @@ class ExternalSignalReceiver:
     def has_shutdown_event(self) -> bool:
         with self._lock:
             return "shutdown" in self._events
+
+    def current_text(self) -> str:
+        with self._lock:
+            return self._current_text
 
 
 

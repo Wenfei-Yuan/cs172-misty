@@ -61,6 +61,12 @@ class TriggerTests(unittest.TestCase):
         with self.receiver._lock:
             self.assertEqual(list(self.receiver._events), ["stop"])
 
+    def test_current_text_accessor_returns_latest_text(self) -> None:
+        with self.receiver._lock:
+            self.receiver._current_text = "latest reading text"
+
+        self.assertEqual(self.receiver.current_text(), "latest reading text")
+
 
 if __name__ == "__main__":
     unittest.main()

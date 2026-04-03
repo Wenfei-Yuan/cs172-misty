@@ -54,3 +54,48 @@ def shake_head_only(misty, cfg, stop_event) -> None:
             break
         if _wait_or_stop(stop_event, pause_s):
             break
+
+
+def swing_arms_only(misty, cfg, stop_event) -> None:
+    up_deg = int(getattr(cfg, "arm_swing_up_deg", -80))
+    down_deg = int(getattr(cfg, "arm_swing_down_deg", 80))
+    velocity = int(getattr(cfg, "arm_swing_velocity", 55))
+    period_s = float(getattr(cfg, "arm_swing_period_s", 0.5))
+    pause_s = float(getattr(cfg, "arm_swing_pause_s", 0.2))
+
+    while not stop_event.is_set():
+        try:
+            misty.perform_action(
+                "arms_move",
+                {
+                    "LeftArmPosition": up_deg,
+                    "RightArmPosition": up_deg,
+                    "LeftArmVelocity": velocity,
+                    "RightArmVelocity": velocity,
+                },
+            )
+        except Exception as exc:
+            print(f"Error in arm swing: {exc}")
+            break
+        if _wait_or_stop(stop_event, period_s):
+            break
+        if _wait_or_stop(stop_event, pause_s):
+            break
+
+        try:
+            misty.perform_action(
+                "arms_move",
+                {
+                    "LeftArmPosition": down_deg,
+                    "RightArmPosition": down_deg,
+                    "LeftArmVelocity": velocity,
+                    "RightArmVelocity": velocity,
+                },
+            )
+        except Exception as exc:
+            print(f"Error in arm swing: {exc}")
+            break
+        if _wait_or_stop(stop_event, period_s):
+            break
+        if _wait_or_stop(stop_event, pause_s):
+            break
