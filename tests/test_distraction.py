@@ -4,6 +4,7 @@ import unittest
 from types import SimpleNamespace
 
 import stages.distraction as distraction
+from utils.expressions import DISTRACTION_FACE, SPEAKING_FACE
 
 
 class _FakeClock:
@@ -38,9 +39,10 @@ class _FakeLog:
 class DistractionTimingTests(unittest.TestCase):
     def setUp(self) -> None:
         self.originals = {
+            "speak_text": distraction.speak_text,
             "show_image": distraction.show_image,
             "shake_head_only": distraction.shake_head_only,
-            "swing_arms_only": distraction.swing_arms_only,
+            "acknowledge_gaze_recovery": distraction.acknowledge_gaze_recovery,
             "look_at_screen": distraction.look_at_screen,
             "capture_frame_result": distraction.capture_frame_result,
             "analyze_gaze_capture": distraction.analyze_gaze_capture,
@@ -71,11 +73,12 @@ class DistractionTimingTests(unittest.TestCase):
             clock.sleep(seconds)
 
         distraction.time = SimpleNamespace(time=clock.time, monotonic=clock.monotonic, sleep=fake_sleep)
+        distraction.speak_text = lambda *args, **kwargs: None
         distraction.show_image = lambda *args, **kwargs: None
         distraction.shake_head_only = lambda *args, **kwargs: None
-        distraction.swing_arms_only = lambda *args, **kwargs: None
+        distraction.acknowledge_gaze_recovery = lambda *args, **kwargs: None
         distraction.look_at_screen = lambda *args, **kwargs: None
-        distraction.capture_frame_result = lambda misty: SimpleNamespace(ok=True, base64="frame")
+        distraction.capture_frame_result = lambda misty: SimpleNamespace(ok=True, base64="frame", reason=None)
 
         statuses = ["not_gazing", "gazing"]
 
@@ -106,6 +109,55 @@ class DistractionTimingTests(unittest.TestCase):
         self.assertEqual(len(sleep_calls), 1)
         self.assertAlmostEqual(sleep_calls[0], 0.2, places=6)
         self.assertAlmostEqual(result.gaze_latency_s, 0.8, places=6)
+
+    def test_run_distraction_acknowledges_before_returning_to_screen_on_gaze(self) -> None:
+        clock = _FakeClock(start=50.0)
+        calls = []
+        screen_pos = SimpleNamespace(yaw=18.0, pitch=-6.0)
+
+        distraction.time = SimpleNamespace(time=clock.time, monotonic=clock.monotonic, sleep=clock.sleep)
+        distraction.speak_text = lambda misty, cfg, text, **kwargs: calls.append(("speak", text))
+        distraction.show_image = lambda misty, filename: calls.append(("face", filename))
+
+        def fake_shake(misty, cfg, stop_event, position_callback=None):
+            if position_callback is not None:
+                position_callback(9.0)
+
+        distraction.shake_head_only = fake_shake
+        distraction.acknowledge_gaze_recovery = (
+            lambda misty, cfg, current_yaw=None: calls.append(("ack", current_yaw))
+        )
+        distraction.look_at_screen = lambda misty, position: calls.append(("look", position))
+        distraction.capture_frame_result = lambda misty: SimpleNamespace(ok=True, base64="frame", reason=None)
+        distraction.analyze_gaze_capture = lambda frame, cfg: SimpleNamespace(status="gazing", reason=None)
+
+        cfg = SimpleNamespace(
+            gaze_timeout_s=10.0,
+            gaze_poll_interval_s=0.5,
+            fast_gaze_poll_interval_s=0.5,
+            fast_gaze_poll_window_s=0.0,
+        )
+        log = _FakeLog()
+
+        result = distraction.run_distraction(
+            misty=object(),
+            cfg=cfg,
+            log=log,
+            screen_pos=screen_pos,
+            consume_interrupt=lambda: None,
+        )
+
+        self.assertEqual(result.outcome, "gaze")
+        self.assertEqual(
+            calls,
+            [
+                ("face", DISTRACTION_FACE),
+                ("face", SPEAKING_FACE),
+                ("speak", "I see you! Let me check what you were working on."),
+                ("ack", 9.0),
+                ("look", screen_pos),
+            ],
+        )
 
 
 if __name__ == "__main__":

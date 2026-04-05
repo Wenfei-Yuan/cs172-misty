@@ -1,4 +1,4 @@
-from micurl -X POST hcurl -X POST hcurl -X POST http://127.0.0.1:5050/distraction/startisty
+from misty2py.robot import Misty
 from misty2py.utils.env_loader import EnvLoader
 
 env_loader = EnvLoader()

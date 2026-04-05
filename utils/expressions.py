@@ -26,5 +26,15 @@ def arm_gesture(misty, preset: str) -> None:
                     "RightArmVelocity": 50,
                 },
             )
+        elif preset == "rest":
+            misty.perform_action(
+                "arms_move",
+                {
+                    "LeftArmPosition": 80,
+                    "RightArmPosition": 80,
+                    "LeftArmVelocity": 50,
+                    "RightArmVelocity": 50,
+                },
+            )
     except Exception as exc:
         print(f"Error performing gesture {preset}: {exc}")

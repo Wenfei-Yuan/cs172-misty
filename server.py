@@ -42,8 +42,8 @@ REENGAGEMENT_ALIASES = {
 connected_clients = set()
 client_roles = {}
 role_clients = {}
-POSTURE_DISENGAGED_MESSAGE = json.dumps({"posture_disengaged": True})
-REENGAGEMENT_MESSAGE = json.dumps({"re_engagement": True})
+POSTURE_DISENGAGED_MESSAGE = "ROBOT_REDIRECT"
+REENGAGEMENT_MESSAGE = json.dumps({"eventName": "AttentionResumed"})
 
 
 class DisengagementTracker:
@@ -71,6 +71,7 @@ class DisengagementTracker:
 
 
 tracker = DisengagementTracker()
+_last_covert_disengagement: dict = {}
 
 
 def coerce_bool(value) -> bool | None:
@@ -82,6 +83,18 @@ def coerce_bool(value) -> bool | None:
             return True
         if lowered == "false":
             return False
+    return None
+
+
+def _get_covert_disengagement_value(message: str):
+    """Return the covert_disengagemnt bool value if the field is present, else None."""
+    try:
+        payload = json.loads(message.strip())
+    except (json.JSONDecodeError, ValueError):
+        return None
+    for key in ("covert_disengagemnt", "covert_disengagement"):
+        if key in payload:
+            return coerce_bool(payload[key])
     return None
 
 
@@ -258,7 +271,7 @@ async def forward_current_text(text: str) -> tuple[bool, str]:
 
 
 async def notify_extension_redirect(event: str, forwarded: bool) -> None:
-    if event != "stop" or not forwarded:
+    if event != "stop":
         return
     extension_socket = role_clients.get("extension")
     if extension_socket is None:
@@ -269,9 +282,7 @@ async def notify_extension_redirect(event: str, forwarded: bool) -> None:
 
 
 async def notify_extension_posture_disengagement(source_role: str | None, signal: str | None, event: str | None, forwarded: bool) -> None:
-    if source_role == "extension":
-        return
-    if signal != "disengaged_true" or event != "start" or not forwarded:
+    if signal != "disengaged_true" or event != "start":
         return
     extension_socket = role_clients.get("extension")
     if extension_socket is None:
@@ -289,7 +300,12 @@ async def handler(websocket):
 
     try:
         async for message in websocket:
-            print(f"收到消息 from {client_ip}: {message}")
+            _cv = _get_covert_disengagement_value(message)
+            if _cv is None:
+                print(f"收到消息 from {client_ip}: {message}")
+            elif _cv != _last_covert_disengagement.get(websocket):
+                _last_covert_disengagement[websocket] = _cv
+                print(f"收到消息 from {client_ip}: {message}")
             registration = parse_client_registration(message)
             if registration:
                 register_client(websocket, registration)
@@ -308,19 +324,26 @@ async def handler(websocket):
                     response = {"ok": ok, "type": "current_text"}
                     if ok:
                         response["trigger_response"] = detail
-                        print(f"已转发当前阅读文本 -> http://{TRIGGER_HOST}:{TRIGGER_PORT}{CURRENT_TEXT_PATH}")
                     else:
                         response["reason"] = detail
-                        print(f"转发当前阅读文本失败: {detail}")
-                    print(f"WebSocket 定向发送 -> {receiver_role}: {json.dumps(response, ensure_ascii=False)}")
                     await websocket.send(json.dumps(response))
+                    # Still notify extension if distraction is active
+                    if signal == "disengaged_true" and tracker.distraction_active:
+                        await notify_extension_posture_disengagement(receiver_role, signal, "start", False)
                     continue
 
             if not event:
                 reason = "state_not_changed" if signal else "unrecognized_message"
                 print(f"只是收到消息但没触发: {reason}")
                 await websocket.send(json.dumps({"ok": False, "reason": reason}))
+                # Even if state didn't change, notify extension if distraction is active
+                if signal == "disengaged_true" and tracker.distraction_active:
+                    await notify_extension_posture_disengagement(receiver_role, signal, "start", False)
                 continue
+
+            current_text = parse_current_text_message(message)
+            if current_text:
+                text_ok, text_detail = await forward_current_text(current_text)
 
             ok, detail = await forward_event(event)
             response = {"ok": ok, "event": event}
@@ -342,6 +365,7 @@ async def handler(websocket):
     finally:
         connected_clients.discard(websocket)
         unregister_client(websocket)
+        _last_covert_disengagement.pop(websocket, None)
 
 
 async def main():

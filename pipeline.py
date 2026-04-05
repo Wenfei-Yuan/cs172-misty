@@ -7,6 +7,7 @@ from stages.no_response_prompt import run_no_response
 from stages.screen_watch import run_screen_watch, default_screen_position
 from stages.summary import run_summary
 from utils.audio import ensure_audio_ready, speak_text
+from utils.head_control import cue_screen_with_left_arm, redirect_attention_to_screen
 from utils.session_id import generate_session_id
 from utils.session_log import SessionLog
 from utils.triggers import ExternalSignalReceiver
@@ -42,14 +43,6 @@ def run(misty, cfg: Config) -> None:
                     log.record("screen_retry_pending", attempt=screen_search_retries)
                 continue
 
-            speak_text(
-                misty,
-                cfg,
-                "Let's start reading, I am ready.",
-                log=log,
-                stage="screen_watch_success",
-            )
-
             log.record("waiting_for_start_signal")
             start_signal = signal_rx.wait_for_start()
             if start_signal.stale_stop_events_cleared:
@@ -73,8 +66,19 @@ def run(misty, cfg: Config) -> None:
                 break
 
             if distraction.outcome == "gaze":
-                speak_text(misty, cfg, "I see you! Let me check what you were working on.", log=log, stage="gaze_recovered")
                 log.record("gaze_recovered")
+                if screen_pos is not None:
+                    redirect_attention_to_screen(misty, cfg, screen_pos)
+                confirmation = signal_rx.wait_for_stop_or_shutdown(cfg.redirect_confirmation_wait_s)
+                if confirmation == "shutdown":
+                    break
+                if confirmation == "stop":
+                    log.record("screen_reengagement_confirmed")
+                    attempt = 0
+                    continue
+                log.record("screen_reengagement_timeout", timeout_s=cfg.redirect_confirmation_wait_s)
+                run_no_response(misty, cfg, log, 1, current_text=signal_rx.current_text())
+                cue_screen_with_left_arm(misty, cfg, repetitions=1)
                 attempt = 0
                 continue
 

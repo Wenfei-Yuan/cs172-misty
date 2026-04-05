@@ -12,16 +12,20 @@ class Config:
     openai_api_key: str
     participant_id: str
     speech_volume: int = 90
-    gaze_timeout_s: float = 60.0
-    gaze_poll_interval_s: float = 2.0
-    fast_gaze_poll_interval_s: float = 0.3
-    fast_gaze_poll_window_s: float = 8.0
-    vision_max_image_dim_px: int = 640
-    vision_jpeg_quality: int = 60
+    gaze_timeout_s: float = 45.0
+    gaze_poll_interval_s: float = 0.7
+    fast_gaze_poll_interval_s: float = 0.18
+    fast_gaze_poll_window_s: float = 12.0
+    vision_max_image_dim_px: int = 768
+    vision_jpeg_quality: int = 72
     max_attempts: int = 3
-    shake_amplitude_deg: int = 60
-    shake_period_s: float = 0.6
-    shake_pause_s: float = 0.5
+    shake_amplitude_deg: int = 45
+    shake_period_s: float = 0.45
+    shake_pause_s: float = 0.22
+    shake_center_yaw_deg: float = 0.0
+    shake_center_period_s: float = 0.25
+    shake_center_pause_s: float = 0.35
+    shake_velocity: int = 95
     arm_swing_up_deg: int = -80
     arm_swing_down_deg: int = 80
     arm_swing_velocity: int = 55
@@ -39,6 +43,16 @@ class Config:
     screen_alignment_confirm_settle_s: float = 0.4
     screen_settle_s: float = 0.7
     return_to_screen_pause_s: float = 2.0
+    redirect_nod_repetitions: int = 3
+    redirect_nod_down_pitch: float = 18.0
+    redirect_nod_velocity: int = 68
+    redirect_nod_move_s: float = 0.45
+    redirect_nod_hold_s: float = 0.28
+    redirect_nod_return_s: float = 0.25
+    redirect_screen_focus_pause_s: float = 2.5
+    redirect_left_arm_pause_s: float = 0.3
+    redirect_settle_s: float = 1.5
+    redirect_confirmation_wait_s: float = 60.0
     cache_screen_pos: bool = True
     escalation_prompts: tuple[str, ...] = (
         "Hey, are you still with me? Don't forget to focus!",

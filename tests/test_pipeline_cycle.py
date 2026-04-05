@@ -47,6 +47,9 @@ class FakeReceiver:
     def consume_interrupt(self) -> str | None:
         return None
 
+    def wait_for_stop_or_shutdown(self, timeout_s: float) -> str | None:
+        return None
+
     def current_text(self) -> str:
         return "test reading text"
 
@@ -64,6 +67,8 @@ class PipelineCycleTests(unittest.TestCase):
             "run_summary": pipeline.run_summary,
             "speak_text": pipeline.speak_text,
             "ensure_audio_ready": pipeline.ensure_audio_ready,
+            "redirect_attention_to_screen": pipeline.redirect_attention_to_screen,
+            "cue_screen_with_left_arm": pipeline.cue_screen_with_left_arm,
         }
 
     def tearDown(self) -> None:
@@ -106,7 +111,101 @@ class PipelineCycleTests(unittest.TestCase):
         self.assertEqual(calls["distraction"], 2)
         self.assertEqual(calls["no_response"], 0)
         self.assertEqual(calls["summary"], 1)
-        self.assertGreaterEqual(calls["speeches"].count("Let's start reading, I am ready."), 2)
+        self.assertEqual(calls["speeches"], [])
+
+    def test_gaze_redirect_waits_for_stop_confirmation(self) -> None:
+        calls = {
+            "redirect": 0,
+            "no_response": 0,
+            "arm_cue": 0,
+            "summary": 0,
+        }
+
+        class GazeThenStopReceiver(FakeReceiver):
+            def __init__(self, host: str, port: int):
+                super().__init__(host, port)
+                self.wait_results = [
+                    StartSignalResult(event="start"),
+                    StartSignalResult(event="shutdown"),
+                ]
+
+            def wait_for_stop_or_shutdown(self, timeout_s: float) -> str | None:
+                return "stop"
+
+        pipeline.SessionLog = FakeLog
+        pipeline.ExternalSignalReceiver = GazeThenStopReceiver
+        pipeline.generate_session_id = lambda participant_id: "session_test"
+        pipeline.run_bootup = lambda misty, cfg, log: SimpleNamespace(yaw=1.0, pitch=2.0)
+        pipeline.run_screen_watch = lambda misty, cfg, log, screen_pos: screen_pos
+        pipeline.run_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None: DistractionResult(outcome="gaze")
+        pipeline.run_no_response = lambda misty, cfg, log, attempt, **kwargs: calls.__setitem__("no_response", calls["no_response"] + 1)
+        pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
+        pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
+        pipeline.ensure_audio_ready = lambda misty, cfg: {}
+        pipeline.redirect_attention_to_screen = lambda misty, cfg, screen_pos: calls.__setitem__("redirect", calls["redirect"] + 1)
+        pipeline.cue_screen_with_left_arm = lambda misty, cfg, repetitions=2: calls.__setitem__("arm_cue", calls["arm_cue"] + 1)
+
+        cfg = SimpleNamespace(
+            participant_id="wenfei",
+            signal_host="127.0.0.1",
+            signal_port=5050,
+            max_attempts=3,
+            redirect_confirmation_wait_s=60.0,
+        )
+
+        pipeline.run(misty=object(), cfg=cfg)
+
+        self.assertEqual(calls["redirect"], 1)
+        self.assertEqual(calls["no_response"], 0)
+        self.assertEqual(calls["arm_cue"], 0)
+        self.assertEqual(calls["summary"], 1)
+
+    def test_gaze_redirect_prompts_once_after_timeout(self) -> None:
+        calls = {
+            "redirect": 0,
+            "no_response": 0,
+            "arm_cue": 0,
+            "summary": 0,
+        }
+
+        class GazeThenTimeoutReceiver(FakeReceiver):
+            def __init__(self, host: str, port: int):
+                super().__init__(host, port)
+                self.wait_results = [
+                    StartSignalResult(event="start"),
+                    StartSignalResult(event="shutdown"),
+                ]
+
+            def wait_for_stop_or_shutdown(self, timeout_s: float) -> str | None:
+                return None
+
+        pipeline.SessionLog = FakeLog
+        pipeline.ExternalSignalReceiver = GazeThenTimeoutReceiver
+        pipeline.generate_session_id = lambda participant_id: "session_test"
+        pipeline.run_bootup = lambda misty, cfg, log: SimpleNamespace(yaw=1.0, pitch=2.0)
+        pipeline.run_screen_watch = lambda misty, cfg, log, screen_pos: screen_pos
+        pipeline.run_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None: DistractionResult(outcome="gaze")
+        pipeline.run_no_response = lambda misty, cfg, log, attempt, **kwargs: calls.__setitem__("no_response", calls["no_response"] + 1)
+        pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
+        pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
+        pipeline.ensure_audio_ready = lambda misty, cfg: {}
+        pipeline.redirect_attention_to_screen = lambda misty, cfg, screen_pos: calls.__setitem__("redirect", calls["redirect"] + 1)
+        pipeline.cue_screen_with_left_arm = lambda misty, cfg, repetitions=2: calls.__setitem__("arm_cue", calls["arm_cue"] + 1)
+
+        cfg = SimpleNamespace(
+            participant_id="wenfei",
+            signal_host="127.0.0.1",
+            signal_port=5050,
+            max_attempts=3,
+            redirect_confirmation_wait_s=60.0,
+        )
+
+        pipeline.run(misty=object(), cfg=cfg)
+
+        self.assertEqual(calls["redirect"], 1)
+        self.assertEqual(calls["no_response"], 1)
+        self.assertEqual(calls["arm_cue"], 1)
+        self.assertEqual(calls["summary"], 1)
 
 
 if __name__ == "__main__":

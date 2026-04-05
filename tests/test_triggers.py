@@ -67,6 +67,21 @@ class TriggerTests(unittest.TestCase):
 
         self.assertEqual(self.receiver.current_text(), "latest reading text")
 
+    def test_wait_for_stop_or_shutdown_returns_stop(self) -> None:
+        with self.receiver._lock:
+            self.receiver._events.extend(["stop", "start"])
+
+        event = self.receiver.wait_for_stop_or_shutdown(timeout_s=0.0)
+
+        self.assertEqual(event, "stop")
+        with self.receiver._lock:
+            self.assertEqual(list(self.receiver._events), ["start"])
+
+    def test_wait_for_stop_or_shutdown_times_out(self) -> None:
+        event = self.receiver.wait_for_stop_or_shutdown(timeout_s=0.0)
+
+        self.assertIsNone(event)
+
 
 if __name__ == "__main__":
     unittest.main()

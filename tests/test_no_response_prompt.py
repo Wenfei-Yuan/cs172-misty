@@ -1,0 +1,61 @@
+from __future__ import annotations
+
+import unittest
+from types import SimpleNamespace
+
+import stages.no_response_prompt as no_response_prompt
+
+
+class _FakeLog:
+    def __init__(self) -> None:
+        self.records = []
+        self.voice_attempts = []
+
+    def record(self, name: str, **payload) -> None:
+        self.records.append((name, payload))
+
+    def record_voice_prompt(self, attempt: int) -> None:
+        self.voice_attempts.append(attempt)
+
+
+class NoResponsePromptTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.originals = {
+            "show_image": no_response_prompt.show_image,
+            "generate_focus_reminder_from_text": no_response_prompt.generate_focus_reminder_from_text,
+            "speak_text": no_response_prompt.speak_text,
+            "cue_screen_with_left_arm": no_response_prompt.cue_screen_with_left_arm,
+        }
+
+    def tearDown(self) -> None:
+        for name, value in self.originals.items():
+            setattr(no_response_prompt, name, value)
+
+    def test_run_no_response_speaks_then_cues_left_arm(self) -> None:
+        calls = []
+        log = _FakeLog()
+        cfg = SimpleNamespace()
+        dynamic = SimpleNamespace(
+            summary="user is off task",
+            reminder="Please come back to the task.",
+            used_fallback=False,
+            reason=None,
+        )
+
+        no_response_prompt.show_image = lambda misty, filename: calls.append(("show_image", filename))
+        no_response_prompt.generate_focus_reminder_from_text = lambda current_text, current_cfg: dynamic
+        no_response_prompt.speak_text = lambda misty, current_cfg, text, **kwargs: calls.append(("speak_text", text, kwargs))
+        no_response_prompt.cue_screen_with_left_arm = lambda misty, current_cfg, repetitions=2: calls.append(("cue_left_arm", repetitions))
+
+        no_response_prompt.run_no_response(object(), cfg, log, attempt=2, current_text="draft essay")
+
+        self.assertEqual(calls[0], ("show_image", no_response_prompt.SPEAKING_FACE))
+        self.assertEqual(calls[1][0], "speak_text")
+        self.assertEqual(calls[1][1], "Please come back to the task.")
+        self.assertEqual(calls[2], ("cue_left_arm", 2))
+        self.assertEqual(log.voice_attempts, [2])
+        self.assertEqual(log.records[0][0], "no_response_prompt_generated")
+
+
+if __name__ == "__main__":
+    unittest.main()
