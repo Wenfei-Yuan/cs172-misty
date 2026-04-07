@@ -14,8 +14,9 @@ from utils.head_control import (
 
 
 class _FakeMisty:
-    def __init__(self) -> None:
+    def __init__(self, ip: str = "10.0.0.5") -> None:
         self.actions = []
+        self.ip = ip
 
     def perform_action(self, name: str, payload: dict) -> None:
         self.actions.append((name, payload))
@@ -38,15 +39,9 @@ class HeadControlTests(unittest.TestCase):
     def test_redirect_attention_nods_then_turns_to_screen_before_two_arm_cues(self) -> None:
         misty = _FakeMisty()
         cfg = SimpleNamespace(
-            redirect_forward_yaw=0.0,
-            redirect_forward_pitch=1.5,
-            redirect_forward_pause_s=0.3,
-            redirect_nod_down_pitch=14.0,
-            redirect_nod_velocity=72,
-            redirect_nod_move_s=0.15,
-            redirect_nod_hold_s=0.2,
-            redirect_nod_return_s=0.25,
-            redirect_nod_repetitions=3,
+            redirect_nod_action_name="head-down-up-nod",
+            redirect_nod_action_wait_s=3.0,
+            redirect_action_timeout_s=4.0,
             redirect_head_velocity=88,
             redirect_screen_focus_pause_s=2.5,
             redirect_left_arm_up_deg=-65,
@@ -60,23 +55,24 @@ class HeadControlTests(unittest.TestCase):
         screen_pos = SimpleNamespace(yaw=24.0, pitch=8.0)
         sleep_calls = []
         original_time = head_control.time
+        original_requests = head_control.requests
+        request_calls = []
 
         try:
             head_control.time = SimpleNamespace(sleep=lambda seconds: sleep_calls.append(seconds))
+            head_control.requests = SimpleNamespace(
+                post=lambda url, json, timeout: request_calls.append((url, json, timeout)) or SimpleNamespace(
+                    raise_for_status=lambda: None
+                )
+            )
             redirect_attention_to_screen(misty, cfg, screen_pos)
         finally:
             head_control.time = original_time
+            head_control.requests = original_requests
 
         self.assertEqual(
             misty.actions,
             [
-                ("head_move", {"Yaw": 0.0, "Pitch": 1.5, "Velocity": 88}),
-                ("head_move", {"Yaw": 0.0, "Pitch": 14.0, "Velocity": 72}),
-                ("head_move", {"Yaw": 0.0, "Pitch": 1.5, "Velocity": 72}),
-                ("head_move", {"Yaw": 0.0, "Pitch": 14.0, "Velocity": 72}),
-                ("head_move", {"Yaw": 0.0, "Pitch": 1.5, "Velocity": 72}),
-                ("head_move", {"Yaw": 0.0, "Pitch": 14.0, "Velocity": 72}),
-                ("head_move", {"Yaw": 0.0, "Pitch": 1.5, "Velocity": 72}),
                 ("head_move", {"Yaw": 24.0, "Pitch": 8.0, "Velocity": 88}),
                 (
                     "arms_move",
@@ -117,8 +113,18 @@ class HeadControlTests(unittest.TestCase):
             ],
         )
         self.assertEqual(
+            request_calls,
+            [
+                (
+                    "http://10.0.0.5/api/actions/start",
+                    {"Name": "head-down-up-nod"},
+                    4.0,
+                ),
+            ],
+        )
+        self.assertEqual(
             sleep_calls,
-            [0.3, 0.15, 0.2, 0.15, 0.25, 0.15, 0.2, 0.15, 0.25, 0.15, 0.2, 0.15, 0.25, 2.5, 0.6, 0.4, 0.6, 0.4, 0.1],
+            [3.0, 2.5, 0.6, 0.4, 0.6, 0.4, 0.1],
         )
 
     def test_acknowledge_gaze_recovery_nods_before_return(self) -> None:
