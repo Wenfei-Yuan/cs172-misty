@@ -34,3 +34,13 @@
 - Fixed pre-existing WS spam bug: `state_changed = True` and `reason = "gaze_mind_wandering"` in gaze MW timer now guarded by `if not gaze_mind_wandering:` to prevent per-frame WebSocket message flood once MW fires
 }
 {Achieved: Yes — (1) gaze deviation threshold stricter: entry lowered from 0.20/0.22 to 0.15/0.16 ratio units; (2) head pitch threshold stricter: effective look-away entry lowered from 30° to 25°; (3) either head rotation or gaze deviation triggers gaze_mind_wandering=True; (4) WS spam bug fixed as part of implementation}
+<<<<<<< HEAD
+=======
+
+{=============================BUG FIX===============================}
+{BUG Name: Extension Not Receiving ROBOT_REDIRECT on Start Event | Bug Id: 2}
+{Bug description: When the webcam triggers a "start" event (distraction detected), the extension should receive "ROBOT_REDIRECT" to begin highlighting the current reading segment, but notify_extension_posture_disengagement() guarded on signal=="disengaged_true" instead of event=="start", causing the notification to be skipped for literal "start" or {"event":"start"} messages. Additionally, extension_socket.send() lacked error handling, risking webcam handler crashes on stale extension sockets.}
+{Repo involved: cs172-misty (server.py, tests/test_server.py)}
+{Implementation: (1) Changed guard in notify_extension_posture_disengagement() from `if signal != "disengaged_true" or event != "start"` to `if event != "start"` so ROBOT_REDIRECT is sent for all signal formats that resolve to event "start". (2) Added try/except around extension_socket.send() in both notify_extension_redirect() and notify_extension_posture_disengagement() to prevent stale extension sockets from crashing the webcam handler. (3) Updated test_extension_covert_disengagement_message_triggers_start to expect both the event response and ROBOT_REDIRECT message.}
+{Fixed: YES — extension now receives ROBOT_REDIRECT for all "start" events regardless of signal format, and AttentionResumed on "stop" events. Stale extension sockets are handled gracefully. All 20 tests pass.}
+>>>>>>> try highlight

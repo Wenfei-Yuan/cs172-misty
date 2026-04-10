@@ -6,13 +6,21 @@ import numpy as np
 import mediapipe as mp
 import websockets
 
+<<<<<<< HEAD
 SERVER_IP = "10.0.0.162"   # 改成你的电脑IP
+=======
+SERVER_IP = "10.5.15.160"   # 改成你的电脑IP
+>>>>>>> try highlight
 SERVER_PORT = 8765
 WS_URL = f"ws://{SERVER_IP}:{SERVER_PORT}"
 RECONNECT_DELAY = 3.0
 
 DISENGAGE_THRESHOLD = 3.0      # 偏离持续超过3秒 -> disengaged
+<<<<<<< HEAD
 REENGAGE_THRESHOLD = 1.5       # 恢复朝向屏幕后持续1.5秒 -> re-engaged
+=======
+REENGAGE_THRESHOLD = 1.0       # 恢复朝向屏幕后持续1秒 -> re-engaged
+>>>>>>> try highlight
 
 EVENT_CALIBRATION_COMPLETE = "calibration_complete"
 EVENT_POSTURE = "posture"
@@ -556,6 +564,7 @@ async def run_client():
                         is_away = face_missing_confirmed or invalid_pose_confirmed or looking_away_confirmed
                         state_changed = False
 
+<<<<<<< HEAD
                         # Compute current-frame gaze deviation before recovery logic uses it.
                         gaze_yaw_dev = None
                         gaze_pitch_dev = None
@@ -575,6 +584,8 @@ async def run_client():
                                     gp_thresh = GAZE_PITCH_DEVIATION_THRESHOLD + GAZE_PITCH_HYSTERESIS
                                 gaze_looking_away = gaze_yaw_dev > gy_thresh or gaze_pitch_dev > gp_thresh
 
+=======
+>>>>>>> try highlight
                         if not detection_armed:
                             if has_valid_pose:
                                 valid_face_streak += 1
@@ -631,6 +642,28 @@ async def run_client():
                                 state_changed = True
                                 gaze_mind_wandering = False
 
+<<<<<<< HEAD
+=======
+                        # ─── Gaze Deviation & Mind Wandering ───
+                        gaze_yaw_dev = None
+                        gaze_pitch_dev = None
+                        gaze_looking_away = False
+
+                        if ENABLE_EYE_GAZE and smoothed_gaze_yaw is not None:
+                            gaze_yaw_dev = abs(smoothed_gaze_yaw - reference_gaze_yaw)
+                            gaze_pitch_dev = abs(smoothed_gaze_pitch - reference_gaze_pitch)
+
+                            # Parallax guard: only evaluate gaze when head is roughly forward
+                            if yaw_deviation is not None and yaw_deviation < GAZE_HEAD_YAW_LIMIT:
+                                if gaze_mind_wandering:
+                                    gy_thresh = GAZE_YAW_DEVIATION_THRESHOLD - GAZE_YAW_HYSTERESIS
+                                    gp_thresh = GAZE_PITCH_DEVIATION_THRESHOLD - GAZE_PITCH_HYSTERESIS
+                                else:
+                                    gy_thresh = GAZE_YAW_DEVIATION_THRESHOLD + GAZE_YAW_HYSTERESIS
+                                    gp_thresh = GAZE_PITCH_DEVIATION_THRESHOLD + GAZE_PITCH_HYSTERESIS
+                                gaze_looking_away = gaze_yaw_dev > gy_thresh or gaze_pitch_dev > gp_thresh
+
+>>>>>>> try highlight
                         # Gaze mind wandering timer (independent from away_duration)
                         if ENABLE_EYE_GAZE and detection_armed and (not disengaged or gaze_mind_wandering):
                             if gaze_looking_away:
