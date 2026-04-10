@@ -142,8 +142,6 @@ def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None) -> Dist
 
     if outcome == "gaze":
         acknowledge_gaze_recovery(misty, cfg, current_yaw=recovered_yaw)
-        if screen_pos is not None:
-            look_at_screen(misty, screen_pos)
     elif screen_pos is not None:
         if outcome != "stop":
             _pause_before_return_to_screen(cfg)

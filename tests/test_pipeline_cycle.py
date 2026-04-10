@@ -29,6 +29,8 @@ class FakeReceiver:
             StartSignalResult(event="start", stale_stop_events_cleared=1),
             StartSignalResult(event="shutdown"),
         ]
+        self.stop_wait_results = []
+        self.stop_wait_calls = []
         self.started = False
         self.stopped = False
 
@@ -48,6 +50,9 @@ class FakeReceiver:
         return None
 
     def wait_for_stop_or_shutdown(self, timeout_s: float) -> str | None:
+        self.stop_wait_calls.append(timeout_s)
+        if self.stop_wait_results:
+            return self.stop_wait_results.pop(0)
         return None
 
     def current_text(self) -> str:
@@ -125,7 +130,6 @@ class PipelineCycleTests(unittest.TestCase):
         calls = {
             "redirect": 0,
             "no_response": 0,
-            "arm_cue": 0,
             "summary": 0,
         }
 
@@ -136,9 +140,7 @@ class PipelineCycleTests(unittest.TestCase):
                     StartSignalResult(event="start"),
                     StartSignalResult(event="shutdown"),
                 ]
-
-            def wait_for_stop_or_shutdown(self, timeout_s: float) -> str | None:
-                return "stop"
+                self.stop_wait_results = ["stop"]
 
         pipeline.SessionLog = FakeLog
         pipeline.ExternalSignalReceiver = GazeThenStopReceiver
@@ -151,7 +153,6 @@ class PipelineCycleTests(unittest.TestCase):
         pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
         pipeline.ensure_audio_ready = lambda misty, cfg: {}
         pipeline.redirect_attention_to_screen = lambda misty, cfg, screen_pos, stop_event=None: calls.__setitem__("redirect", calls["redirect"] + 1)
-        pipeline.cue_screen_with_left_arm = lambda misty, cfg, repetitions=1: calls.__setitem__("arm_cue", calls["arm_cue"] + 1)
 
         cfg = SimpleNamespace(
             participant_id="wenfei",
@@ -165,14 +166,12 @@ class PipelineCycleTests(unittest.TestCase):
 
         self.assertEqual(calls["redirect"], 1)
         self.assertEqual(calls["no_response"], 0)
-        self.assertEqual(calls["arm_cue"], 0)
         self.assertEqual(calls["summary"], 1)
 
-    def test_gaze_redirect_prompts_once_after_timeout(self) -> None:
+    def test_gaze_redirect_prompts_once_after_timeout_then_waits_for_stop(self) -> None:
         calls = {
             "redirect": 0,
             "no_response": 0,
-            "arm_cue": 0,
             "summary": 0,
         }
 
@@ -183,9 +182,7 @@ class PipelineCycleTests(unittest.TestCase):
                     StartSignalResult(event="start"),
                     StartSignalResult(event="shutdown"),
                 ]
-
-            def wait_for_stop_or_shutdown(self, timeout_s: float) -> str | None:
-                return None
+                self.stop_wait_results = [None, "stop"]
 
         pipeline.SessionLog = FakeLog
         pipeline.ExternalSignalReceiver = GazeThenTimeoutReceiver
@@ -198,7 +195,6 @@ class PipelineCycleTests(unittest.TestCase):
         pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
         pipeline.ensure_audio_ready = lambda misty, cfg: {}
         pipeline.redirect_attention_to_screen = lambda misty, cfg, screen_pos, stop_event=None: calls.__setitem__("redirect", calls["redirect"] + 1)
-        pipeline.cue_screen_with_left_arm = lambda misty, cfg, repetitions=1: calls.__setitem__("arm_cue", calls["arm_cue"] + 1)
 
         cfg = SimpleNamespace(
             participant_id="wenfei",
@@ -212,8 +208,99 @@ class PipelineCycleTests(unittest.TestCase):
 
         self.assertEqual(calls["redirect"], 1)
         self.assertEqual(calls["no_response"], 1)
-        self.assertEqual(calls["arm_cue"], 1)
         self.assertEqual(calls["summary"], 1)
+
+    def test_gaze_redirect_uses_quiet_wait_after_single_prompt(self) -> None:
+        calls = {
+            "redirect": 0,
+            "no_response": 0,
+            "summary": 0,
+        }
+        receiver_ref = {"instance": None}
+
+        class GazeThenReminderQuietWaitReceiver(FakeReceiver):
+            def __init__(self, host: str, port: int):
+                super().__init__(host, port)
+                self.wait_results = [
+                    StartSignalResult(event="start"),
+                    StartSignalResult(event="shutdown"),
+                ]
+                self.stop_wait_results = [None, "stop"]
+                receiver_ref["instance"] = self
+
+        pipeline.SessionLog = FakeLog
+        pipeline.ExternalSignalReceiver = GazeThenReminderQuietWaitReceiver
+        pipeline.generate_session_id = lambda participant_id: "session_test"
+        pipeline.run_bootup = lambda misty, cfg, log: SimpleNamespace(yaw=1.0, pitch=2.0)
+        pipeline.run_screen_watch = lambda misty, cfg, log, screen_pos: screen_pos
+        pipeline.run_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None: DistractionResult(outcome="gaze")
+        pipeline.run_no_response = lambda misty, cfg, log, attempt, **kwargs: calls.__setitem__("no_response", calls["no_response"] + 1)
+        pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
+        pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
+        pipeline.ensure_audio_ready = lambda misty, cfg: {}
+        pipeline.redirect_attention_to_screen = lambda misty, cfg, screen_pos, stop_event=None: calls.__setitem__("redirect", calls["redirect"] + 1)
+
+        cfg = SimpleNamespace(
+            participant_id="wenfei",
+            signal_host="127.0.0.1",
+            signal_port=5050,
+            max_attempts=3,
+            redirect_confirmation_wait_s=60.0,
+        )
+
+        pipeline.run(misty=object(), cfg=cfg)
+
+        self.assertEqual(calls["redirect"], 1)
+        self.assertEqual(calls["no_response"], 1)
+        self.assertEqual(calls["summary"], 1)
+        self.assertEqual(receiver_ref["instance"].stop_wait_calls, [60.0, 1.0])
+
+    def test_gaze_redirect_quiet_wait_breaks_on_shutdown(self) -> None:
+        calls = {
+            "redirect": 0,
+            "no_response": 0,
+            "summary": 0,
+        }
+        receiver_ref = {"instance": None}
+
+        class GazeThenReminderShutdownReceiver(FakeReceiver):
+            def __init__(self, host: str, port: int):
+                super().__init__(host, port)
+                self.wait_results = [
+                    StartSignalResult(event="start"),
+                ]
+                self.stop_wait_results = [None, "shutdown"]
+                receiver_ref["instance"] = self
+
+            def has_shutdown_event(self) -> bool:
+                return False
+
+        pipeline.SessionLog = FakeLog
+        pipeline.ExternalSignalReceiver = GazeThenReminderShutdownReceiver
+        pipeline.generate_session_id = lambda participant_id: "session_test"
+        pipeline.run_bootup = lambda misty, cfg, log: SimpleNamespace(yaw=1.0, pitch=2.0)
+        pipeline.run_screen_watch = lambda misty, cfg, log, screen_pos: screen_pos
+        pipeline.run_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None: DistractionResult(outcome="gaze")
+        pipeline.run_no_response = lambda misty, cfg, log, attempt, **kwargs: calls.__setitem__("no_response", calls["no_response"] + 1)
+        pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
+        pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
+        pipeline.ensure_audio_ready = lambda misty, cfg: {}
+        pipeline.redirect_attention_to_screen = lambda misty, cfg, screen_pos, stop_event=None: calls.__setitem__("redirect", calls["redirect"] + 1)
+
+        cfg = SimpleNamespace(
+            participant_id="wenfei",
+            signal_host="127.0.0.1",
+            signal_port=5050,
+            max_attempts=3,
+            redirect_confirmation_wait_s=60.0,
+        )
+
+        pipeline.run(misty=object(), cfg=cfg)
+
+        self.assertEqual(calls["redirect"], 1)
+        self.assertEqual(calls["no_response"], 1)
+        self.assertEqual(calls["summary"], 1)
+        self.assertEqual(receiver_ref["instance"].stop_wait_calls, [60.0, 1.0])
 
 
 if __name__ == "__main__":

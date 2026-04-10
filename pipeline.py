@@ -13,6 +13,13 @@ from utils.session_log import SessionLog
 from utils.triggers import ExternalSignalReceiver
 
 
+def _wait_until_stop_or_shutdown(signal_rx) -> str:
+    while True:
+        interrupt = signal_rx.wait_for_stop_or_shutdown(1.0)
+        if interrupt in {"stop", "shutdown"}:
+            return interrupt
+
+
 def run(misty, cfg: Config) -> None:
     session_id = generate_session_id(cfg.participant_id)
     log = SessionLog(session_id=session_id, cfg=cfg)
@@ -72,14 +79,46 @@ def run(misty, cfg: Config) -> None:
                 _pending = signal_rx.consume_interrupt()
                 if _pending == "shutdown":
                     break
-                if screen_pos is not None and _pending != "stop":
-                    signal_rx.clear_redirect_stop()
+                if _pending == "stop":
+                    log.record_distraction_end()
+                    attempt = 0
+                    continue
+
+                signal_rx.clear_redirect_stop()
+                if screen_pos is not None:
                     redirect_attention_to_screen(misty, cfg, screen_pos, stop_event=signal_rx.redirect_stop_event)
                 post_redirect = signal_rx.consume_interrupt()
                 if post_redirect == "shutdown":
                     break
-                if _pending == "stop" or post_redirect == "stop":
+                if post_redirect == "stop":
                     log.record_distraction_end()
+                    attempt = 0
+                    continue
+
+                log.record("gaze_redirect_wait_started", wait_s=cfg.redirect_confirmation_wait_s)
+                confirmation = signal_rx.wait_for_stop_or_shutdown(cfg.redirect_confirmation_wait_s)
+                if confirmation == "shutdown":
+                    break
+                if confirmation == "stop":
+                    log.record_distraction_end()
+                    attempt = 0
+                    continue
+
+                log.record("gaze_redirect_wait_timed_out", wait_s=cfg.redirect_confirmation_wait_s)
+                signal_rx.clear_redirect_stop()
+                run_no_response(
+                    misty,
+                    cfg,
+                    log,
+                    attempt + 1,
+                    current_text=signal_rx.current_text(),
+                    stop_event=signal_rx.redirect_stop_event,
+                )
+                log.record("gaze_redirect_quiet_wait_started")
+                quiet_wait = _wait_until_stop_or_shutdown(signal_rx)
+                if quiet_wait == "shutdown":
+                    break
+                log.record_distraction_end()
                 attempt = 0
                 continue
 

@@ -141,13 +141,14 @@ def redirect_attention_to_screen(misty, cfg, screen_pos, stop_event=None) -> Non
         return False
 
     def _recover() -> None:
-        look_at_screen(misty, screen_pos)
+        # 被 stop 中断时，以最大速度快速归位，避免用户回神后机器人仍在缓慢运动
+        _head_move(misty, Yaw=screen_pos.yaw, Pitch=screen_pos.pitch, Velocity=100)
         _arms_move(
             misty,
             LeftArmPosition=arm_down_deg,
             RightArmPosition=arm_down_deg,
-            LeftArmVelocity=arm_velocity,
-            RightArmVelocity=arm_velocity,
+            LeftArmVelocity=100,
+            RightArmVelocity=100,
         )
 
     # 1. 官方标准点头动作

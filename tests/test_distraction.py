@@ -110,7 +110,7 @@ class DistractionTimingTests(unittest.TestCase):
         self.assertAlmostEqual(sleep_calls[0], 0.2, places=6)
         self.assertAlmostEqual(result.gaze_latency_s, 0.8, places=6)
 
-    def test_run_distraction_acknowledges_before_returning_to_screen_on_gaze(self) -> None:
+    def test_run_distraction_acknowledges_without_extra_screen_return_on_gaze(self) -> None:
         clock = _FakeClock(start=50.0)
         calls = []
         screen_pos = SimpleNamespace(yaw=18.0, pitch=-6.0)
@@ -155,7 +155,6 @@ class DistractionTimingTests(unittest.TestCase):
                 ("face", SPEAKING_FACE),
                 ("speak", "I see you! Let me check what you were working on."),
                 ("ack", 9.0),
-                ("look", screen_pos),
             ],
         )
 

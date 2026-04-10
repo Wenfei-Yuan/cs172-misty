@@ -556,6 +556,25 @@ async def run_client():
                         is_away = face_missing_confirmed or invalid_pose_confirmed or looking_away_confirmed
                         state_changed = False
 
+                        # Compute current-frame gaze deviation before recovery logic uses it.
+                        gaze_yaw_dev = None
+                        gaze_pitch_dev = None
+                        gaze_looking_away = False
+
+                        if ENABLE_EYE_GAZE and smoothed_gaze_yaw is not None:
+                            gaze_yaw_dev = abs(smoothed_gaze_yaw - reference_gaze_yaw)
+                            gaze_pitch_dev = abs(smoothed_gaze_pitch - reference_gaze_pitch)
+
+                            # Parallax guard: only evaluate gaze when head is roughly forward
+                            if yaw_deviation is not None and yaw_deviation < GAZE_HEAD_YAW_LIMIT:
+                                if gaze_mind_wandering:
+                                    gy_thresh = GAZE_YAW_DEVIATION_THRESHOLD - GAZE_YAW_HYSTERESIS
+                                    gp_thresh = GAZE_PITCH_DEVIATION_THRESHOLD - GAZE_PITCH_HYSTERESIS
+                                else:
+                                    gy_thresh = GAZE_YAW_DEVIATION_THRESHOLD + GAZE_YAW_HYSTERESIS
+                                    gp_thresh = GAZE_PITCH_DEVIATION_THRESHOLD + GAZE_PITCH_HYSTERESIS
+                                gaze_looking_away = gaze_yaw_dev > gy_thresh or gaze_pitch_dev > gp_thresh
+
                         if not detection_armed:
                             if has_valid_pose:
                                 valid_face_streak += 1
@@ -611,25 +630,6 @@ async def run_client():
                                 disengaged = False
                                 state_changed = True
                                 gaze_mind_wandering = False
-
-                        # ─── Gaze Deviation & Mind Wandering ───
-                        gaze_yaw_dev = None
-                        gaze_pitch_dev = None
-                        gaze_looking_away = False
-
-                        if ENABLE_EYE_GAZE and smoothed_gaze_yaw is not None:
-                            gaze_yaw_dev = abs(smoothed_gaze_yaw - reference_gaze_yaw)
-                            gaze_pitch_dev = abs(smoothed_gaze_pitch - reference_gaze_pitch)
-
-                            # Parallax guard: only evaluate gaze when head is roughly forward
-                            if yaw_deviation is not None and yaw_deviation < GAZE_HEAD_YAW_LIMIT:
-                                if gaze_mind_wandering:
-                                    gy_thresh = GAZE_YAW_DEVIATION_THRESHOLD - GAZE_YAW_HYSTERESIS
-                                    gp_thresh = GAZE_PITCH_DEVIATION_THRESHOLD - GAZE_PITCH_HYSTERESIS
-                                else:
-                                    gy_thresh = GAZE_YAW_DEVIATION_THRESHOLD + GAZE_YAW_HYSTERESIS
-                                    gp_thresh = GAZE_PITCH_DEVIATION_THRESHOLD + GAZE_PITCH_HYSTERESIS
-                                gaze_looking_away = gaze_yaw_dev > gy_thresh or gaze_pitch_dev > gp_thresh
 
                         # Gaze mind wandering timer (independent from away_duration)
                         if ENABLE_EYE_GAZE and detection_armed and (not disengaged or gaze_mind_wandering):

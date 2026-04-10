@@ -226,7 +226,7 @@ def analyze_gaze_capture(frame: FrameCaptureResult, cfg) -> VisionCheckResult:
                         {
                             "type": "text",
                             "text": (
-                                "Is the person in this image looking at or clearly attending to the robot/camera? "
+                                "Is the person in this image looking at the robot/camera? "
                                 "Count near-eye-contact or a face/head clearly oriented toward the robot as yes, "
                                 "even if the eye contact is not perfectly centered. "
                                 "Answer no if they are looking away, down at another device, or their face is not directed toward the robot. "
