@@ -1,0 +1,431 @@
+{
+  "session_id": "session_20260409_1_629e89",
+  "participant_id": "1",
+  "start_time": "2026-04-09T23:36:43.730240-04:00",
+  "end_time": "2026-04-09T23:42:48.043522-04:00",
+  "screen_observations": [
+    {
+      "timestamp": "2026-04-09T23:37:26.491370-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-09T23:38:28.340043-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-09T23:38:53.987096-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-09T23:39:11.451493-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-09T23:39:36.969993-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-09T23:42:31.035472-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    }
+  ],
+  "events": [
+    {
+      "timestamp": "2026-04-09T23:36:44.297538-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:36:49.924023-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:36:54.740840-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 32.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:36:58.718259-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 52.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:37:02.507394-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:37:06.299806-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 62.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:37:13.207125-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 12.0,
+        "pitch": 7.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:37:16.740737-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 72.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:37:23.105850-04:00",
+      "name": "screen_search_verified",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": -1.0,
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:37:23.105878-04:00",
+      "name": "screen_position_initialized",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": -1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:37:23.338316-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_found",
+        "utterance": "I've found the screen!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I've found the screen!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:37:23.495095-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_start_reading",
+        "utterance": "Let's start reading. You can open the browser extension and start reading now.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading. You can open the browser extension and start reading now.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:37:23.526938-04:00",
+      "name": "bootup_complete",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-09T23:37:26.491327-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": -1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:37:26.491383-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-09T23:38:10.184481-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:38:16.339889-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "gaze_recovered",
+        "utterance": "I see you! Let me check what you were working on.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I see you! Let me check what you were working on.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:38:16.653644-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-09T23:38:28.340003-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": -1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:38:28.340053-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-09T23:38:38.736722-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:38:53.987061-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": -1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:38:53.987105-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-09T23:39:00.270425-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:39:11.451446-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": -1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:39:11.451503-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-09T23:39:17.105822-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:39:24.589147-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "gaze_recovered",
+        "utterance": "I see you! Let me check what you were working on.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I see you! Let me check what you were working on.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:39:24.897130-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-09T23:39:33.700222-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:39:36.969956-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": -1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:39:36.970001-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-09T23:41:49.744810-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:42:20.027715-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "gaze_recovered",
+        "utterance": "I see you! Let me check what you were working on.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I see you! Let me check what you were working on.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:42:20.332875-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-09T23:42:31.035437-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": -1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-09T23:42:31.035482-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-09T23:42:48.000578-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Session complete. I observed 5 distraction events and used 0 voice prompts. Great effort today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Session complete. I observed 5 distraction events and used 0 voice prompts. Great effort today!`."
+          }
+        }
+      }
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-04-09T23:38:10.184526-04:00",
+      "distraction_end_time": "2026-04-09T23:38:16.653575-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 6.47,
+      "gaze_detected": true,
+      "gaze_latency_s": 4.78,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-04-09T23:38:38.736806-04:00",
+      "distraction_end_time": "2026-04-09T23:38:50.598276-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 11.86,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 3,
+      "distraction_start_time": "2026-04-09T23:39:00.270513-04:00",
+      "distraction_end_time": "2026-04-09T23:39:08.548670-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 8.28,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 4,
+      "distraction_start_time": "2026-04-09T23:39:17.105859-04:00",
+      "distraction_end_time": "2026-04-09T23:39:24.897075-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 7.79,
+      "gaze_detected": true,
+      "gaze_latency_s": 5.97,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 5,
+      "distraction_start_time": "2026-04-09T23:41:49.744846-04:00",
+      "distraction_end_time": "2026-04-09T23:42:20.332821-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 30.59,
+      "gaze_detected": true,
+      "gaze_latency_s": 29.12,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    }
+  ],
+  "total_distraction_count": 5,
+  "total_voice_prompts": 0
+}

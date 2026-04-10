@@ -89,10 +89,10 @@ class SessionLog:
         current["voice_prompt_count"] += 1
 
     def generate_summary(self) -> str:
-        distraction_count = len(self.distraction_events)
         return (
-            f"Session complete. I observed {distraction_count} distraction events and "
-            f"used {self.total_voice_prompts} voice prompts. Great effort today!"
+            "Great job finishing your reading session! "
+            "Every session is a step forward. "
+            "Keep it up — I'll be here cheering you on next time!"
         )
 
     def as_dict(self) -> dict:

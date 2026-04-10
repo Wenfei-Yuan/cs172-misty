@@ -53,7 +53,7 @@ class Config:
     redirect_nod_action_name: str = "head-down-up-nod"
     redirect_nod_action_wait_s: float = 1.2
     redirect_action_timeout_s: float = 10.0
-    redirect_screen_focus_pause_s: float = 2.5
+    redirect_screen_focus_pause_s: float = 1.0
     redirect_left_arm_pause_s: float = 0.3
     redirect_settle_s: float = 1.5
     redirect_confirmation_wait_s: float = 60.0

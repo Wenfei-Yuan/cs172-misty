@@ -12,7 +12,7 @@ WS_URL = f"ws://{SERVER_IP}:{SERVER_PORT}"
 RECONNECT_DELAY = 3.0
 
 DISENGAGE_THRESHOLD = 3.0      # 偏离持续超过3秒 -> disengaged
-REENGAGE_THRESHOLD = 1.5       # 恢复朝向屏幕后持续1.5秒 -> re-engaged
+REENGAGE_THRESHOLD = 30.0      # 恢复朝向屏幕后持续30秒 -> re-engaged
 
 EVENT_CALIBRATION_COMPLETE = "calibration_complete"
 EVENT_POSTURE = "posture"
