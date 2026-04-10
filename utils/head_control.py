@@ -5,7 +5,7 @@ import time
 import requests
 
 
-def _head_move(misty, **payload) -> None:
+def _head_move(misty, **payload) -> bool:
     try:
         misty.perform_action("head_move", payload)
     except Exception as exc:
@@ -14,7 +14,7 @@ def _head_move(misty, **payload) -> None:
     return True
 
 
-def _arms_move(misty, **payload) -> None:
+def _arms_move(misty, **payload) -> bool:
     try:
         misty.perform_action("arms_move", payload)
     except Exception as exc:
@@ -83,63 +83,28 @@ def _start_builtin_action(misty, cfg, action_name: str) -> bool:
     return True
 
 
-def _perform_redirect_nod(misty, cfg) -> None:
+def _perform_redirect_nod(misty, cfg, stop_event=None) -> bool:
     action_name = str(getattr(cfg, "redirect_nod_action_name", "head-down-up-nod"))
     if _start_builtin_action(misty, cfg, action_name):
-        time.sleep(max(0.0, float(getattr(cfg, "redirect_nod_action_wait_s", 1.2))))
+        wait_s = max(0.0, float(getattr(cfg, "redirect_nod_action_wait_s", 1.2)))
+        if stop_event is not None:
+            return _wait_or_stop(stop_event, wait_s)
+        time.sleep(wait_s)
+    return False
 
 
-def redirect_attention_to_screen(misty, cfg, screen_pos) -> None:
-    head_velocity = int(getattr(cfg, "redirect_head_velocity", 100))
-
-    # 1. 官方标准点头动作
-    _perform_redirect_nod(misty, cfg)
-
-    # 2. 转向屏幕
-    _head_move(
-        misty,
-        Yaw=screen_pos.yaw,
-        Pitch=screen_pos.pitch,
-        Velocity=head_velocity,
-    )
-    screen_focus_pause_s = max(0.0, float(getattr(cfg, "redirect_screen_focus_pause_s", 2.5)))
-    time.sleep(screen_focus_pause_s)
-
-    # 3. 左臂动作
+def _perform_left_arm_cue(misty, cfg, repetitions: int, sleep_fn=None) -> bool:
     arm_up_deg = int(getattr(cfg, "redirect_left_arm_up_deg", -65))
     arm_down_deg = int(getattr(cfg, "redirect_left_arm_down_deg", 80))
     arm_velocity = int(getattr(cfg, "redirect_left_arm_velocity", 85))
-    arm_hold_s = max(0.0, float(getattr(cfg, "redirect_left_arm_hold_s", 3)))
+    arm_hold_s = max(0.0, float(getattr(cfg, "redirect_left_arm_hold_s", 0.5)))
     arm_pause_s = max(0.0, float(getattr(cfg, "redirect_left_arm_pause_s", 0.5)))
-    arm_repetitions = max(0, int(getattr(cfg, "redirect_left_arm_repetitions", 2)))
-    for _ in range(arm_repetitions):
-        _arms_move(
-            misty,
-            LeftArmPosition=arm_up_deg,
-            RightArmPosition=arm_down_deg,
-            LeftArmVelocity=arm_velocity,
-            RightArmVelocity=arm_velocity,
-        )
-        time.sleep(arm_hold_s)
-        _arms_move(
-            misty,
-            LeftArmPosition=arm_down_deg,
-            RightArmPosition=arm_down_deg,
-            LeftArmVelocity=arm_velocity,
-            RightArmVelocity=arm_velocity,
-        )
-        time.sleep(arm_pause_s)
 
-    settle_s = max(0.0, float(getattr(cfg, "redirect_settle_s", 1.0)))
-    time.sleep(settle_s)
+    def _default_sleep(duration_s: float) -> bool:
+        time.sleep(duration_s)
+        return False
 
-
-def cue_screen_with_left_arm(misty, cfg, repetitions: int = 2) -> None:
-    arm_up_deg = int(getattr(cfg, "redirect_left_arm_up_deg", -65))
-    arm_down_deg = int(getattr(cfg, "redirect_left_arm_down_deg", 80))
-    arm_velocity = int(getattr(cfg, "redirect_left_arm_velocity", 85))
-    arm_hold_s = max(0.0, float(getattr(cfg, "redirect_left_arm_hold_s", 3)))
-    arm_pause_s = max(0.0, float(getattr(cfg, "redirect_left_arm_pause_s", 0.5)))
+    _do_sleep = sleep_fn if sleep_fn is not None else _default_sleep
 
     for _ in range(max(0, repetitions)):
         _arms_move(
@@ -149,7 +114,8 @@ def cue_screen_with_left_arm(misty, cfg, repetitions: int = 2) -> None:
             LeftArmVelocity=arm_velocity,
             RightArmVelocity=arm_velocity,
         )
-        time.sleep(arm_hold_s)
+        if _do_sleep(arm_hold_s):
+            return True
         _arms_move(
             misty,
             LeftArmPosition=arm_down_deg,
@@ -157,7 +123,62 @@ def cue_screen_with_left_arm(misty, cfg, repetitions: int = 2) -> None:
             LeftArmVelocity=arm_velocity,
             RightArmVelocity=arm_velocity,
         )
-        time.sleep(arm_pause_s)
+        if _do_sleep(arm_pause_s):
+            return True
+    return False
+
+
+def redirect_attention_to_screen(misty, cfg, screen_pos, stop_event=None) -> None:
+    head_velocity = int(getattr(cfg, "redirect_head_velocity", 100))
+    arm_down_deg = int(getattr(cfg, "redirect_left_arm_down_deg", 80))
+    arm_velocity = int(getattr(cfg, "redirect_left_arm_velocity", 85))
+    arm_repetitions = max(0, int(getattr(cfg, "redirect_left_arm_repetitions", 1)))
+
+    def _sleep(duration_s: float) -> bool:
+        if stop_event is not None:
+            return _wait_or_stop(stop_event, duration_s)
+        time.sleep(duration_s)
+        return False
+
+    def _recover() -> None:
+        look_at_screen(misty, screen_pos)
+        _arms_move(
+            misty,
+            LeftArmPosition=arm_down_deg,
+            RightArmPosition=arm_down_deg,
+            LeftArmVelocity=arm_velocity,
+            RightArmVelocity=arm_velocity,
+        )
+
+    # 1. 官方标准点头动作
+    if _perform_redirect_nod(misty, cfg, stop_event):
+        _recover()
+        return
+
+    # 2. 转向屏幕
+    _head_move(
+        misty,
+        Yaw=screen_pos.yaw,
+        Pitch=screen_pos.pitch,
+        Velocity=head_velocity,
+    )
+    screen_focus_pause_s = max(0.0, float(getattr(cfg, "redirect_screen_focus_pause_s", 2.0)))
+    if _sleep(screen_focus_pause_s):
+        _recover()
+        return
+
+    # 3. 左臂动作
+    if _perform_left_arm_cue(misty, cfg, arm_repetitions, sleep_fn=_sleep):
+        _recover()
+        return
+
+    settle_s = max(0.0, float(getattr(cfg, "redirect_settle_s", 0.0)))
+    _sleep(settle_s)
+
+
+def cue_screen_with_left_arm(misty, cfg, repetitions: int = 1, stop_event=None) -> None:
+    sleep_fn = (lambda d: _wait_or_stop(stop_event, d)) if stop_event is not None else None
+    _perform_left_arm_cue(misty, cfg, repetitions, sleep_fn=sleep_fn)
 
 
 def _wait_or_stop(stop_event, duration_s: float) -> bool:
@@ -206,7 +227,7 @@ def swing_arms_only(misty, cfg, stop_event) -> None:
     down_deg = int(getattr(cfg, "arm_swing_down_deg", 80))
     velocity = int(getattr(cfg, "arm_swing_velocity", 55))
     period_s = float(getattr(cfg, "arm_swing_period_s", 0.5))
-    pause_s = float(getattr(cfg, "arm_swing_pause_s", 0.2))
+    pause_s = float(getattr(cfg, "arm_swing_pause_s", 0.5))
 
     while not stop_event.is_set():
         if not _arms_move(

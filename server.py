@@ -1,4 +1,5 @@
 from __future__ import annotations
+from datetime import datetime
 
 import asyncio
 import json
@@ -44,6 +45,11 @@ client_roles = {}
 role_clients = {}
 POSTURE_DISENGAGED_MESSAGE = "ROBOT_REDIRECT"
 REENGAGEMENT_MESSAGE = json.dumps({"eventName": "AttentionResumed"})
+
+
+def _log(sender: str, receiver: str, message: str) -> None:
+    ts = datetime.now().strftime("%H:%M:%S")
+    print(f"[{ts}] [{sender} -> {receiver}] {message}")
 
 
 class DisengagementTracker:
@@ -208,6 +214,21 @@ def parse_current_text_message(message: str) -> str | None:
     return None
 
 
+def is_extension_reading_state_message(message: str, source_role: str | None) -> bool:
+    try:
+        payload = json.loads(message.strip())
+    except json.JSONDecodeError:
+        return False
+
+    message_type = payload.get("type")
+    if not (isinstance(message_type, str) and message_type.strip().lower() == "readingstate"):
+        return False
+
+    client = payload.get("client")
+    normalized_client = client.strip().lower() if isinstance(client, str) else None
+    return source_role == "extension" or normalized_client == "extension"
+
+
 def is_signal_allowed_for_role(signal: str, source_role: str | None) -> bool:
     # Only webcam is allowed to define recovery/re-engagement signals.
     if source_role == "extension" and signal == "disengaged_false":
@@ -216,6 +237,8 @@ def is_signal_allowed_for_role(signal: str, source_role: str | None) -> bool:
 
 
 def parse_message_signal_for_role(message: str, source_role: str | None = None) -> str | None:
+    if is_extension_reading_state_message(message, source_role):
+        return None
     signal = parse_message_signal(message)
     if not signal:
         return None
@@ -229,6 +252,10 @@ def parse_message_event(message: str, source_role: str | None = None) -> str | N
     if not signal:
         return None
     return tracker.resolve_signal(signal)
+
+
+def is_duplicate_active_start(signal: str | None, event: str | None) -> bool:
+    return signal == "disengaged_true" and event is None and tracker.distraction_active
 
 
 def trigger_url_for_event(event: str) -> str:
@@ -275,10 +302,15 @@ async def notify_extension_redirect(event: str, forwarded: bool) -> None:
         return
     extension_socket = role_clients.get("extension")
     if extension_socket is None:
-        print("extension 通知未发送: 未找到已注册的 extension 客户端")
+        _log("server", "console", "extension 通知未发送: 未找到已注册的 extension 客户端")
         return
-    print(f"WebSocket 定向发送 -> extension: {REENGAGEMENT_MESSAGE}")
-    await extension_socket.send(REENGAGEMENT_MESSAGE)
+    if not forwarded:
+        return
+    _log("server", "extension", f"WebSocket 定向发送 -> extension: {REENGAGEMENT_MESSAGE}")
+    try:
+        await extension_socket.send(REENGAGEMENT_MESSAGE)
+    except websockets.exceptions.ConnectionClosed:
+        _log("server", "console", "extension WebSocket 在发送前关闭，通知未送达")
 
 
 async def notify_extension_posture_disengagement(source_role: str | None, signal: str | None, event: str | None, forwarded: bool) -> None:
@@ -286,36 +318,45 @@ async def notify_extension_posture_disengagement(source_role: str | None, signal
         return
     extension_socket = role_clients.get("extension")
     if extension_socket is None:
-        print("extension 通知未发送: 未找到已注册的 extension 客户端")
+        _log("server", "console", "extension 通知未发送: 未找到已注册的 extension 客户端")
         return
-    print(f"WebSocket 定向发送 -> extension: {POSTURE_DISENGAGED_MESSAGE}")
-    await extension_socket.send(POSTURE_DISENGAGED_MESSAGE)
+    # Notify extension regardless of whether the robot pipeline (port 5050) responded.
+    # Extension highlight should fire as long as webcam detects distraction.
+    if not forwarded:
+        _log("server", "console", "pipeline 转发失败，但仍通知 extension 高亮")
+    _log("server", "extension", f"WebSocket 定向发送 -> extension: {POSTURE_DISENGAGED_MESSAGE}")
+    try:
+        await extension_socket.send(POSTURE_DISENGAGED_MESSAGE)
+    except websockets.exceptions.ConnectionClosed:
+        _log("server", "console", "extension WebSocket 在发送前关闭，通知未送达")
 
 
 async def handler(websocket):
     remote = websocket.remote_address or ("unknown", 0)
     client_ip = remote[0]
-    print(f"客户端已连接: {client_ip}")
+    _log(client_ip, "server", f"客户端已连接: {client_ip}")
     connected_clients.add(websocket)
 
     try:
         async for message in websocket:
+            source_role = client_roles.get(websocket, "unregistered")
             _cv = _get_covert_disengagement_value(message)
             if _cv is None:
-                print(f"收到消息 from {client_ip}: {message}")
+                _log(source_role, "server", f"收到消息 from {client_ip}: {message}")
             elif _cv != _last_covert_disengagement.get(websocket):
                 _last_covert_disengagement[websocket] = _cv
-                print(f"收到消息 from {client_ip}: {message}")
+                _log(source_role, "server", f"收到消息 from {client_ip}: {message}")
             registration = parse_client_registration(message)
             if registration:
                 register_client(websocket, registration)
-                print(f"客户端已注册: {client_ip} -> {registration}")
-                print(f"WebSocket 定向发送 -> {registration}: registration_ack")
+                _log(client_ip, "server", f"客户端已注册: {client_ip} -> {registration}")
+                _log("server", registration, f"WebSocket 定向发送 -> {registration}: registration_ack")
                 await websocket.send(json.dumps({"ok": True, "type": "registered", "client": registration}))
                 continue
 
             receiver_role = client_roles.get(websocket, "unregistered")
             signal = parse_message_signal_for_role(message, receiver_role)
+            _saved_active = tracker.distraction_active
             event = parse_message_event(message, receiver_role)
             if not event:
                 current_text = parse_current_text_message(message)
@@ -327,18 +368,16 @@ async def handler(websocket):
                     else:
                         response["reason"] = detail
                     await websocket.send(json.dumps(response))
-                    # Still notify extension if distraction is active
-                    if signal == "disengaged_true" and tracker.distraction_active:
-                        await notify_extension_posture_disengagement(receiver_role, signal, "start", False)
+                    if is_duplicate_active_start(signal, event):
+                        _log(source_role, "console", "检测到重复的 disengaged_true，当前已处于 distraction_active，跳过重复 start 转发到 5050")
                     continue
 
             if not event:
                 reason = "state_not_changed" if signal else "unrecognized_message"
-                print(f"只是收到消息但没触发: {reason}")
+                _log(source_role, "console", f"只是收到消息但没触发: {reason}")
+                if is_duplicate_active_start(signal, event):
+                    _log(source_role, "console", "检测到重复的 disengaged_true，当前已处于 distraction_active，跳过重复 start 转发到 5050")
                 await websocket.send(json.dumps({"ok": False, "reason": reason}))
-                # Even if state didn't change, notify extension if distraction is active
-                if signal == "disengaged_true" and tracker.distraction_active:
-                    await notify_extension_posture_disengagement(receiver_role, signal, "start", False)
                 continue
 
             current_text = parse_current_text_message(message)
@@ -349,19 +388,20 @@ async def handler(websocket):
             response = {"ok": ok, "event": event}
             if ok:
                 response["trigger_response"] = detail
-                print(f"消息已转发到机器人流程: {event}")
-                print(f"已转发事件 {event} -> {trigger_url_for_event(event)}")
+                _log("server", "misty", f"消息已转发到机器人流程: {event}")
+                _log("server", "misty", f"已转发事件 {event} -> {trigger_url_for_event(event)}")
             else:
+                tracker.distraction_active = _saved_active
                 response["reason"] = detail
-                print(f"只是收到消息但没触发: {event} -> {detail}")
-                print(f"转发事件失败 {event}: {detail}")
-            print(f"WebSocket 定向发送 -> {receiver_role}: {json.dumps(response, ensure_ascii=False)}")
+                _log("server", "console", f"只是收到消息但没触发: {event} -> {detail}")
+                _log("server", "console", f"转发事件失败 {event}: {detail}")
+            _log("server", receiver_role, f"WebSocket 定向发送 -> {receiver_role}: {json.dumps(response, ensure_ascii=False)}")
             await websocket.send(json.dumps(response))
             await notify_extension_posture_disengagement(receiver_role, signal, event, ok)
             await notify_extension_redirect(event, ok)
 
     except websockets.exceptions.ConnectionClosed:
-        print(f"客户端断开: {client_ip}")
+        _log(client_ip, "server", f"客户端断开: {client_ip}")
     finally:
         connected_clients.discard(websocket)
         unregister_client(websocket)
@@ -370,12 +410,12 @@ async def handler(websocket):
 
 async def main():
     server = await websockets.serve(handler, WS_HOST, WS_PORT)
-    print("WebSocket bridge 已启动")
-    print(f"监听地址: ws://{WS_HOST}:{WS_PORT}")
-    print(f"触发器目标: http://{TRIGGER_HOST}:{TRIGGER_PORT}")
-    print('客户端可先发送 JSON 注册身份: {"client": "webcam"} 或 {"client": "extension"}')
-    print("支持消息: start, stop, shutdown, posture_disengaged=true/false, covert_disengagement=true, re-engagement")
-    print('也支持 JSON: {"event": "start"} 或 {"posture_disengaged": true}')
+    _log("server", "console", "WebSocket bridge 已启动")
+    _log("server", "console", f"监听地址: ws://{WS_HOST}:{WS_PORT}")
+    _log("server", "console", f"触发器目标: http://{TRIGGER_HOST}:{TRIGGER_PORT}")
+    _log("server", "console", '客户端可先发送 JSON 注册身份: {"client": "webcam"} 或 {"client": "extension"}')
+    _log("server", "console", "支持消息: start, stop, shutdown, posture_disengaged=true/false, covert_disengagement=true, re-engagement")
+    _log("server", "console", '也支持 JSON: {"event": "start"} 或 {"posture_disengaged": true}')
     await server.wait_closed()
 
 

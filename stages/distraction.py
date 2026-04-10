@@ -68,7 +68,7 @@ def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None) -> Dist
     )
     shake_thread.start()
 
-    poll_start = time.time()
+    poll_start = time.monotonic()
     gaze_seen = False
     gaze_latency = None
     recovered_yaw = None
@@ -84,7 +84,7 @@ def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None) -> Dist
             if interrupt_event == "stop":
                 outcome = "stop"
                 break
-            elapsed = time.time() - poll_start
+            elapsed = time.monotonic() - poll_start
             if elapsed > cfg.gaze_timeout_s:
                 outcome = "timeout"
                 break
@@ -95,6 +95,14 @@ def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None) -> Dist
                     sampled_yaw = pose_updates.get(timeout=poll_interval_s)
                 except Empty:
                     sampled_yaw = None
+                    if consume_interrupt:
+                        _mid_poll_event = consume_interrupt()
+                        if _mid_poll_event == "stop":
+                            outcome = "stop"
+                            break
+                        if _mid_poll_event == "shutdown":
+                            outcome = "shutdown"
+                            break
             else:
                 try:
                     sampled_yaw = pose_updates.get_nowait()
@@ -115,7 +123,7 @@ def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None) -> Dist
                 log.record("gaze_sampled_pose", yaw_deg=round(sampled_yaw, 2), gaze_status=result.status)
             if gaze_seen:
                 recovered_yaw = sampled_yaw if sampled_yaw is not None else latest_pose["yaw"]
-                gaze_latency = time.time() - poll_start
+                gaze_latency = time.monotonic() - poll_start
                 outcome = "gaze"
                 _stop_shake_thread(stop_shake, shake_thread)
                 show_image(misty, SPEAKING_FACE)
@@ -137,7 +145,8 @@ def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None) -> Dist
         if screen_pos is not None:
             look_at_screen(misty, screen_pos)
     elif screen_pos is not None:
-        _pause_before_return_to_screen(cfg)
+        if outcome != "stop":
+            _pause_before_return_to_screen(cfg)
         look_at_screen(misty, screen_pos)
 
     log.record_distraction_result(outcome=outcome, gaze_seen=gaze_seen, latency_s=gaze_latency)

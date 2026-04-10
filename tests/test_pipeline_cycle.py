@@ -53,6 +53,14 @@ class FakeReceiver:
     def current_text(self) -> str:
         return "test reading text"
 
+    def clear_redirect_stop(self) -> None:
+        pass
+
+    @property
+    def redirect_stop_event(self):
+        import threading
+        return threading.Event()
+
 
 class PipelineCycleTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -142,8 +150,8 @@ class PipelineCycleTests(unittest.TestCase):
         pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
         pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
         pipeline.ensure_audio_ready = lambda misty, cfg: {}
-        pipeline.redirect_attention_to_screen = lambda misty, cfg, screen_pos: calls.__setitem__("redirect", calls["redirect"] + 1)
-        pipeline.cue_screen_with_left_arm = lambda misty, cfg, repetitions=2: calls.__setitem__("arm_cue", calls["arm_cue"] + 1)
+        pipeline.redirect_attention_to_screen = lambda misty, cfg, screen_pos, stop_event=None: calls.__setitem__("redirect", calls["redirect"] + 1)
+        pipeline.cue_screen_with_left_arm = lambda misty, cfg, repetitions=1: calls.__setitem__("arm_cue", calls["arm_cue"] + 1)
 
         cfg = SimpleNamespace(
             participant_id="wenfei",
@@ -189,8 +197,8 @@ class PipelineCycleTests(unittest.TestCase):
         pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
         pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
         pipeline.ensure_audio_ready = lambda misty, cfg: {}
-        pipeline.redirect_attention_to_screen = lambda misty, cfg, screen_pos: calls.__setitem__("redirect", calls["redirect"] + 1)
-        pipeline.cue_screen_with_left_arm = lambda misty, cfg, repetitions=2: calls.__setitem__("arm_cue", calls["arm_cue"] + 1)
+        pipeline.redirect_attention_to_screen = lambda misty, cfg, screen_pos, stop_event=None: calls.__setitem__("redirect", calls["redirect"] + 1)
+        pipeline.cue_screen_with_left_arm = lambda misty, cfg, repetitions=1: calls.__setitem__("arm_cue", calls["arm_cue"] + 1)
 
         cfg = SimpleNamespace(
             participant_id="wenfei",

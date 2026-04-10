@@ -204,7 +204,7 @@ class HeadControlTests(unittest.TestCase):
         )
         self.assertEqual(stop_event.wait_calls, [0.5, 0.2, 0.5, 0.2])
 
-    def test_cue_screen_with_left_arm_only_moves_left_arm_up_twice(self) -> None:
+    def test_cue_screen_with_left_arm_only_moves_left_arm_up_once(self) -> None:
         misty = _FakeMisty()
         cfg = SimpleNamespace(
             redirect_left_arm_up_deg=-65,
@@ -214,29 +214,11 @@ class HeadControlTests(unittest.TestCase):
             redirect_left_arm_pause_s=0.0,
         )
 
-        cue_screen_with_left_arm(misty, cfg, repetitions=2)
+        cue_screen_with_left_arm(misty, cfg, repetitions=1)
 
         self.assertEqual(
             misty.actions,
             [
-                (
-                    "arms_move",
-                    {
-                        "LeftArmPosition": -65,
-                        "RightArmPosition": 80,
-                        "LeftArmVelocity": 65,
-                        "RightArmVelocity": 65,
-                    },
-                ),
-                (
-                    "arms_move",
-                    {
-                        "LeftArmPosition": 80,
-                        "RightArmPosition": 80,
-                        "LeftArmVelocity": 65,
-                        "RightArmVelocity": 65,
-                    },
-                ),
                 (
                     "arms_move",
                     {

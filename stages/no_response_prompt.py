@@ -6,12 +6,12 @@ from utils.focus_prompt import generate_focus_reminder_from_text
 from utils.head_control import cue_screen_with_left_arm
 
 
-def run_no_response(misty, cfg, log, attempt: int, current_text: str = "") -> None:
+def run_no_response(misty, cfg, log, attempt: int, current_text: str = "", stop_event=None) -> None:
     show_image(misty, SPEAKING_FACE)
     dynamic = generate_focus_reminder_from_text(current_text, cfg)
     prompt = dynamic.reminder
     speak_text(misty, cfg, prompt, log=log, stage="no_response_prompt", attempt=attempt)
-    cue_screen_with_left_arm(misty, cfg, repetitions=2)
+    cue_screen_with_left_arm(misty, cfg, repetitions=1, stop_event=stop_event)
     log.record(
         "no_response_prompt_generated",
         attempt=attempt,
@@ -21,4 +21,4 @@ def run_no_response(misty, cfg, log, attempt: int, current_text: str = "") -> No
         fallback_reason=dynamic.reason,
         has_current_text=bool((current_text or "").strip()),
     )
-    log.record_voice_prompt(attempt)
+    log.record_voice_prompt()

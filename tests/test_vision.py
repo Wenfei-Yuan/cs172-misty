@@ -8,11 +8,12 @@ from types import SimpleNamespace
 from PIL import Image
 
 import utils.vision as vision
+import utils.openai_client as openai_client
 
 
 class VisionUtilsTests(unittest.TestCase):
     def tearDown(self) -> None:
-        vision._cached_openai_client.cache_clear()
+        openai_client._cached_openai_client.cache_clear()
 
     def test_prepare_vision_frame_downsizes_large_images(self) -> None:
         image = Image.new("RGB", (1200, 800), color="red")
@@ -35,25 +36,25 @@ class VisionUtilsTests(unittest.TestCase):
 
     def test_openai_client_is_cached_per_key_and_timeout(self) -> None:
         created = []
-        original_constructor = vision.openai.OpenAI
+        original_constructor = openai_client.openai.OpenAI
 
         def fake_constructor(*, api_key: str, timeout: float):
             client = object()
             created.append((api_key, timeout, client))
             return client
 
-        vision.openai.OpenAI = fake_constructor
+        openai_client.openai.OpenAI = fake_constructor
         try:
             cfg = SimpleNamespace(openai_api_key="secret", openai_timeout_s=20.0)
 
-            first = vision._openai_client(cfg)
-            second = vision._openai_client(cfg)
+            first = openai_client.get_openai_client(cfg)
+            second = openai_client.get_openai_client(cfg)
 
             self.assertIs(first, second)
             self.assertEqual(len(created), 1)
             self.assertEqual(created[0][:2], ("secret", 20.0))
         finally:
-            vision.openai.OpenAI = original_constructor
+            openai_client.openai.OpenAI = original_constructor
 
 
 if __name__ == "__main__":

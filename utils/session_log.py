@@ -80,13 +80,13 @@ class SessionLog:
         current["distraction_end_signal_received"] = True
         self._close_distraction_event(current)
 
-    def record_voice_prompt(self, attempt: int) -> None:
+    def record_voice_prompt(self) -> None:
         self.total_voice_prompts += 1
         if not self.distraction_events:
             return
         current = self.distraction_events[-1]
         current["voice_prompt_used"] = True
-        current["voice_prompt_count"] = int(attempt)
+        current["voice_prompt_count"] += 1
 
     def generate_summary(self) -> str:
         distraction_count = len(self.distraction_events)

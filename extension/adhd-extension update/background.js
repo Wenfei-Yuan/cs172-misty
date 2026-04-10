@@ -37,6 +37,13 @@ function newLog(tabId, title, url) {
   };
 }
 
+function disconnectRobotBridge(reason, extra = {}) {
+  if (typeof disconnectBridge === "function") {
+    disconnectBridge();
+  }
+  logEvent("bridge_disconnected", { reason, ...extra });
+}
+
 function logEvent(type, data = {}) {
   getLog().then(log => {
     if (!log) return;
@@ -61,6 +68,7 @@ function logEvent(type, data = {}) {
 
 // ── Toolbar button click: inject scripts ──────────────────────────────────
 chrome.action.onClicked.addListener(async (tab) => {
+  disconnectRobotBridge("new_session_started");
   const log = newLog(tab.id, tab.title, tab.url);
   await setLog(log);
   logEvent("session_start", { title: tab.title, url: tab.url });
@@ -91,6 +99,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg.type === "LOG_EVENT") {
     logEvent(msg.event, msg.data || {});
+    if (msg.event === "session_end") {
+      disconnectRobotBridge("session_end", { tabId: sender?.tab?.id ?? null });
+    }
     sendResponse({ ok: true });
   }
 
@@ -111,8 +122,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   // Reading state from content scripts → forward to Misty
   if (msg.type === "READING_STATE") {
-    if (typeof updateReadingState === "function") updateReadingState(msg.data || {});
-    sendResponse({ ok: true });
+    getLog().then(log => {
+      const sessionTabId = log?.tabId ?? null;
+      const senderTabId = sender?.tab?.id ?? null;
+      if (sessionTabId !== null && senderTabId !== null && senderTabId !== sessionTabId) {
+        sendResponse({ ok: false, ignored: true, reason: "inactive_tab" });
+        return;
+      }
+      if (typeof updateReadingState === "function") updateReadingState(msg.data || {});
+      sendResponse({ ok: true });
+    });
+    return true;
   }
 
   // Bridge status check (for debugging)
@@ -120,4 +140,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const status = typeof getBridgeStatus === "function" ? getBridgeStatus() : { isConnected: false };
     sendResponse(status);
   }
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  getLog().then(log => {
+    if (!log || log.tabId !== tabId) return;
+    logEvent("session_end", { reason: "tab_closed", tabId });
+    disconnectRobotBridge("tab_closed", { tabId });
+  });
 });

@@ -48,7 +48,7 @@ class BootupTests(unittest.TestCase):
             [
                 ("Hello! I'm Misty. Let's focus today!", "bootup_intro"),
                 ("I've found the screen!", "bootup_screen_found"),
-                ("Let's start reading.", "bootup_start_reading"),
+                ("Let's start reading. You can open the browser extension and start reading now.", "bootup_start_reading"),
             ],
         )
 
@@ -72,7 +72,7 @@ class BootupTests(unittest.TestCase):
                 ("speak", "Hello! I'm Misty. Let's focus today!", "bootup_intro"),
                 ("look", screen_pos),
                 ("speak", "I've found the screen!", "bootup_screen_found"),
-                ("speak", "Let's start reading.", "bootup_start_reading"),
+                ("speak", "Let's start reading. You can open the browser extension and start reading now.", "bootup_start_reading"),
                 ("face", bootup.SPEAKING_FACE),
             ],
         )

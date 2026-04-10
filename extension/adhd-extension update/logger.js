@@ -252,7 +252,7 @@
   }
 
   let lastSentText = "";
-  const readingStateInterval = setInterval(() => {
+  function publishReadingState() {
     const currentText = getCurrentText();
     const state = {
       scrollProgress: getScrollProgress(),
@@ -267,6 +267,38 @@
     try {
       chrome.runtime.sendMessage({ type: "READING_STATE", data: state }).catch(() => {});
     } catch (_) {}
+  }
+
+  function resetPauseTracking(reason = "manual_reset") {
+    clearTimeout(pauseTimer);
+    if (isPaused && pauseStart) {
+      send("pause_end", {
+        durationMs: Date.now() - pauseStart,
+        reason,
+        ...currentPosition(),
+      });
+    }
+    isPaused = false;
+    pauseStart = null;
+
+    if (currentMode === "full") {
+      pauseTimer = setTimeout(() => {
+        isPaused   = true;
+        pauseStart = Date.now();
+        send("pause_start", {
+          scrollProgress: getScrollProgress(),
+          paragraphIndex: getVisibleParagraphIndex(),
+        });
+      }, 5000);
+    } else {
+      startDwellTracking(readCurrentNavPosition());
+    }
+
+    publishReadingState();
+  }
+
+  const readingStateInterval = setInterval(() => {
+    publishReadingState();
   }, 2000);
 
   // ── Receive messages from background (robot signals + bridge status) ────────
@@ -306,10 +338,6 @@
         redirectHighlightTarget = target;
         redirectHighlightPrev   = prev;
         clearTimeout(redirectHighlightTimer);
-        redirectHighlightTimer = setTimeout(() => {
-          target.setAttribute("style", prev);
-          redirectHighlightTarget = null;
-        }, 2000);
       }
       send("redirection", { paragraphIndex: idx, scrollProgress: getScrollProgress() });
     }
@@ -320,6 +348,7 @@
         redirectHighlightTarget.setAttribute("style", redirectHighlightPrev);
         redirectHighlightTarget = null;
       }
+      resetPauseTracking("robot_resume");
     }
   });
 

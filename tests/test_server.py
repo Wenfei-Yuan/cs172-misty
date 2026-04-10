@@ -67,6 +67,29 @@ class ServerEventMappingTests(unittest.TestCase):
         self.assertIsNone(server.parse_message_event("re-engagement", source_role="extension"))
         self.assertIsNone(server.parse_message_event('{"re_engagement": true}', source_role="extension"))
 
+    def test_extension_reading_state_is_context_only(self) -> None:
+        payload = json.dumps(
+            {
+                "client": "extension",
+                "type": "ReadingState",
+                "covert_disengagement": True,
+                "pauseDuration": 9000,
+                "currentText": "Due Apr 6 2:59pm",
+            }
+        )
+        self.assertIsNone(server.parse_message_event(payload, source_role="extension"))
+
+    def test_extension_reading_state_is_context_only_before_registration(self) -> None:
+        payload = json.dumps(
+            {
+                "client": "extension",
+                "type": "ReadingState",
+                "covert_disengagement": True,
+                "pauseDuration": 9000,
+            }
+        )
+        self.assertIsNone(server.parse_message_event(payload, source_role="unregistered"))
+
     def test_unrecognized_messages_are_ignored(self) -> None:
         self.assertIsNone(server.parse_message_event("hello"))
         self.assertIsNone(server.parse_message_event('{"event": "unknown"}'))
@@ -167,6 +190,22 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(json.loads(webcam_socket.sent_messages[0])["event"], "start")
         self.assertEqual(extension_socket.sent_messages, [server.POSTURE_DISENGAGED_MESSAGE])
 
+    def test_repeated_disengaged_true_only_notifies_extension_once(self) -> None:
+        async def fake_forward_event(event: str) -> tuple[bool, str]:
+            return True, json.dumps({"event": event})
+
+        server.forward_event = fake_forward_event
+        extension_socket = FakeWebSocket([])
+        webcam_socket = FakeWebSocket(["disengaged=true", "disengaged=true"])
+        server.register_client(extension_socket, "extension")
+
+        asyncio.run(server.handler(webcam_socket))
+
+        self.assertEqual(len(webcam_socket.sent_messages), 2)
+        self.assertEqual(json.loads(webcam_socket.sent_messages[0])["event"], "start")
+        self.assertEqual(json.loads(webcam_socket.sent_messages[1]), {"ok": False, "reason": "state_not_changed"})
+        self.assertEqual(extension_socket.sent_messages, [server.POSTURE_DISENGAGED_MESSAGE])
+
     def test_extension_covert_disengagement_message_triggers_start(self) -> None:
         async def fake_forward_event(event: str) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
@@ -177,8 +216,9 @@ class ServerHandlerTests(unittest.TestCase):
 
         asyncio.run(server.handler(extension_socket))
 
-        self.assertEqual(len(extension_socket.sent_messages), 1)
+        self.assertEqual(len(extension_socket.sent_messages), 2)
         self.assertEqual(json.loads(extension_socket.sent_messages[0])["event"], "start")
+        self.assertEqual(extension_socket.sent_messages[1], server.POSTURE_DISENGAGED_MESSAGE)
 
     def test_extension_reengagement_message_is_rejected(self) -> None:
         async def fake_forward_event(event: str) -> tuple[bool, str]:
@@ -219,6 +259,115 @@ class ServerHandlerTests(unittest.TestCase):
 
         self.assertEqual(len(extension_socket.sent_messages), 1)
         payload = json.loads(extension_socket.sent_messages[0])
+        self.assertEqual(payload["ok"], True)
+        self.assertEqual(payload["type"], "current_text")
+
+    def test_extension_reading_state_does_not_restart_distraction_after_stop(self) -> None:
+        async def fake_forward_event(event: str) -> tuple[bool, str]:
+            return True, json.dumps({"event": event})
+
+        async def fake_forward_current_text(text: str) -> tuple[bool, str]:
+            return True, json.dumps({"ok": True, "text": text})
+
+        server.forward_event = fake_forward_event
+        server.forward_current_text = fake_forward_current_text
+
+        extension_socket = FakeWebSocket(
+            [
+                json.dumps(
+                    {
+                        "client": "extension",
+                        "type": "ReadingState",
+                        "covert_disengagement": True,
+                        "pauseDuration": 9000,
+                        "currentText": "Due Apr 6 2:59pm",
+                    }
+                )
+            ]
+        )
+        server.tracker.distraction_active = False
+        server.register_client(extension_socket, "extension")
+
+        asyncio.run(server.handler(extension_socket))
+
+        self.assertEqual(len(extension_socket.sent_messages), 1)
+        payload = json.loads(extension_socket.sent_messages[0])
+        self.assertEqual(payload["ok"], True)
+        self.assertEqual(payload["type"], "current_text")
+
+    def test_unregistered_extension_reading_state_does_not_trigger_start(self) -> None:
+        async def fake_forward_current_text(text: str) -> tuple[bool, str]:
+            return True, json.dumps({"ok": True, "text": text})
+
+        server.forward_current_text = fake_forward_current_text
+
+        extension_socket = FakeWebSocket(
+            [
+                json.dumps(
+                    {
+                        "client": "extension",
+                        "type": "ReadingState",
+                        "covert_disengagement": True,
+                        "pauseDuration": 9000,
+                        "currentText": "Search entries or author...",
+                    }
+                )
+            ]
+        )
+
+        asyncio.run(server.handler(extension_socket))
+
+        self.assertEqual(len(extension_socket.sent_messages), 1)
+        payload = json.loads(extension_socket.sent_messages[0])
+        self.assertEqual(payload["ok"], True)
+        self.assertEqual(payload["type"], "current_text")
+
+    def test_stale_extension_reading_state_after_webcam_stop_does_not_restart_distraction(self) -> None:
+        forwarded_events: list[str] = []
+
+        async def fake_forward_event(event: str) -> tuple[bool, str]:
+            forwarded_events.append(event)
+            return True, json.dumps({"event": event})
+
+        async def fake_forward_current_text(text: str) -> tuple[bool, str]:
+            return True, json.dumps({"ok": True, "text": text})
+
+        server.forward_event = fake_forward_event
+        server.forward_current_text = fake_forward_current_text
+
+        extension_socket = FakeWebSocket(
+            [
+                json.dumps(
+                    {
+                        "client": "extension",
+                        "type": "ReadingState",
+                        "covert_disengagement": True,
+                        "pauseDuration": 9000,
+                        "currentText": "Due Apr 6 2:59pm",
+                    }
+                )
+            ]
+        )
+        webcam_socket = FakeWebSocket(["disengaged=true", "disengaged=false"])
+        server.register_client(extension_socket, "extension")
+        server.register_client(webcam_socket, "webcam")
+
+        asyncio.run(server.handler(webcam_socket))
+
+        self.assertEqual(forwarded_events, ["start", "stop"])
+        self.assertEqual(
+            extension_socket.sent_messages,
+            [
+                server.POSTURE_DISENGAGED_MESSAGE,
+                server.REENGAGEMENT_MESSAGE,
+            ],
+        )
+
+        asyncio.run(server.handler(extension_socket))
+
+        self.assertEqual(forwarded_events, ["start", "stop"])
+        self.assertEqual(len(extension_socket.sent_messages), 3)
+        payload = json.loads(extension_socket.sent_messages[-1])
         self.assertEqual(payload["ok"], True)
         self.assertEqual(payload["type"], "current_text")
 

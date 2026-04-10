@@ -14,8 +14,8 @@ class _FakeLog:
     def record(self, name: str, **payload) -> None:
         self.records.append((name, payload))
 
-    def record_voice_prompt(self, attempt: int) -> None:
-        self.voice_attempts.append(attempt)
+    def record_voice_prompt(self) -> None:
+        self.voice_attempts.append(True)
 
 
 class NoResponsePromptTests(unittest.TestCase):
@@ -45,15 +45,15 @@ class NoResponsePromptTests(unittest.TestCase):
         no_response_prompt.show_image = lambda misty, filename: calls.append(("show_image", filename))
         no_response_prompt.generate_focus_reminder_from_text = lambda current_text, current_cfg: dynamic
         no_response_prompt.speak_text = lambda misty, current_cfg, text, **kwargs: calls.append(("speak_text", text, kwargs))
-        no_response_prompt.cue_screen_with_left_arm = lambda misty, current_cfg, repetitions=2: calls.append(("cue_left_arm", repetitions))
+        no_response_prompt.cue_screen_with_left_arm = lambda misty, current_cfg, repetitions=1, stop_event=None: calls.append(("cue_left_arm", repetitions))
 
         no_response_prompt.run_no_response(object(), cfg, log, attempt=2, current_text="draft essay")
 
         self.assertEqual(calls[0], ("show_image", no_response_prompt.SPEAKING_FACE))
         self.assertEqual(calls[1][0], "speak_text")
         self.assertEqual(calls[1][1], "Please come back to the task.")
-        self.assertEqual(calls[2], ("cue_left_arm", 2))
-        self.assertEqual(log.voice_attempts, [2])
+        self.assertEqual(calls[2], ("cue_left_arm", 1))
+        self.assertEqual(log.voice_attempts, [True])
         self.assertEqual(log.records[0][0], "no_response_prompt_generated")
 
 

@@ -61,33 +61,31 @@ def run(misty, cfg: Config) -> None:
 
             if distraction.outcome == "stop":
                 log.record_distraction_end()
+                attempt = 0
+                continue
 
             if distraction.outcome == "shutdown":
                 break
 
             if distraction.outcome == "gaze":
                 log.record("gaze_recovered")
-                if screen_pos is not None:
-                    redirect_attention_to_screen(misty, cfg, screen_pos)
-                confirmation = signal_rx.wait_for_stop_or_shutdown(cfg.redirect_confirmation_wait_s)
-                if confirmation == "shutdown":
+                _pending = signal_rx.consume_interrupt()
+                if _pending == "shutdown":
                     break
-                if confirmation == "stop":
-                    log.record("screen_reengagement_confirmed")
-                    attempt = 0
-                    continue
-                log.record("screen_reengagement_timeout", timeout_s=cfg.redirect_confirmation_wait_s)
-                run_no_response(misty, cfg, log, 1, current_text=signal_rx.current_text())
-                cue_screen_with_left_arm(misty, cfg, repetitions=1)
-                attempt = 0
-                continue
-
-            if distraction.outcome == "stop":
+                if screen_pos is not None and _pending != "stop":
+                    signal_rx.clear_redirect_stop()
+                    redirect_attention_to_screen(misty, cfg, screen_pos, stop_event=signal_rx.redirect_stop_event)
+                post_redirect = signal_rx.consume_interrupt()
+                if post_redirect == "shutdown":
+                    break
+                if _pending == "stop" or post_redirect == "stop":
+                    log.record_distraction_end()
                 attempt = 0
                 continue
 
             attempt += 1
-            run_no_response(misty, cfg, log, attempt, current_text=signal_rx.current_text())
+            signal_rx.clear_redirect_stop()
+            run_no_response(misty, cfg, log, attempt, current_text=signal_rx.current_text(), stop_event=signal_rx.redirect_stop_event)
             if attempt >= cfg.max_attempts:
                 log.record("max_attempts_reached", attempt=attempt)
                 break

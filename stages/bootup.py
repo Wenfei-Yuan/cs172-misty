@@ -17,7 +17,13 @@ def run_bootup(misty, cfg, log):
         log.record("screen_search_verified", yaw=screen_pos.yaw, pitch=screen_pos.pitch, reason=search.reason)
         log.record("screen_position_initialized", yaw=screen_pos.yaw, pitch=screen_pos.pitch)
         speak_text(misty, cfg, "I've found the screen!", log=log, stage="bootup_screen_found")
-        speak_text(misty, cfg, "Let's start reading.", log=log, stage="bootup_start_reading")
+        speak_text(
+            misty,
+            cfg,
+            "Let's start reading. You can open the browser extension and start reading now.",
+            log=log,
+            stage="bootup_start_reading",
+        )
     else:
         log.record("screen_search_error", reason=search.reason or "screen_not_found")
         speak_text(misty, cfg, "I'm still looking for the screen.", log=log, stage="bootup_screen_missing")

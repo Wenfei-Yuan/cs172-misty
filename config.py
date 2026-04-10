@@ -44,13 +44,14 @@ class Config:
     screen_settle_s: float = 0.7
     return_to_screen_pause_s: float = 2.0
     redirect_nod_repetitions: int = 3
+    redirect_left_arm_repetitions: int = 1
     redirect_nod_down_pitch: float = 18.0
     redirect_nod_velocity: int = 68
     redirect_nod_move_s: float = 0.45
     redirect_nod_hold_s: float = 0.28
     redirect_nod_return_s: float = 0.25
     redirect_nod_action_name: str = "head-down-up-nod"
-    redirect_nod_action_wait_s: float = 2.0
+    redirect_nod_action_wait_s: float = 1.2
     redirect_action_timeout_s: float = 10.0
     redirect_screen_focus_pause_s: float = 2.5
     redirect_left_arm_pause_s: float = 0.3

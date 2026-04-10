@@ -22,6 +22,7 @@ class ExternalSignalReceiver:
         self._current_text = ""
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
+        self._redirect_stop_event = threading.Event()
         self._server = None
         self._thread = None
 
@@ -71,6 +72,8 @@ class ExternalSignalReceiver:
                 if event:
                     with parent._lock:
                         parent._events.append(event)
+                    if event in ("stop", "shutdown"):
+                        parent._redirect_stop_event.set()
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
@@ -172,6 +175,13 @@ class ExternalSignalReceiver:
         with self._lock:
             return self._current_text
 
+    def clear_redirect_stop(self) -> None:
+        self._redirect_stop_event.clear()
+
+    @property
+    def redirect_stop_event(self) -> threading.Event:
+        return self._redirect_stop_event
+
 
 
 
@@ -204,3 +214,10 @@ class StubTrigger:
 
     def stop(self) -> None:
         return
+
+    def clear_redirect_stop(self) -> None:
+        pass
+
+    @property
+    def redirect_stop_event(self) -> threading.Event:
+        return threading.Event()

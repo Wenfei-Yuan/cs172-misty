@@ -5,11 +5,11 @@ import binascii
 import io
 import re
 from dataclasses import dataclass
-from functools import lru_cache
 
-import openai
 import requests
 from PIL import Image, ImageOps
+
+from utils.openai_client import get_openai_client
 
 
 @dataclass(frozen=True)
@@ -27,19 +27,6 @@ class VisionCheckResult:
     status: str
     reason: str | None = None
     model_output: str | None = None
-
-
-def _openai_timeout_s(cfg) -> float:
-    return max(1.0, float(getattr(cfg, "openai_timeout_s", 20.0)))
-
-
-@lru_cache(maxsize=8)
-def _cached_openai_client(api_key: str, timeout_s: float):
-    return openai.OpenAI(api_key=api_key, timeout=timeout_s)
-
-
-def _openai_client(cfg):
-    return _cached_openai_client(cfg.openai_api_key, _openai_timeout_s(cfg))
 
 
 def _vision_model(cfg) -> str:
@@ -181,7 +168,7 @@ def analyze_screen_capture(frame: FrameCaptureResult, cfg) -> VisionCheckResult:
     if not frame.ok:
         return VisionCheckResult(ok=False, status="capture_error", reason=frame.reason)
     try:
-        client = _openai_client(cfg)
+        client = get_openai_client(cfg)
         prepared_frame = _prepare_vision_frame(frame, cfg)
         result = client.chat.completions.create(
             model=_vision_model(cfg),
@@ -228,7 +215,7 @@ def analyze_gaze_capture(frame: FrameCaptureResult, cfg) -> VisionCheckResult:
     if not frame.ok:
         return VisionCheckResult(ok=False, status="capture_error", reason=frame.reason)
     try:
-        client = _openai_client(cfg)
+        client = get_openai_client(cfg)
         prepared_frame = _prepare_vision_frame(frame, cfg)
         result = client.chat.completions.create(
             model=_vision_model(cfg),
