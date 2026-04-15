@@ -40,10 +40,11 @@ class ComputeScreenFacingTests(unittest.TestCase):
 
 
 class RecoveryLogicTests(unittest.TestCase):
-    def test_gaze_recovery_does_not_require_screen_facing(self) -> None:
-        """In gaze mode, recovery only needs gaze to normalise; screen_facing is irrelevant."""
+    def test_gaze_mind_wandering_recovery_does_not_require_screen_facing(self) -> None:
+        """gaze_mind_wandering disengagement: head facing slightly away is OK as long as gaze is back."""
         fully_recovered = compute_full_recovery(
             enable_eye_gaze=True,
+            disengage_reason="gaze_mind_wandering",
             raw_face_present=True,
             yaw=5.0,
             pitch=2.0,
@@ -56,10 +57,61 @@ class RecoveryLogicTests(unittest.TestCase):
 
         self.assertTrue(fully_recovered)
 
+    def test_looking_away_recovery_requires_screen_facing(self) -> None:
+        """looking_away disengagement: gaze alone is not enough; head must return to screen too."""
+        fully_recovered = compute_full_recovery(
+            enable_eye_gaze=True,
+            disengage_reason="looking_away",
+            raw_face_present=True,
+            yaw=5.0,
+            pitch=2.0,
+            screen_facing=False,  # still slightly away
+            smoothed_gaze_yaw=0.49,
+            smoothed_gaze_pitch=0.51,
+            gaze_looking_away=False,
+            gaze_error_confirmed=False,
+        )
+
+        self.assertFalse(fully_recovered)
+
+    def test_looking_away_recovery_allowed_when_screen_facing_and_gaze_ok(self) -> None:
+        fully_recovered = compute_full_recovery(
+            enable_eye_gaze=True,
+            disengage_reason="looking_away",
+            raw_face_present=True,
+            yaw=5.0,
+            pitch=2.0,
+            screen_facing=True,
+            smoothed_gaze_yaw=0.49,
+            smoothed_gaze_pitch=0.51,
+            gaze_looking_away=False,
+            gaze_error_confirmed=False,
+        )
+
+        self.assertTrue(fully_recovered)
+
+    def test_recovery_blocked_when_pose_invalid(self) -> None:
+        """No recovery when yaw/pitch are None (pose estimation failed)."""
+        fully_recovered = compute_full_recovery(
+            enable_eye_gaze=True,
+            disengage_reason="looking_away",
+            raw_face_present=True,
+            yaw=None,
+            pitch=2.0,
+            screen_facing=True,
+            smoothed_gaze_yaw=0.49,
+            smoothed_gaze_pitch=0.51,
+            gaze_looking_away=False,
+            gaze_error_confirmed=False,
+        )
+
+        self.assertFalse(fully_recovered)
+
     def test_gaze_recovery_not_allowed_while_error_still_confirmed(self) -> None:
         """Recovery must not fire while gaze_error_confirmed is still True."""
         fully_recovered = compute_full_recovery(
             enable_eye_gaze=True,
+            disengage_reason="gaze_mind_wandering",
             raw_face_present=True,
             yaw=5.0,
             pitch=2.0,
@@ -72,14 +124,14 @@ class RecoveryLogicTests(unittest.TestCase):
 
         self.assertFalse(fully_recovered)
 
-    def test_gaze_trigger_uses_dedicated_reengage_threshold(self) -> None:
+    def test_gaze_trigger_uses_default_reengage_threshold(self) -> None:
         threshold_s = compute_reengage_threshold(
             disengage_reason="gaze_mind_wandering",
             default_threshold_s=1.5,
             gaze_threshold_s=3.0,
         )
 
-        self.assertEqual(threshold_s, 3.0)
+        self.assertEqual(threshold_s, 1.5)
 
     def test_non_gaze_trigger_uses_default_reengage_threshold(self) -> None:
         threshold_s = compute_reengage_threshold(

@@ -18,7 +18,7 @@ RECONNECT_DELAY = 3.0
 
 DISENGAGE_THRESHOLD = 2.0     # 更严格：偏离持续超过2.0秒 -> disengaged
 REENGAGE_THRESHOLD = 1.5  # 恢复朝向屏幕后持续1.5秒 -> re-engaged
-GAZE_REENGAGE_THRESHOLD = 3.0  # 走神恢复更保守，避免刚触发就被短暂回正取消
+GAZE_REENGAGE_THRESHOLD = REENGAGE_THRESHOLD  # 与普通恢复保持一致，差异只留在恢复判据而不是等待时长
 
 EVENT_CALIBRATION_COMPLETE = "calibration_complete"
 EVENT_POSTURE = "posture"
@@ -545,6 +545,8 @@ async def run_client():
                         )
                         looking_away_confirmed = raw_face_present and yaw is not None and pitch is not None and (not screen_facing)
                         state_changed = False
+                        active_error_reason = None
+                        reengage_threshold_s = REENGAGE_THRESHOLD
 
                         # Compute current-frame gaze deviation before recovery logic uses it.
                         gaze_yaw_dev = None
@@ -616,6 +618,7 @@ async def run_client():
 
                             fully_recovered = compute_full_recovery(
                                 enable_eye_gaze=ENABLE_EYE_GAZE,
+                                disengage_reason=disengage_reason_latched,
                                 raw_face_present=raw_face_present,
                                 yaw=yaw,
                                 pitch=pitch,
@@ -650,10 +653,13 @@ async def run_client():
                                     reengage_duration = 0.0
 
                                 if not disengaged:
-                                    disengaged = True
-                                    disengage_reason_latched = active_error_reason
-                                    reason = disengage_reason_latched
-                                    state_changed = True
+                                    # gaze_mind_wandering已通过GAZE_MIND_WANDERING_DURATION积累了2秒
+                                    # 头姿/人脸类误差需要持续 DISENGAGE_THRESHOLD 才触发 start
+                                    if active_error_reason == "gaze_mind_wandering" or away_duration >= DISENGAGE_THRESHOLD:
+                                        disengaged = True
+                                        disengage_reason_latched = active_error_reason
+                                        reason = disengage_reason_latched
+                                        state_changed = True
                             elif fully_recovered:
                                 reason = "gaze_recovered" if ENABLE_EYE_GAZE else "screen_facing"
                                 reengage_break_start_time = None
@@ -744,6 +750,17 @@ async def run_client():
                                 cv2.putText(frame, line5, (20, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.55, gaze_color, 2)
                             else:
                                 cv2.putText(frame, "gaze=N/A", (20, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (128, 128, 128), 2)
+
+                        # Line 6: pending-start / pending-stop countdown
+                        if detection_armed:
+                            if not disengaged and active_error_reason is not None and active_error_reason != "gaze_mind_wandering":
+                                remaining = max(0.0, DISENGAGE_THRESHOLD - away_duration)
+                                line6 = f"PENDING start: {active_error_reason} | away={away_duration:.1f}s/{DISENGAGE_THRESHOLD:.1f}s (still {remaining:.1f}s)"
+                                cv2.putText(frame, line6, (20, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (0, 165, 255), 2)
+                            elif disengaged and reengage_duration > 0:
+                                remaining = max(0.0, reengage_threshold_s - reengage_duration)
+                                line6 = f"PENDING stop | back={reengage_duration:.1f}s/{reengage_threshold_s:.1f}s (still {remaining:.1f}s)"
+                                cv2.putText(frame, line6, (20, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (255, 128, 0), 2)
 
                         cv2.imshow("Participant Webcam Client", frame)
 
