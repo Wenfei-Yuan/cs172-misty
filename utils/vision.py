@@ -47,6 +47,12 @@ def _camera_url(misty) -> str:
     return f"{protocol}://{misty.ip}/api/cameras/rgb"
 
 
+def _camera_timeout_s(cfg) -> float:
+    if cfg is None:
+        return 5.0
+    return max(0.1, float(getattr(cfg, "camera_timeout_s", 5.0)))
+
+
 def _coerce_base64_text(value) -> str:
     if isinstance(value, str):
         return value.strip()
@@ -82,9 +88,9 @@ def _extract_base64_from_payload(payload: dict) -> tuple[str, str | None]:
     return "", None
 
 
-def capture_frame_result(misty) -> FrameCaptureResult:
+def capture_frame_result(misty, cfg=None) -> FrameCaptureResult:
     try:
-        response = requests.get(_camera_url(misty), timeout=5)
+        response = requests.get(_camera_url(misty), timeout=_camera_timeout_s(cfg))
         if response.status_code == 409:
             return FrameCaptureResult(ok=False, reason="camera_busy")
         response.raise_for_status()

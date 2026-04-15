@@ -7,6 +7,7 @@ import utils.head_control as head_control
 from utils.head_control import (
     acknowledge_gaze_recovery,
     cue_screen_with_left_arm,
+    perform_distraction_start_sequence,
     redirect_attention_to_screen,
     shake_head_only,
     swing_arms_only,
@@ -36,6 +37,29 @@ class _FakeStopEvent:
 
 
 class HeadControlTests(unittest.TestCase):
+    def assertFloatSequenceAlmostEqual(self, actual, expected, places: int = 7) -> None:
+        self.assertEqual(len(actual), len(expected))
+        for actual_value, expected_value in zip(actual, expected):
+            self.assertAlmostEqual(actual_value, expected_value, places=places)
+
+    def test_look_at_screen_times_out_if_head_command_blocks(self) -> None:
+        release = head_control.threading.Event()
+
+        class BlockingMisty:
+            def perform_action(self, name: str, payload: dict) -> None:
+                release.wait(0.2)
+
+        original_timeout = head_control._ACTION_TIMEOUT_S
+
+        try:
+            head_control._ACTION_TIMEOUT_S = 0.01
+            result = head_control._head_move(BlockingMisty(), Yaw=10.0, Pitch=5.0, Velocity=90)
+        finally:
+            head_control._ACTION_TIMEOUT_S = original_timeout
+            release.set()
+
+        self.assertFalse(result)
+
     def test_redirect_attention_nods_then_turns_to_screen_before_two_arm_cues(self) -> None:
         misty = _FakeMisty()
         cfg = SimpleNamespace(
@@ -145,6 +169,135 @@ class HeadControlTests(unittest.TestCase):
                 ("head_move", {"Yaw": 12.0, "Pitch": 1.0, "Velocity": 90}),
                 ("head_move", {"Yaw": 12.0, "Pitch": 14.0, "Velocity": 82}),
                 ("head_move", {"Yaw": 12.0, "Pitch": 1.0, "Velocity": 82}),
+            ],
+        )
+
+    def test_perform_distraction_start_sequence_turns_left_waves_then_returns_to_screen(self) -> None:
+        misty = _FakeMisty()
+        cfg = SimpleNamespace(
+            distraction_user_turn_yaw_deg=-45.0,
+            distraction_user_turn_move_s=0.4,
+            distraction_user_focus_pause_s=2.0,
+            distraction_both_arms_up_deg=-70,
+            distraction_both_arms_down_deg=80,
+            distraction_both_arms_velocity=90,
+            distraction_both_arms_hold_s=0.2,
+            distraction_both_arms_pause_s=0.1,
+            distraction_both_arms_repetitions=2,
+            distraction_left_arm_repetitions=2,
+            redirect_head_velocity=88,
+            redirect_screen_focus_pause_s=0.6,
+            redirect_left_arm_up_deg=-65,
+            redirect_left_arm_down_deg=80,
+            redirect_left_arm_velocity=70,
+            redirect_left_arm_hold_s=0.3,
+            redirect_left_arm_pause_s=0.2,
+            redirect_settle_s=0.1,
+        )
+        screen_pos = SimpleNamespace(yaw=24.0, pitch=8.0)
+        sleep_calls = []
+        original_time = head_control.time
+
+        try:
+            head_control.time = SimpleNamespace(sleep=lambda seconds: sleep_calls.append(seconds))
+            perform_distraction_start_sequence(misty, cfg, screen_pos)
+        finally:
+            head_control.time = original_time
+
+        self.assertEqual(
+            misty.actions,
+            [
+                ("head_move", {"Yaw": -45.0, "Pitch": 8.0, "Velocity": 88}),
+                (
+                    "arms_move",
+                    {
+                        "LeftArmPosition": -70,
+                        "RightArmPosition": -70,
+                        "LeftArmVelocity": 90,
+                        "RightArmVelocity": 90,
+                    },
+                ),
+                (
+                    "arms_move",
+                    {
+                        "LeftArmPosition": 80,
+                        "RightArmPosition": 80,
+                        "LeftArmVelocity": 90,
+                        "RightArmVelocity": 90,
+                    },
+                ),
+                (
+                    "arms_move",
+                    {
+                        "LeftArmPosition": -70,
+                        "RightArmPosition": -70,
+                        "LeftArmVelocity": 90,
+                        "RightArmVelocity": 90,
+                    },
+                ),
+                (
+                    "arms_move",
+                    {
+                        "LeftArmPosition": 80,
+                        "RightArmPosition": 80,
+                        "LeftArmVelocity": 90,
+                        "RightArmVelocity": 90,
+                    },
+                ),
+                ("head_move", {"Yaw": 24.0, "Pitch": 8.0, "Velocity": 88}),
+                (
+                    "arms_move",
+                    {
+                        "LeftArmPosition": -65,
+                        "RightArmPosition": 80,
+                        "LeftArmVelocity": 70,
+                        "RightArmVelocity": 70,
+                    },
+                ),
+                (
+                    "arms_move",
+                    {
+                        "LeftArmPosition": 80,
+                        "RightArmPosition": 80,
+                        "LeftArmVelocity": 70,
+                        "RightArmVelocity": 70,
+                    },
+                ),
+                (
+                    "arms_move",
+                    {
+                        "LeftArmPosition": -65,
+                        "RightArmPosition": 80,
+                        "LeftArmVelocity": 70,
+                        "RightArmVelocity": 70,
+                    },
+                ),
+                (
+                    "arms_move",
+                    {
+                        "LeftArmPosition": 80,
+                        "RightArmPosition": 80,
+                        "LeftArmVelocity": 70,
+                        "RightArmVelocity": 70,
+                    },
+                ),
+            ],
+        )
+        self.assertFloatSequenceAlmostEqual(
+            sleep_calls,
+            [
+                69.0 / 88.0,
+                2.0,
+                150.0 / 90.0,
+                150.0 / 90.0,
+                150.0 / 90.0,
+                150.0 / 90.0,
+                69.0 / 88.0 + 0.6,
+                0.3,
+                0.2,
+                0.3,
+                0.2,
+                0.1,
             ],
         )
 

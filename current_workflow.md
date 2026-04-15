@@ -1,6 +1,6 @@
 # cs172-misty — Current Workflow
 
-> Generated: April 5, 2026
+> Generated: April 14, 2026
 
 ## System Overview
 
@@ -41,7 +41,8 @@ The cs172-misty project is a **Misty II social robot focus companion** designed 
 │      (utils/triggers.py)                           │
 │  - HTTP server on 127.0.0.1:5050                   │
 │  - Queues events for pipeline consumption          │
-│  - Provides: wait_for_start(), consume_interrupt() │
+│  - Provides: wait_for_start(), consume_interrupt(),│
+│    wait_for_stop_or_shutdown_only()                │
 │  - Stores current reading text                     │
 └───────────────────────┬───────────────────────────┘
                         │
@@ -65,45 +66,50 @@ The cs172-misty project is a **Misty II social robot focus companion** designed 
 │     │   ├─ Else: VLM grid search (coarse + fine)   │
 │     │   ├─ Confirm alignment with VLM              │
 │     │   ├─ If failed 3x: use default position      │
-│     │   └─ Return screen_pos or None               │
+│     │   └─ Skipped once immediately after a real   │
+│     │      stop so the robot returns directly to   │
+│     │      waiting                                 │
 │     │                                              │
 │     ├─ WAIT FOR START SIGNAL                       │
 │     │   └─ Blocks until "start" from server.py     │
 │     │                                              │
 │     ├─ DISTRACTION (stages/distraction.py)         │
 │     │   ├─ Show distraction face                   │
-│     │   ├─ Start head shake thread                 │
-│     │   ├─ Poll gaze via VLM (camera + OpenAI)     │
-│     │   │   ├─ Fast poll first 12s (0.18s interval)│
-│     │   │   └─ Normal poll after (0.7s interval)   │
-│     │   ├─ If gaze detected:                       │
-│     │   │   ├─ Stop shake, acknowledge nod         │
-│     │   │   ├─ Speak "I see you!"                  │
-│     │   │   └─ Return outcome="gaze"               │
+│     │   ├─ Start distraction motion thread         │
+│     │   │   ├─ Turn head left toward user          │
+│     │   │   ├─ Wave both arms once                 │
+│     │   │   ├─ Return head to screen               │
+│     │   │   └─ Cue left arm twice                  │
+│     │   ├─ Poll stop/shutdown while motion runs    │
+│     │   ├─ If motion finishes:                     │
+│     │   │   └─ Return outcome="sequence_complete"  │
 │     │   ├─ If "stop" signal received:              │
-│     │   │   └─ Return outcome="stop"               │
+│     │   │   └─ Signal recovery to screen and       │
+│     │   │      return outcome="stop"               │
 │     │   ├─ If "shutdown" signal:                   │
 │     │   │   └─ Return outcome="shutdown"           │
 │     │   └─ If timeout (45s):                       │
 │     │       └─ Return outcome="timeout"            │
 │     │                                              │
 │     ├─ HANDLE OUTCOME:                             │
-│     │   ├─ "stop" → log, reset attempt, continue   │
+│     │   ├─ "stop" → log, reset attempt, skip next  │
+│     │   │             screen_watch, continue        │
 │     │   ├─ "shutdown" → break                      │
-│     │   ├─ "gaze" →                                │
-│     │   │   ├─ Redirect attention to screen        │
-│     │   │   │   (nod toward screen + arm cue)      │
-│     │   │   ├─ Wait for stop/shutdown (60s)        │
+│     │   ├─ "sequence_complete" →                   │
+│     │   │   ├─ Drain pending stop/shutdown only    │
+│     │   │   ├─ Wait for stop/shutdown only (60s)   │
 │     │   │   ├─ If confirmed → reset, continue      │
-│     │   │   └─ If timeout → run_no_response,       │
-│     │   │       cue arm, reset, continue           │
+│     │   │   └─ If timeout → run one contextual     │
+│     │   │       reminder, then quiet-wait for stop │
 │     │   └─ "timeout" →                             │
 │     │       ├─ Increment attempt counter           │
 │     │       ├─ NO RESPONSE (stages/no_response)    │
 │     │       │   ├─ Generate focus reminder via      │
 │     │       │   │  OpenAI (from current reading)   │
+│     │       │   ├─ Abort if stop arrives before    │
+│     │       │   │  speech or arm cue               │
 │     │       │   ├─ Speak reminder                  │
-│     │       │   └─ Cue screen with left arm (2x)   │
+│     │       │   └─ Cue screen with left arm (1x)   │
 │     │       └─ If attempt >= max_attempts (3):     │
 │     │           break                              │
 │     │                                              │
@@ -127,7 +133,7 @@ The cs172-misty project is a **Misty II social robot focus companion** designed 
 ### Core Pipeline
 | File | Role |
 |------|------|
-| `pipeline.py` | Main orchestration loop — bootup → screen watch → distraction → recovery → summary |
+| `pipeline.py` | Main orchestration loop — bootup → screen watch / passive wait → distraction → post-sequence confirmation / reminder → summary |
 | `config.py` | `Config` frozen dataclass with all parameters; `load_config()` from `.env` |
 
 ### Stages (pipeline steps)
@@ -135,17 +141,17 @@ The cs172-misty project is a **Misty II social robot focus companion** designed 
 |------|------|
 | `stages/bootup.py` | One-time init: greeting, screen detection |
 | `stages/screen_watch.py` | VLM-based screen position search (coarse + fine grid) |
-| `stages/distraction.py` | Head shake + VLM gaze polling loop |
+| `stages/distraction.py` | Threaded distraction-start motion + interrupt polling |
 | `stages/no_response_prompt.py` | OpenAI-generated focus reminder + arm cue |
 | `stages/summary.py` | Session summary speech + log save |
 
 ### Utilities
 | File | Role |
 |------|------|
-| `utils/audio.py` | `speak_text()`, `ensure_audio_ready()` — wraps misty2py speech |
+| `utils/audio.py` | `speak_text()`, `ensure_audio_ready()` — wraps misty2py speech with bounded waits |
 | `utils/expressions.py` | Face image constants (`BOOT_FACE`, etc.), `show_image()`, `arm_gesture()` |
 | `utils/focus_prompt.py` | OpenAI-based focus reminder generation from reading text |
-| `utils/head_control.py` | Head movements (shake, nod, look), arm cues, redirect attention |
+| `utils/head_control.py` | Head/arm motions with bounded action waits and stop-aware recovery |
 | `utils/session_id.py` | UUID-based session ID generation |
 | `utils/session_log.py` | `SessionLog` class — records events, distractions, saves JSON |
 | `utils/triggers.py` | `ExternalSignalReceiver` (HTTP event server), `StubTrigger` (testing) |
@@ -160,14 +166,15 @@ The cs172-misty project is a **Misty II social robot focus companion** designed 
 3. `DisengagementTracker` deduplicates state transitions (prevents double-start/stop)
 4. Recognized events are forwarded via HTTP POST to `ExternalSignalReceiver` at `127.0.0.1:5050`
 5. `ExternalSignalReceiver` queues events for the pipeline to consume
-6. Pipeline calls `wait_for_start()`, `consume_interrupt()`, or `wait_for_stop_or_shutdown()` to read events
+6. Pipeline calls `wait_for_start()`, `consume_interrupt()`, or `wait_for_stop_or_shutdown_only()` depending on whether the current phase should accept new `start` events
 
 ## VLM (Vision-Language Model) Usage
 
-Two VLM functions, both using OpenAI API (`gpt-4o`):
+One active VLM path remains in the live pipeline:
 
 1. **Screen Alignment** (`analyze_screen_capture`): Classifies camera frame as `aligned`, `visible`, or `none` — used during screen search grid
-2. **Gaze Detection** (`analyze_gaze_capture`): Classifies whether person is looking at robot — `yes`/`no` — used during distraction polling
+
+The distraction stage no longer uses live VLM gaze detection; it now uses a fixed distraction-start motion followed by stop/timeout confirmation logic in `pipeline.py`.
 
 Both functions:
 - Capture frame from Misty's RGB camera via HTTP
@@ -179,14 +186,14 @@ Both functions:
 
 - Each session creates a JSON file in `sessions/` directory
 - Filename format: `session_YYYYMMDD_username_hexid.json`
-- Contains: all events, distraction records (timing, gaze latency, outcome), screen observations, voice prompt counts
+- Contains: all events, distraction records (motion timing, full distraction end timing, outcome), screen observations, voice prompt counts
 - Generated at session end by `SessionLog.save_to_file()`
 
 ## Configuration
 
 - All parameters live in `config.py` as a frozen `@dataclass`
 - Loaded from `.env` file (Misty IP, OpenAI API key) + dataclass defaults
-- ~50 parameters covering: timing, robot motion, VLM settings, behavior thresholds
+- Includes bounded robot/speech wait settings (`robot_action_timeout_s`, `speech_timeout_s`) in addition to timing, robot motion, and VLM settings
 - Participant ID provided via `--username` CLI argument
 
 ## Running the System

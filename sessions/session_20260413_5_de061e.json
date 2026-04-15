@@ -1,0 +1,62 @@
+{
+  "session_id": "session_20260413_5_de061e",
+  "participant_id": "5",
+  "start_time": "2026-04-13T15:10:36.136098-04:00",
+  "end_time": "2026-04-13T15:10:57.626184-04:00",
+  "screen_observations": [],
+  "events": [
+    {
+      "timestamp": "2026-04-13T15:10:39.422281-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:10:47.661233-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:10:53.398686-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:10:57.525940-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!`."
+          }
+        }
+      }
+    }
+  ],
+  "distraction_events": [],
+  "total_distraction_count": 0,
+  "total_voice_prompts": 0
+}

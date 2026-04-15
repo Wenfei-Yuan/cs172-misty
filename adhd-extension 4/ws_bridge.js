@@ -25,7 +25,6 @@ const REENGAGEMENT_SIGNAL  = "covert_disengagement=false";
 // How often to send reading state to Misty (ms)
 const SEND_INTERVAL_MS = 2000;
 const RECONNECT_DELAY_MS = 5000;
-const STATE_STALE_AFTER_MS = 6000;
 
 // Pause duration threshold before sending disengagement signal (ms)
 // e.g. 5000 = send after 5 seconds of no activity
@@ -37,16 +36,9 @@ let sendInterval  = null;
 let reconnectTimer = null;
 let isConnected         = false;
 let lastReadingState    = {};
-let lastReadingStateAt  = 0;
 let disengage_sent      = false;  // tracks whether we've already sent the signal for this pause
 let reconnectAttempts   = 0;
 let bridgeTabId         = null;
-
-function clearReadingState() {
-  lastReadingState = {};
-  lastReadingStateAt = 0;
-  disengage_sent = false;
-}
 
 function truncateForLog(value, maxLength = 500) {
   const text = typeof value === "string" ? value : JSON.stringify(value);
@@ -355,12 +347,6 @@ function connect() {
       return;
     }
 
-    if (eventName === RESUMPTION_EVENT) {
-      console.log("[WS Bridge] Resumption confirm received.");
-      clearReadingState();
-      forwardToContentScripts({ type: "ROBOT_RESUME" });
-      logToBackground("robot_resume", { ts: Date.now() });
-    }
   };
 
   ws.onerror = (err) => {
@@ -395,24 +381,13 @@ function scheduleReconnect() {
 function sendReadingState() {
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
-  const stateAgeMs = lastReadingStateAt ? Date.now() - lastReadingStateAt : Infinity;
-  if (stateAgeMs > STATE_STALE_AFTER_MS) {
-    if (disengage_sent || Object.keys(lastReadingState).length > 0) {
-      console.log("[WS Bridge] Skipping stale reading state.", { stateAgeMs });
-      logToBackground("ws_state_stale", { stateAgeMs });
-    }
-    clearReadingState();
-    return;
-  }
-
   const state = lastReadingState;
   const pauseDuration = state.pauseDuration || 0;
-  const disengaged    = state.covert_disengagement || false;
-  const thresholdReached = disengaged && pauseDuration >= DISENGAGE_THRESHOLD_MS;
+  const disengaged    = state.covert_disengagemnt || false;
 
   // Send covert_disengagement=true once when pause exceeds threshold
   // Reset when user re-engages so it can fire again next pause
-  if (thresholdReached && !disengage_sent) {
+  if (disengaged && pauseDuration >= DISENGAGE_THRESHOLD_MS && !disengage_sent) {
     disengage_sent = true;
     console.log("[WS Bridge] Sending disengagement signal to server.");
     sendWs(DISENGAGEMENT_SIGNAL, "disengagement signal");
@@ -423,13 +398,7 @@ function sendReadingState() {
   }
 
   // Also send full reading state as context
-  const payload = {
-    client: "extension",
-    type: "ReadingState",
-    ...state,
-    covert_disengagement: thresholdReached,
-    ts: Date.now(),
-  };
+  const payload = { client: "extension", type: "ReadingState", ...state, ts: Date.now() };
   sendWs(payload, "reading state");
 }
 
@@ -460,7 +429,6 @@ function logToBackground(event, data) {
 // background.js routes READING_STATE messages here
 function updateReadingState(state) {
   lastReadingState = { ...lastReadingState, ...state };
-  lastReadingStateAt = Date.now();
 }
 
 // ── Public API (called from background.js) ────────────────────────────────
@@ -478,7 +446,6 @@ function disconnectBridge() {
   isConnected = false;
   reconnectAttempts = 0;
   bridgeTabId = null;
-  clearReadingState();
   logToBackground("ws_disconnected", { url: MISTY_WS_URL });
   console.log("[WS Bridge] Disconnected.");
 }

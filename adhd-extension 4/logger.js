@@ -83,9 +83,12 @@
   let pauseTimer    = null;
   let pauseStart    = null;
   let isPaused      = false;
-  let redirectHighlightTimer  = null;
-  let redirectHighlightTarget = null;
-  let redirectHighlightPrev   = "";
+  const REDIRECT_HIGHLIGHT_DELAY_MS = 4500;
+  const REDIRECT_HIGHLIGHT_DURATION_MS = 5000;
+  let redirectHighlightStartTimer = null;
+  let redirectHighlightTimer      = null;
+  let redirectHighlightTarget     = null;
+  let redirectHighlightPrev       = "";
   let scrollSamples = [];
   let currentMode   = "full"; // tracked so we know which logic to apply
   let dwellStart    = null;   // when the user landed on current para/sentence
@@ -178,21 +181,19 @@
 
   function getVisibleParagraphIndex() {
     const paras = shadow.querySelectorAll(".article-paragraph");
+    if (!paras.length) return 0;
+    // Find the paragraph whose center is closest to 40% viewport height
+    // (approximate eye position when reading naturally)
+    const targetY = window.innerHeight * 0.4;
+    let bestIdx = 0, bestDist = Infinity;
     for (let i = 0; i < paras.length; i++) {
       const rect = paras[i].getBoundingClientRect();
-      if (rect.top >= 0 && rect.top < window.innerHeight * 0.6) return i;
+      if (rect.bottom < 0 || rect.top > window.innerHeight) continue; // off screen
+      const centerY = (rect.top + rect.bottom) / 2;
+      const dist = Math.abs(centerY - targetY);
+      if (dist < bestDist) { bestDist = dist; bestIdx = i; }
     }
-    return 0;
-  }
-
-  function getRedirectHighlightTarget() {
-    if (currentMode === "para" || currentMode === "sentence") {
-      return shadow.getElementById("mode-text");
-    }
-
-    const paras = shadow.querySelectorAll(".article-paragraph");
-    const idx = getVisibleParagraphIndex();
-    return paras[idx] || null;
+    return bestIdx;
   }
 
   function estimateWpm() {
@@ -252,14 +253,14 @@
   }
 
   let lastSentText = "";
-  function publishReadingState() {
+  const readingStateInterval = setInterval(() => {
     const currentText = getCurrentText();
     const state = {
       scrollProgress: getScrollProgress(),
       paragraphIndex: getVisibleParagraphIndex(),
       activeMode:     currentMode,
       pauseDuration:       isPaused ? Date.now() - pauseStart : 0,
-      covert_disengagement: isPaused,
+      covert_disengagemnt: isPaused,
       currentText,
       textChanged:    currentText !== lastSentText,
     };
@@ -267,38 +268,6 @@
     try {
       chrome.runtime.sendMessage({ type: "READING_STATE", data: state }).catch(() => {});
     } catch (_) {}
-  }
-
-  function resetPauseTracking(reason = "manual_reset") {
-    clearTimeout(pauseTimer);
-    if (isPaused && pauseStart) {
-      send("pause_end", {
-        durationMs: Date.now() - pauseStart,
-        reason,
-        ...currentPosition(),
-      });
-    }
-    isPaused = false;
-    pauseStart = null;
-
-    if (currentMode === "full") {
-      pauseTimer = setTimeout(() => {
-        isPaused   = true;
-        pauseStart = Date.now();
-        send("pause_start", {
-          scrollProgress: getScrollProgress(),
-          paragraphIndex: getVisibleParagraphIndex(),
-        });
-      }, 5000);
-    } else {
-      startDwellTracking(readCurrentNavPosition());
-    }
-
-    publishReadingState();
-  }
-
-  const readingStateInterval = setInterval(() => {
-    publishReadingState();
   }, 2000);
 
   // ── Receive messages from background (robot signals + bridge status) ────────
@@ -327,30 +296,53 @@
     }
 
     if (msg.type === "ROBOT_REDIRECT") {
-      const idx    = getVisibleParagraphIndex();
-      const target = getRedirectHighlightTarget();
-      if (target) {
-        const prev = target.getAttribute("style") || "";
-          target.style.outline       = "3px solid #7c3aed";
-        target.style.outlineOffset = "4px";
-        target.style.transition    = "outline 0.2s";
-        target.scrollIntoView({ behavior: "smooth", block: "center" });
-        redirectHighlightTarget = target;
-        redirectHighlightPrev   = prev;
-        clearTimeout(redirectHighlightTimer);
-      }
+      const idx = getVisibleParagraphIndex();
+      scheduleRedirectHighlight();
       send("redirection", { paragraphIndex: idx, scrollProgress: getScrollProgress() });
     }
-
-    if (msg.type === "ROBOT_RESUME") {
-      if (redirectHighlightTarget) {
-        clearTimeout(redirectHighlightTimer);
-        redirectHighlightTarget.setAttribute("style", redirectHighlightPrev);
-        redirectHighlightTarget = null;
-      }
-      resetPauseTracking("robot_resume");
-    }
   });
+
+  function getRedirectTarget() {
+    const paras = shadow.querySelectorAll(".article-paragraph");
+    return paras[getVisibleParagraphIndex()] || null;
+  }
+
+  function clearRedirectHighlight() {
+    clearTimeout(redirectHighlightStartTimer);
+    redirectHighlightStartTimer = null;
+    clearTimeout(redirectHighlightTimer);
+    redirectHighlightTimer = null;
+    if (redirectHighlightTarget) {
+      redirectHighlightTarget.setAttribute("style", redirectHighlightPrev);
+      redirectHighlightTarget = null;
+      redirectHighlightPrev = "";
+    }
+  }
+
+  function startRedirectHighlight() {
+    const target = getRedirectTarget();
+    if (!target) return;
+    const prev = target.getAttribute("style") || "";
+    target.style.outline       = "3px solid #7c3aed";
+    target.style.outlineOffset = "4px";
+    target.style.transition    = "outline 0.2s";
+    const rect = target.getBoundingClientRect();
+    const alreadyVisible = rect.top >= 40 && rect.bottom <= window.innerHeight - 40;
+    if (!alreadyVisible) {
+      target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    redirectHighlightTarget = target;
+    redirectHighlightPrev   = prev;
+    redirectHighlightTimer  = setTimeout(() => { clearRedirectHighlight(); }, REDIRECT_HIGHLIGHT_DURATION_MS);
+  }
+
+  function scheduleRedirectHighlight() {
+    clearRedirectHighlight();
+    redirectHighlightStartTimer = setTimeout(() => {
+      redirectHighlightStartTimer = null;
+      startRedirectHighlight();
+    }, REDIRECT_HIGHLIGHT_DELAY_MS);
+  }
 
   // ── Check bridge status on load (connection may already be established)
   setTimeout(() => {
@@ -375,6 +367,7 @@
   if (closeBtn) {
     closeBtn.addEventListener("click", () => {
       send("session_end");
+      clearRedirectHighlight();
       clearTimeout(pauseTimer);
       clearInterval(readingStateInterval);
     });

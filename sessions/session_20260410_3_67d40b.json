@@ -1,0 +1,44 @@
+{
+  "session_id": "session_20260410_3_67d40b",
+  "participant_id": "3",
+  "start_time": "2026-04-10T14:37:30.688762-04:00",
+  "end_time": "2026-04-10T14:38:05.730932-04:00",
+  "screen_observations": [],
+  "events": [
+    {
+      "timestamp": "2026-04-10T14:37:31.663896-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:38:05.609876-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!`."
+          }
+        }
+      }
+    }
+  ],
+  "distraction_events": [],
+  "total_distraction_count": 0,
+  "total_voice_prompts": 0
+}

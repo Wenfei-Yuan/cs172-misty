@@ -1,0 +1,413 @@
+{
+  "session_id": "session_20260413_5_7217d1",
+  "participant_id": "5",
+  "start_time": "2026-04-13T15:12:02.325346-04:00",
+  "end_time": "2026-04-13T15:14:30.812782-04:00",
+  "screen_observations": [],
+  "events": [
+    {
+      "timestamp": "2026-04-13T15:12:02.753313-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:08.215210-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:11.684485-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:14.984486-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:18.557979-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:22.045706-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:25.423960-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:28.902892-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:32.245282-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:35.576192-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:38.958066-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:42.323500-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:45.716282-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:49.114387-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:52.609682-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:56.501156-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:12:59.883917-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:03.447719-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:07.419059-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:10.954653-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:14.489847-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:17.966139-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:21.474203-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:25.046769-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:28.366336-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:31.880125-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:35.273132-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:38.626112-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:42.047097-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:45.398958-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:48.917680-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:52.409262-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:55.943818-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:13:59.441865-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:14:02.891416-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:14:06.504320-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:14:10.237249-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search_fine",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:14:13.657991-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search_fine",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:14:17.319517-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search_fine",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:14:20.775904-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search_fine",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:14:24.263530-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search_fine",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:14:27.660483-04:00",
+      "name": "vlm_check_error",
+      "payload": {
+        "stage": "screen_search_fine",
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:14:30.744176-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!`."
+          }
+        }
+      }
+    }
+  ],
+  "distraction_events": [],
+  "total_distraction_count": 0,
+  "total_voice_prompts": 0
+}

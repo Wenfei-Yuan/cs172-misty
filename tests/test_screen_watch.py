@@ -25,6 +25,7 @@ class ScreenWatchTests(unittest.TestCase):
             "look_at_screen": screen_watch.look_at_screen,
             "speak_text": screen_watch.speak_text,
             "find_screen_position_with_vlm": screen_watch.find_screen_position_with_vlm,
+            "_search_screen_position_with_vlm": screen_watch._search_screen_position_with_vlm,
             "_check_screen_alignment": screen_watch._check_screen_alignment,
             "time": screen_watch.time,
         }
@@ -139,6 +140,33 @@ class ScreenWatchTests(unittest.TestCase):
                 screen_watch.ScreenPos(yaw=15.0, pitch=2.0),
             ],
         )
+
+    def test_default_screen_position_uses_front_facing_seed(self) -> None:
+        cfg = SimpleNamespace(screen_search_seed_yaw=0.0, screen_search_seed_pitch=0.0)
+
+        result = screen_watch.default_screen_position(cfg)
+
+        self.assertEqual(result, screen_watch.ScreenPos(yaw=0.0, pitch=0.0))
+
+    def test_find_screen_position_starts_from_front_facing_seed(self) -> None:
+        look_calls = []
+
+        def fake_search(*args, **kwargs):
+            return screen_watch.ScreenSearchResult(status="not_found", reason="screen_not_found")
+
+        screen_watch.look_at_screen = lambda misty, position: look_calls.append(position)
+        screen_watch._search_screen_position_with_vlm = fake_search
+        screen_watch.time = SimpleNamespace(sleep=lambda seconds: None)
+
+        cfg = SimpleNamespace(
+            screen_search_seed_yaw=0.0,
+            screen_search_seed_pitch=0.0,
+            screen_settle_s=0.0,
+        )
+
+        screen_watch.find_screen_position_with_vlm(misty=object(), cfg=cfg, log=None)
+
+        self.assertEqual(look_calls, [screen_watch.ScreenPos(yaw=0.0, pitch=0.0)])
 
 
 if __name__ == "__main__":

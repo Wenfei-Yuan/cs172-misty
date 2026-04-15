@@ -605,6 +605,12 @@
   // ── Skim phase ────────────────────────────────────────────────────────
   function enterSkimPhase() {
     currentPhase = "skim";
+    // Switch back to Full mode for skim overview
+    if (window.__readerModes) window.__readerModes.setMode("full");
+    shadow.getElementById("mode-full").classList.add("active");
+    shadow.getElementById("mode-para").classList.remove("active");
+    shadow.getElementById("mode-sentence").classList.remove("active");
+    if (overlay) overlay.scrollTop = 0;
     pill.className = "phase-pill skim visible";
     shadow.getElementById("phase-pill-label").textContent = "Skim";
     shadow.getElementById("phase-pill-btn").textContent = "→ Thorough";
@@ -613,11 +619,16 @@
 
   function enterThoroughPhase() {
     currentPhase = "thorough";
+    removeSkimDimming();
+    // Switch to Para mode for focused thorough reading
+    if (window.__readerModes) window.__readerModes.setMode("para");
+    shadow.getElementById("mode-full").classList.remove("active");
+    shadow.getElementById("mode-para").classList.add("active");
+    shadow.getElementById("mode-sentence").classList.remove("active");
+    // Hide pill — Para mode provides focus, but keep a small Skim button visible
     pill.className = "phase-pill thorough visible";
     shadow.getElementById("phase-pill-label").textContent = "Thorough";
     shadow.getElementById("phase-pill-btn").textContent = "← Skim";
-    removeSkimDimming();
-    if (overlay) overlay.scrollTop = 0;
   }
 
   // ── Skim dimming ──────────────────────────────────────────────────────

@@ -20,16 +20,55 @@
   const tempDiv = document.createElement("div");
   tempDiv.innerHTML = data.content;
 
+  // Resolve image src to absolute URL, handle lazy-load placeholders, skip data URIs
+  function resolveImageSrc(src) {
+    if (!src || src.startsWith("data:")) return null;
+    try {
+      return new URL(src, document.baseURI).href;
+    } catch {
+      return null;
+    }
+  }
+
+  // Try all common lazy-load src attributes in priority order
+  function getBestSrc(imgEl) {
+    const attrs = [
+      "src",
+      "data-src",
+      "data-lazy-src",
+      "data-original",
+      "data-full-src",
+      "data-hi-res-src",
+      "data-image",
+      "data-url",
+      "data-srcset",  // fallback: take first URL from srcset
+    ];
+    for (const attr of attrs) {
+      const val = imgEl.getAttribute(attr) || "";
+      if (!val || val.startsWith("data:")) continue;
+      // srcset format: "url 1x, url2 2x" — take the first
+      const candidate = val.split(",")[0].trim().split(" ")[0];
+      const resolved = resolveImageSrc(candidate);
+      if (resolved) return resolved;
+    }
+    // Also check srcset attribute directly
+    const srcset = imgEl.getAttribute("srcset") || imgEl.srcset || "";
+    if (srcset) {
+      const first = srcset.split(",")[0].trim().split(" ")[0];
+      const resolved = resolveImageSrc(first);
+      if (resolved) return resolved;
+    }
+    return null;
+  }
+
   const contentBlocks = [];
   function walk(node) {
     if (node.nodeType === Node.ELEMENT_NODE) {
       const tag = node.tagName.toLowerCase();
 
       if (tag === "img") {
-        const src = node.src || node.getAttribute("src");
-        if (src && !src.startsWith("data:")) {
-          contentBlocks.push({ type: "image", src, alt: node.alt || "", caption: "" });
-        }
+        const src = getBestSrc(node);
+        if (src) contentBlocks.push({ type: "image", src, alt: node.alt || "", caption: "" });
         return;
       }
 
@@ -37,14 +76,12 @@
         const img     = node.querySelector("img");
         const caption = node.querySelector("figcaption");
         if (img) {
-          const src = img.src || img.getAttribute("src");
-          if (src && !src.startsWith("data:")) {
-            contentBlocks.push({
-              type: "image", src,
-              alt:     img.alt || "",
-              caption: caption ? caption.textContent.trim() : "",
-            });
-          }
+          const src = getBestSrc(img);
+          if (src) contentBlocks.push({
+            type: "image", src,
+            alt:     img.alt || "",
+            caption: caption ? caption.textContent.trim() : "",
+          });
         }
         return;
       }
@@ -389,7 +426,8 @@
       const img = document.createElement("img");
       img.src = block.src;
       img.alt = block.alt;
-      img.loading = "lazy";
+      img.loading = "eager"; // lazy loading breaks inside shadow DOM overlays
+      img.onerror = () => { fig.style.display = "none"; }; // hide silently if image fails to load
       fig.appendChild(img);
       if (block.caption) {
         const cap = document.createElement("figcaption");
@@ -604,7 +642,7 @@
   }
 
   // Expose state for modes.js and phases.js
-  window.__readerState = { shadow, paragraphs, content };
+  window.__readerState = { shadow, paragraphs, contentBlocks, content };
 
   shadow.getElementById("mode-full").addEventListener("click",     () => setMode("full"));
   shadow.getElementById("mode-para").addEventListener("click",     () => setMode("para"));

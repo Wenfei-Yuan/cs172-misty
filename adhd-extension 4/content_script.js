@@ -122,6 +122,50 @@
     shadow.getElementById("close").addEventListener("click", () => host.remove());
   }
 
+  // ── Try to find hero image from the original page ─────────────────────
+  // The featured/hero image is usually outside the article body,
+  // so Readability misses it. We grab it from the original DOM and prepend it.
+  function findHeroImage() {
+    // 1. og:image meta tag (most reliable)
+    const og = document.querySelector('meta[property="og:image"]');
+    if (og?.content) return og.content;
+
+    // 2. Common hero image selectors
+    const heroSelectors = [
+      ".hero img", ".hero-image img", ".featured-image img",
+      ".post-thumbnail img", ".article-hero img", ".article-image img",
+      ".article__image img", ".entry-image img", ".story-image img",
+      ".header-image img", "[class*='hero'] img", "[class*='featured'] img",
+      "[class*='banner'] img",
+    ];
+    for (const sel of heroSelectors) {
+      const el = document.querySelector(sel);
+      if (el) {
+        const src = el.src || el.getAttribute("data-src") || el.getAttribute("data-lazy-src") || el.getAttribute("data-original");
+        if (src && !src.startsWith("data:")) return new URL(src, document.baseURI).href;
+      }
+    }
+
+    // 3. First large image above the article content
+    const imgs = Array.from(document.querySelectorAll("img"));
+    for (const img of imgs) {
+      const src = img.src || img.getAttribute("data-src") || "";
+      if (!src || src.startsWith("data:")) continue;
+      if ((img.naturalWidth || img.width) < 200) continue; // skip small icons
+      return new URL(src, document.baseURI).href;
+    }
+    return null;
+  }
+
+  const heroSrc = findHeroImage();
+  if (heroSrc && article.content) {
+    const heroHtml = `<figure><img src="${heroSrc}" alt="Article hero image"/></figure>`;
+    // Only prepend if article content doesn't already start with this image
+    if (!article.content.includes(heroSrc)) {
+      article.content = heroHtml + article.content;
+    }
+  }
+
   console.group("[ADHD Reader] Extraction result");
   console.log("Title:   ", article.title);
   console.log("Byline:  ", article.byline);

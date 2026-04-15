@@ -77,6 +77,16 @@ class TriggerTests(unittest.TestCase):
         with self.receiver._lock:
             self.assertEqual(list(self.receiver._events), ["start"])
 
+    def test_wait_for_stop_or_shutdown_only_discards_start(self) -> None:
+        with self.receiver._lock:
+            self.receiver._events.extend(["start", "stop", "start"])
+
+        event = self.receiver.wait_for_stop_or_shutdown_only(timeout_s=0.0)
+
+        self.assertEqual(event, "stop")
+        with self.receiver._lock:
+            self.assertEqual(list(self.receiver._events), [])
+
     def test_wait_for_stop_or_shutdown_times_out(self) -> None:
         event = self.receiver.wait_for_stop_or_shutdown(timeout_s=0.0)
 

@@ -20,11 +20,6 @@ EVENT_TO_PATH = {
 }
 CURRENT_TEXT_PATH = "/current_text"
 CLIENT_ROLES = {"webcam", "extension"}
-DISENGAGEMENT_START_ALIASES = {
-    "covert_disengagement=true",
-    "covert_disengagemnt=true",
-    "covert_disengagemnt=ture",
-}
 REENGAGEMENT_ALIASES = {
     "re-engagement",
     "re_engagement",
@@ -44,7 +39,6 @@ connected_clients = set()
 client_roles = {}
 role_clients = {}
 POSTURE_DISENGAGED_MESSAGE = "ROBOT_REDIRECT"
-REENGAGEMENT_MESSAGE = json.dumps({"eventName": "AttentionResumed"})
 
 
 def _log(sender: str, receiver: str, message: str) -> None:
@@ -77,7 +71,6 @@ class DisengagementTracker:
 
 
 tracker = DisengagementTracker()
-_last_covert_disengagement: dict = {}
 
 
 def coerce_bool(value) -> bool | None:
@@ -89,18 +82,6 @@ def coerce_bool(value) -> bool | None:
             return True
         if lowered == "false":
             return False
-    return None
-
-
-def _get_covert_disengagement_value(message: str):
-    """Return the covert_disengagemnt bool value if the field is present, else None."""
-    try:
-        payload = json.loads(message.strip())
-    except (json.JSONDecodeError, ValueError):
-        return None
-    for key in ("covert_disengagemnt", "covert_disengagement"):
-        if key in payload:
-            return coerce_bool(payload[key])
     return None
 
 
@@ -144,8 +125,6 @@ def parse_message_signal(message: str) -> str | None:
     lowered = text.lower()
     if lowered in EVENT_TO_PATH:
         return lowered
-    if lowered in DISENGAGEMENT_START_ALIASES:
-        return "disengaged_true"
     if lowered in REENGAGEMENT_ALIASES:
         return "disengaged_false"
     if lowered == "disengaged=true":
@@ -179,14 +158,6 @@ def parse_message_signal(message: str) -> str | None:
     disengage = coerce_bool(payload.get("disengage"))
     if disengage is not None:
         return "disengaged_true" if disengage else "disengaged_false"
-
-    covert_disengagement = coerce_bool(payload.get("covert_disengagement"))
-    if covert_disengagement:
-        return "disengaged_true"
-
-    covert_disengagemnt = coerce_bool(payload.get("covert_disengagemnt"))
-    if covert_disengagemnt:
-        return "disengaged_true"
 
     for key in ("re_engagement", "re-engagement", "reengagement", "re_engament", "re-engament", "reengament"):
         if coerce_bool(payload.get(key)):
@@ -297,22 +268,6 @@ async def forward_current_text(text: str) -> tuple[bool, str]:
     return await asyncio.to_thread(post_current_text, text)
 
 
-async def notify_extension_redirect(event: str, forwarded: bool) -> None:
-    if event != "stop":
-        return
-    extension_socket = role_clients.get("extension")
-    if extension_socket is None:
-        _log("server", "console", "extension 通知未发送: 未找到已注册的 extension 客户端")
-        return
-    if not forwarded:
-        return
-    _log("server", "extension", f"WebSocket 定向发送 -> extension: {REENGAGEMENT_MESSAGE}")
-    try:
-        await extension_socket.send(REENGAGEMENT_MESSAGE)
-    except websockets.exceptions.ConnectionClosed:
-        _log("server", "console", "extension WebSocket 在发送前关闭，通知未送达")
-
-
 async def notify_extension_posture_disengagement(source_role: str | None, signal: str | None, event: str | None, forwarded: bool) -> None:
     if signal != "disengaged_true" or event != "start":
         return
@@ -340,12 +295,7 @@ async def handler(websocket):
     try:
         async for message in websocket:
             source_role = client_roles.get(websocket, "unregistered")
-            _cv = _get_covert_disengagement_value(message)
-            if _cv is None:
-                _log(source_role, "server", f"收到消息 from {client_ip}: {message}")
-            elif _cv != _last_covert_disengagement.get(websocket):
-                _last_covert_disengagement[websocket] = _cv
-                _log(source_role, "server", f"收到消息 from {client_ip}: {message}")
+            _log(source_role, "server", f"收到消息 from {client_ip}: {message}")
             registration = parse_client_registration(message)
             if registration:
                 register_client(websocket, registration)
@@ -398,14 +348,12 @@ async def handler(websocket):
             _log("server", receiver_role, f"WebSocket 定向发送 -> {receiver_role}: {json.dumps(response, ensure_ascii=False)}")
             await websocket.send(json.dumps(response))
             await notify_extension_posture_disengagement(receiver_role, signal, event, ok)
-            await notify_extension_redirect(event, ok)
 
     except websockets.exceptions.ConnectionClosed:
         _log(client_ip, "server", f"客户端断开: {client_ip}")
     finally:
         connected_clients.discard(websocket)
         unregister_client(websocket)
-        _last_covert_disengagement.pop(websocket, None)
 
 
 async def main():
@@ -414,7 +362,7 @@ async def main():
     _log("server", "console", f"监听地址: ws://{WS_HOST}:{WS_PORT}")
     _log("server", "console", f"触发器目标: http://{TRIGGER_HOST}:{TRIGGER_PORT}")
     _log("server", "console", '客户端可先发送 JSON 注册身份: {"client": "webcam"} 或 {"client": "extension"}')
-    _log("server", "console", "支持消息: start, stop, shutdown, posture_disengaged=true/false, covert_disengagement=true, re-engagement")
+    _log("server", "console", "支持消息: start, stop, shutdown, posture_disengaged=true/false, re-engagement")
     _log("server", "console", '也支持 JSON: {"event": "start"} 或 {"posture_disengaged": true}')
     await server.wait_closed()
 

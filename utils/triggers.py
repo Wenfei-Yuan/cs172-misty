@@ -156,10 +156,43 @@ class ExternalSignalReceiver:
                 return "stop"
         return None
 
+    def consume_stop_or_shutdown(self) -> str | None:
+        with self._lock:
+            for event in list(self._events):
+                if event == "shutdown":
+                    self._events.remove("shutdown")
+                    return "shutdown"
+
+            stop_count = 0
+            retained_events = deque()
+            while self._events:
+                event = self._events.popleft()
+                if event == "stop":
+                    stop_count += 1
+                    continue
+                if event == "start":
+                    continue
+                retained_events.append(event)
+            self._events = retained_events
+            if stop_count:
+                return "stop"
+        return None
+
     def wait_for_stop_or_shutdown(self, timeout_s: float) -> str | None:
         deadline = time.monotonic() + max(0.0, timeout_s)
         while not self._stop_event.is_set():
             interrupt = self.consume_interrupt()
+            if interrupt in {"stop", "shutdown"}:
+                return interrupt
+            if time.monotonic() >= deadline:
+                return None
+            time.sleep(0.1)
+        return "shutdown"
+
+    def wait_for_stop_or_shutdown_only(self, timeout_s: float) -> str | None:
+        deadline = time.monotonic() + max(0.0, timeout_s)
+        while not self._stop_event.is_set():
+            interrupt = self.consume_stop_or_shutdown()
             if interrupt in {"stop", "shutdown"}:
                 return interrupt
             if time.monotonic() >= deadline:
@@ -208,6 +241,9 @@ class StubTrigger:
 
     def has_shutdown_event(self) -> bool:
         return False
+
+    def wait_for_stop_or_shutdown_only(self, timeout_s: float) -> str | None:
+        return self.consume_interrupt()
 
     def start(self) -> None:
         return

@@ -1,31 +1,68 @@
 from __future__ import annotations
 
+import threading
 import time
 
 import requests
 
 
-def _head_move(misty, **payload) -> bool:
-    try:
-        misty.perform_action("head_move", payload)
-    except Exception as exc:
-        print(f"Error moving head: {exc}")
+_ACTION_TIMEOUT_S = 2.0
+
+
+def _perform_action_with_timeout(misty, action_name: str, payload: dict, timeout_s: float | None = None) -> bool:
+    effective_timeout_s = max(0.1, float(timeout_s if timeout_s is not None else _ACTION_TIMEOUT_S))
+    error_box: dict[str, Exception] = {}
+    done = threading.Event()
+
+    def _run_action() -> None:
+        try:
+            misty.perform_action(action_name, payload)
+        except Exception as exc:
+            error_box["error"] = exc
+        finally:
+            done.set()
+
+    worker = threading.Thread(target=_run_action, daemon=True)
+    worker.start()
+    if not done.wait(timeout=effective_timeout_s):
+        print(f"Timed out waiting for Misty action '{action_name}' after {effective_timeout_s:.2f}s")
+        return False
+    if "error" in error_box:
+        print(f"Error running Misty action '{action_name}': {error_box['error']}")
         return False
     return True
 
 
-def _arms_move(misty, **payload) -> bool:
-    try:
-        misty.perform_action("arms_move", payload)
-    except Exception as exc:
-        print(f"Error moving arms: {exc}")
-        return False
-    return True
+def _head_move(misty, timeout_s: float | None = None, **payload) -> bool:
+    return _perform_action_with_timeout(misty, "head_move", payload, timeout_s=timeout_s)
+
+
+def _arms_move(misty, timeout_s: float | None = None, **payload) -> bool:
+    return _perform_action_with_timeout(misty, "arms_move", payload, timeout_s=timeout_s)
+
+
+def _estimate_motion_duration_s(start_deg: float, target_deg: float, velocity_deg_per_s: float) -> float:
+    safe_velocity = max(1.0, float(velocity_deg_per_s))
+    return abs(float(target_deg) - float(start_deg)) / safe_velocity
+
+
+def _estimate_dual_arm_motion_duration_s(
+    left_start_deg: float,
+    right_start_deg: float,
+    left_target_deg: float,
+    right_target_deg: float,
+    velocity_deg_per_s: float,
+) -> float:
+    return max(
+        _estimate_motion_duration_s(left_start_deg, left_target_deg, velocity_deg_per_s),
+        _estimate_motion_duration_s(right_start_deg, right_target_deg, velocity_deg_per_s),
+    )
 
 
 def look_at_screen(misty, screen_pos) -> None:
     _head_move(
         misty,
+        timeout_s=_ACTION_TIMEOUT_S,
         Yaw=screen_pos.yaw,
         Pitch=screen_pos.pitch,
         Velocity=90,
@@ -42,15 +79,18 @@ def acknowledge_gaze_recovery(misty, cfg, current_yaw: float | None = None) -> N
     head_velocity = int(getattr(cfg, "acknowledgement_head_velocity", 95))
     nod_velocity = int(getattr(cfg, "acknowledgement_nod_velocity", 85))
     nod_hold_s = max(0.0, float(getattr(cfg, "acknowledgement_nod_hold_s", 0.18)))
+    action_timeout_s = max(0.1, float(getattr(cfg, "robot_action_timeout_s", _ACTION_TIMEOUT_S)))
 
     _head_move(
         misty,
+        timeout_s=action_timeout_s,
         Yaw=ack_yaw,
         Pitch=base_pitch,
         Velocity=head_velocity,
     )
     _head_move(
         misty,
+        timeout_s=action_timeout_s,
         Yaw=ack_yaw,
         Pitch=nod_down_pitch,
         Velocity=nod_velocity,
@@ -58,6 +98,7 @@ def acknowledge_gaze_recovery(misty, cfg, current_yaw: float | None = None) -> N
     time.sleep(nod_hold_s)
     _head_move(
         misty,
+        timeout_s=action_timeout_s,
         Yaw=ack_yaw,
         Pitch=base_pitch,
         Velocity=nod_velocity,
@@ -93,7 +134,7 @@ def _perform_redirect_nod(misty, cfg, stop_event=None) -> bool:
     return False
 
 
-def _perform_left_arm_cue(misty, cfg, repetitions: int, sleep_fn=None) -> bool:
+def _perform_left_arm_cue(misty, cfg, repetitions: int, sleep_fn=None, action_timeout_s: float | None = None) -> bool:
     arm_up_deg = int(getattr(cfg, "redirect_left_arm_up_deg", -65))
     arm_down_deg = int(getattr(cfg, "redirect_left_arm_down_deg", 80))
     arm_velocity = int(getattr(cfg, "redirect_left_arm_velocity", 85))
@@ -109,6 +150,7 @@ def _perform_left_arm_cue(misty, cfg, repetitions: int, sleep_fn=None) -> bool:
     for _ in range(max(0, repetitions)):
         _arms_move(
             misty,
+            timeout_s=action_timeout_s,
             LeftArmPosition=arm_up_deg,
             RightArmPosition=arm_down_deg,
             LeftArmVelocity=arm_velocity,
@@ -118,6 +160,7 @@ def _perform_left_arm_cue(misty, cfg, repetitions: int, sleep_fn=None) -> bool:
             return True
         _arms_move(
             misty,
+            timeout_s=action_timeout_s,
             LeftArmPosition=arm_down_deg,
             RightArmPosition=arm_down_deg,
             LeftArmVelocity=arm_velocity,
@@ -128,11 +171,146 @@ def _perform_left_arm_cue(misty, cfg, repetitions: int, sleep_fn=None) -> bool:
     return False
 
 
+def _perform_both_arm_wave(misty, cfg, sleep_fn=None, action_timeout_s: float | None = None) -> bool:
+    arm_up_deg = int(getattr(cfg, "distraction_both_arms_up_deg", -80))
+    arm_down_deg = int(getattr(cfg, "distraction_both_arms_down_deg", 80))
+    arm_velocity = int(getattr(cfg, "distraction_both_arms_velocity", 110))
+    repetitions = max(0, int(getattr(cfg, "distraction_both_arms_repetitions", 2)))
+
+    def _default_sleep(duration_s: float) -> bool:
+        time.sleep(duration_s)
+        return False
+
+    _do_sleep = sleep_fn if sleep_fn is not None else _default_sleep
+    current_left_arm_deg = float(arm_down_deg)
+    current_right_arm_deg = float(arm_down_deg)
+
+    for _ in range(repetitions):
+        up_move_s = _estimate_dual_arm_motion_duration_s(
+            current_left_arm_deg,
+            current_right_arm_deg,
+            arm_up_deg,
+            arm_up_deg,
+            arm_velocity,
+        )
+        _arms_move(
+            misty,
+            timeout_s=action_timeout_s,
+            LeftArmPosition=arm_up_deg,
+            RightArmPosition=arm_up_deg,
+            LeftArmVelocity=arm_velocity,
+            RightArmVelocity=arm_velocity,
+        )
+        current_left_arm_deg = float(arm_up_deg)
+        current_right_arm_deg = float(arm_up_deg)
+        if _do_sleep(up_move_s):
+            return True
+
+        down_move_s = _estimate_dual_arm_motion_duration_s(
+            current_left_arm_deg,
+            current_right_arm_deg,
+            arm_down_deg,
+            arm_down_deg,
+            arm_velocity,
+        )
+        _arms_move(
+            misty,
+            timeout_s=action_timeout_s,
+            LeftArmPosition=arm_down_deg,
+            RightArmPosition=arm_down_deg,
+            LeftArmVelocity=arm_velocity,
+            RightArmVelocity=arm_velocity,
+        )
+        current_left_arm_deg = float(arm_down_deg)
+        current_right_arm_deg = float(arm_down_deg)
+        if _do_sleep(down_move_s):
+            return True
+
+    return False
+
+
+def perform_distraction_start_sequence(misty, cfg, screen_pos, stop_event=None) -> None:
+    head_velocity = int(getattr(cfg, "redirect_head_velocity", 100))
+    arm_down_deg = int(getattr(cfg, "distraction_both_arms_down_deg", 80))
+    left_turn_yaw = float(getattr(cfg, "distraction_user_turn_yaw_deg", -45.0))
+    left_turn_move_s = max(0.0, float(getattr(cfg, "distraction_user_turn_move_s", 0.45)))
+    user_focus_pause_s = max(0.0, float(getattr(cfg, "distraction_user_focus_pause_s", 2.0)))
+    left_arm_repetitions = max(0, int(getattr(cfg, "distraction_left_arm_repetitions", 2)))
+    screen_yaw = float(screen_pos.yaw) if screen_pos is not None else 0.0
+    base_pitch = float(screen_pos.pitch) if screen_pos is not None else 0.0
+    action_timeout_s = max(0.1, float(getattr(cfg, "robot_action_timeout_s", _ACTION_TIMEOUT_S)))
+
+    def _sleep(duration_s: float) -> bool:
+        if stop_event is not None:
+            return _wait_or_stop(stop_event, duration_s)
+        time.sleep(duration_s)
+        return False
+
+    def _recover() -> None:
+        recover_yaw = float(screen_pos.yaw) if screen_pos is not None else 0.0
+        recover_pitch = float(screen_pos.pitch) if screen_pos is not None else 0.0
+        _head_move(misty, timeout_s=action_timeout_s, Yaw=recover_yaw, Pitch=recover_pitch, Velocity=100)
+        _arms_move(
+            misty,
+            timeout_s=action_timeout_s,
+            LeftArmPosition=arm_down_deg,
+            RightArmPosition=arm_down_deg,
+            LeftArmVelocity=100,
+            RightArmVelocity=100,
+        )
+
+    _head_move(
+        misty,
+        timeout_s=action_timeout_s,
+        Yaw=left_turn_yaw,
+        Pitch=base_pitch,
+        Velocity=head_velocity,
+    )
+    turn_to_user_move_s = max(
+        left_turn_move_s,
+        _estimate_motion_duration_s(screen_yaw, left_turn_yaw, head_velocity),
+    )
+    if _sleep(turn_to_user_move_s):
+        _recover()
+        return
+
+    if _sleep(user_focus_pause_s):
+        _recover()
+        return
+
+    if _perform_both_arm_wave(misty, cfg, sleep_fn=_sleep, action_timeout_s=action_timeout_s):
+        _recover()
+        return
+
+    recover_yaw = screen_yaw
+    recover_pitch = float(screen_pos.pitch) if screen_pos is not None else 0.0
+    _head_move(
+        misty,
+        timeout_s=action_timeout_s,
+        Yaw=recover_yaw,
+        Pitch=recover_pitch,
+        Velocity=head_velocity,
+    )
+    screen_focus_pause_s = max(0.0, float(getattr(cfg, "redirect_screen_focus_pause_s", 1.0)))
+    return_to_screen_move_s = _estimate_motion_duration_s(left_turn_yaw, recover_yaw, head_velocity)
+    if _sleep(return_to_screen_move_s + screen_focus_pause_s):
+        _recover()
+        return
+
+    if _perform_left_arm_cue(misty, cfg, left_arm_repetitions, sleep_fn=_sleep, action_timeout_s=action_timeout_s):
+        _recover()
+        return
+
+    settle_s = max(0.0, float(getattr(cfg, "redirect_settle_s", 0.0)))
+    _sleep(settle_s)
+
+
 def redirect_attention_to_screen(misty, cfg, screen_pos, stop_event=None) -> None:
     head_velocity = int(getattr(cfg, "redirect_head_velocity", 100))
     arm_down_deg = int(getattr(cfg, "redirect_left_arm_down_deg", 80))
     arm_velocity = int(getattr(cfg, "redirect_left_arm_velocity", 85))
     arm_repetitions = max(0, int(getattr(cfg, "redirect_left_arm_repetitions", 1)))
+    action_timeout_s = max(0.1, float(getattr(cfg, "robot_action_timeout_s", _ACTION_TIMEOUT_S)))
 
     def _sleep(duration_s: float) -> bool:
         if stop_event is not None:
@@ -142,9 +320,10 @@ def redirect_attention_to_screen(misty, cfg, screen_pos, stop_event=None) -> Non
 
     def _recover() -> None:
         # 被 stop 中断时，以最大速度快速归位，避免用户回神后机器人仍在缓慢运动
-        _head_move(misty, Yaw=screen_pos.yaw, Pitch=screen_pos.pitch, Velocity=100)
+        _head_move(misty, timeout_s=action_timeout_s, Yaw=screen_pos.yaw, Pitch=screen_pos.pitch, Velocity=100)
         _arms_move(
             misty,
+            timeout_s=action_timeout_s,
             LeftArmPosition=arm_down_deg,
             RightArmPosition=arm_down_deg,
             LeftArmVelocity=100,
@@ -159,6 +338,7 @@ def redirect_attention_to_screen(misty, cfg, screen_pos, stop_event=None) -> Non
     # 2. 转向屏幕
     _head_move(
         misty,
+        timeout_s=action_timeout_s,
         Yaw=screen_pos.yaw,
         Pitch=screen_pos.pitch,
         Velocity=head_velocity,
@@ -169,7 +349,7 @@ def redirect_attention_to_screen(misty, cfg, screen_pos, stop_event=None) -> Non
         return
 
     # 3. 左臂动作
-    if _perform_left_arm_cue(misty, cfg, arm_repetitions, sleep_fn=_sleep):
+    if _perform_left_arm_cue(misty, cfg, arm_repetitions, sleep_fn=_sleep, action_timeout_s=action_timeout_s):
         _recover()
         return
 
@@ -179,7 +359,8 @@ def redirect_attention_to_screen(misty, cfg, screen_pos, stop_event=None) -> Non
 
 def cue_screen_with_left_arm(misty, cfg, repetitions: int = 1, stop_event=None) -> None:
     sleep_fn = (lambda d: _wait_or_stop(stop_event, d)) if stop_event is not None else None
-    _perform_left_arm_cue(misty, cfg, repetitions, sleep_fn=sleep_fn)
+    action_timeout_s = max(0.1, float(getattr(cfg, "robot_action_timeout_s", _ACTION_TIMEOUT_S)))
+    _perform_left_arm_cue(misty, cfg, repetitions, sleep_fn=sleep_fn, action_timeout_s=action_timeout_s)
 
 
 def _wait_or_stop(stop_event, duration_s: float) -> bool:
@@ -193,10 +374,12 @@ def shake_head_only(misty, cfg, stop_event, position_callback=None) -> None:
     center_period_s = float(getattr(cfg, "shake_center_period_s", max(0.25, side_period_s * 0.5)))
     center_pause_s = float(getattr(cfg, "shake_center_pause_s", max(0.1, side_pause_s * 0.35)))
     velocity = int(getattr(cfg, "shake_velocity", 80))
+    action_timeout_s = max(0.1, float(getattr(cfg, "robot_action_timeout_s", _ACTION_TIMEOUT_S)))
 
     def move_and_hold(yaw: float, move_s: float, hold_s: float) -> bool:
         if not _head_move(
             misty,
+            timeout_s=action_timeout_s,
             Yaw=yaw,
             Velocity=velocity,
         ):
@@ -229,10 +412,12 @@ def swing_arms_only(misty, cfg, stop_event) -> None:
     velocity = int(getattr(cfg, "arm_swing_velocity", 55))
     period_s = float(getattr(cfg, "arm_swing_period_s", 0.5))
     pause_s = float(getattr(cfg, "arm_swing_pause_s", 0.5))
+    action_timeout_s = max(0.1, float(getattr(cfg, "robot_action_timeout_s", _ACTION_TIMEOUT_S)))
 
     while not stop_event.is_set():
         if not _arms_move(
             misty,
+            timeout_s=action_timeout_s,
             LeftArmPosition=up_deg,
             RightArmPosition=up_deg,
             LeftArmVelocity=velocity,
@@ -246,6 +431,7 @@ def swing_arms_only(misty, cfg, stop_event) -> None:
 
         if not _arms_move(
             misty,
+            timeout_s=action_timeout_s,
             LeftArmPosition=down_deg,
             RightArmPosition=down_deg,
             LeftArmVelocity=velocity,

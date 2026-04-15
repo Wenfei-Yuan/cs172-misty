@@ -34,20 +34,28 @@ def _pause_before_return_to_screen(cfg) -> None:
 
 def default_screen_position(cfg) -> ScreenPos:
     return ScreenPos(
-        yaw=_clamp(cfg.screen_init_left_front_yaw, -90.0, 90.0),
-        pitch=_clamp(cfg.screen_init_left_front_pitch, -40.0, 40.0),
+        yaw=_clamp(cfg.screen_search_seed_yaw, -90.0, 90.0),
+        pitch=_clamp(cfg.screen_search_seed_pitch, -40.0, 40.0),
     )
 
 
 def _check_screen_alignment(misty, cfg, log=None, stage: str = "screen_watch") -> VisionCheckResult:
-    frame = capture_frame_result(misty)
+    if log is not None:
+        log.record("camera_capture_started", stage=stage)
+    frame = capture_frame_result(misty, cfg)
     if not frame.ok:
         reason = frame.reason or "camera_capture_failed"
         if log is not None:
             log.record("camera_capture_error", stage=stage, reason=reason, source=frame.source)
         return VisionCheckResult(ok=False, status="capture_error", reason=reason)
 
+    if log is not None:
+        log.record("camera_capture_succeeded", stage=stage, source=frame.source, mime_type=frame.mime_type)
+        log.record("vlm_request_started", stage=stage, model=str(getattr(cfg, "vision_model", "gpt-4o")))
+
     result = analyze_screen_capture(frame, cfg)
+    if log is not None:
+        log.record("vlm_request_finished", stage=stage, status=result.status, reason=result.reason)
     if log is not None and not result.ok:
         log.record("vlm_check_error", stage=stage, reason=result.reason, status=result.status)
     return result
@@ -90,6 +98,8 @@ def _run_grid_search(
                 yaw=_clamp(seed.yaw + yaw_offset, -90.0, 90.0),
                 pitch=_clamp(seed.pitch + pitch_offset, -40.0, 40.0),
             )
+            if log is not None:
+                log.record("screen_search_candidate", stage=stage, yaw=candidate.yaw, pitch=candidate.pitch)
             look_at_screen(misty, candidate)
             time.sleep(cfg.screen_settle_s)
             result = _check_screen_alignment(misty, cfg, log=log, stage=stage)
@@ -141,9 +151,11 @@ def _search_screen_position_with_vlm(misty, cfg, seed: ScreenPos, log=None) -> S
 
 def find_screen_position_with_vlm(misty, cfg, log=None) -> ScreenSearchResult:
     seed = ScreenPos(
-        yaw=_clamp(cfg.screen_init_left_front_yaw, -90.0, 90.0),
-        pitch=_clamp(cfg.screen_init_left_front_pitch, -40.0, 40.0),
+        yaw=_clamp(cfg.screen_search_seed_yaw, -90.0, 90.0),
+        pitch=_clamp(cfg.screen_search_seed_pitch, -40.0, 40.0),
     )
+    if log is not None:
+        log.record("screen_search_seed", yaw=seed.yaw, pitch=seed.pitch)
     look_at_screen(misty, seed)
     time.sleep(cfg.screen_settle_s)
     return _search_screen_position_with_vlm(misty, cfg, seed, log=log)

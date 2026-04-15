@@ -1,0 +1,2577 @@
+{
+  "session_id": "session_20260410_4_f9de1d",
+  "participant_id": "4",
+  "start_time": "2026-04-10T14:38:22.149159-04:00",
+  "end_time": "2026-04-10T15:10:51.111782-04:00",
+  "screen_observations": [
+    {
+      "timestamp": "2026-04-10T14:40:24.017038-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:42:29.973603-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:45:56.795520-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:46:07.231616-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:46:26.057933-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:47:14.415101-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:47:21.125113-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:48:14.066726-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:48:46.945811-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:48:56.855688-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:49:04.608295-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:49:16.905675-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:49:23.438393-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:53:17.738079-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:53:23.974499-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:53:53.970167-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:54:41.029574-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:54:56.454391-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:55:00.876712-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:55:20.499628-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:55:53.049151-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:56:14.151551-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:57:07.726962-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:57:17.958335-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:57:28.288891-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:57:33.526029-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T14:58:25.652813-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T15:00:49.075270-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T15:00:55.653669-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T15:01:16.615281-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T15:02:10.398435-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T15:02:14.495022-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T15:03:05.431834-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T15:03:11.617394-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T15:03:18.117379-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T15:06:05.781895-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T15:09:56.775618-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-10T15:10:02.746660-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    }
+  ],
+  "events": [
+    {
+      "timestamp": "2026-04-10T14:38:23.200986-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:03.608395-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:08.169070-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 32.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:13.133329-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 52.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:16.804585-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:19.790867-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 62.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:25.036992-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 12.0,
+        "pitch": 7.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:31.489760-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 72.0,
+        "pitch": 7.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:34.744134-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": -1.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:38.308749-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 32.0,
+        "pitch": -1.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:41.292000-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 52.0,
+        "pitch": -1.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:43.807893-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": -1.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:50.305332-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 62.0,
+        "pitch": -1.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:54.034817-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 12.0,
+        "pitch": -1.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:39:58.085380-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 72.0,
+        "pitch": -1.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:40:01.567247-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 15.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:40:08.349071-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 32.0,
+        "pitch": 15.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:40:13.551330-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 52.0,
+        "pitch": 15.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:40:20.117211-04:00",
+      "name": "screen_search_verified",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0,
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:40:20.117240-04:00",
+      "name": "screen_position_initialized",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:40:20.412002-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_found",
+        "utterance": "I've found the screen!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I've found the screen!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:40:20.617193-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_start_reading",
+        "utterance": "Let's start reading. You can open the browser extension and start reading now.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading. You can open the browser extension and start reading now.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:40:20.696379-04:00",
+      "name": "bootup_complete",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:40:24.016973-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:40:24.017052-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:42:14.769112-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:42:20.435697-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:42:24.010499-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:42:29.973549-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:42:29.973638-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:45:48.966763-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:45:53.027169-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:45:56.795474-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:45:56.795529-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:45:56.795559-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 2
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:45:56.795640-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:46:00.324786-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:46:07.231539-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:46:07.231661-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:46:07.231696-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:46:10.087351-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:46:13.013152-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:46:16.609846-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:46:22.159656-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:46:26.057870-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:46:26.057951-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:47:01.491770-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:08.253218-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:14.415066-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:14.415111-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:47:14.415136-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:21.125060-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:21.125122-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:47:21.125148-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:21.125156-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:23.835188-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:26.877369-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:34.665310-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:37.469579-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:40.195439-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:42.757870-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:47.959098-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:50.655773-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:54.282057-04:00",
+      "name": "gaze_sampled_pose",
+      "payload": {
+        "yaw_deg": 0.0,
+        "gaze_status": "not_gazing"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:47:56.857081-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:48:04.469482-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:48:09.696908-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "no_response_prompt",
+        "utterance": "Let's gently return to what you were reading and keep going.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's gently return to what you were reading and keep going.`."
+          }
+        },
+        "attempt": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:48:10.597337-04:00",
+      "name": "no_response_prompt_generated",
+      "payload": {
+        "attempt": 1,
+        "summary": "",
+        "reminder": "Let's gently return to what you were reading and keep going.",
+        "used_fallback": true,
+        "fallback_reason": "missing_text",
+        "has_current_text": false
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:48:14.066690-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:48:14.066736-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:48:38.436801-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:48:46.945773-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:48:46.945820-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:48:46.945848-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:48:50.204067-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:48:52.985885-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:48:56.855651-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:48:56.855697-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:48:56.855720-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:49:00.253897-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:49:04.608242-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:49:04.608303-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:49:04.608326-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:49:07.998629-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:49:16.905621-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:49:16.905690-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:49:16.905725-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:49:16.905738-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:49:23.438356-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:49:23.438403-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:53:12.973399-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:53:17.738044-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:53:17.738088-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:53:17.738114-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:53:23.974464-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:53:23.974508-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:53:42.061416-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:53:47.528419-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:53:53.970126-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:53:53.970176-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:53:53.970202-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:53:53.970210-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:53:59.547880-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:02.700798-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:05.501171-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:10.524131-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:13.264047-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:16.343918-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:19.040780-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:21.753412-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:28.051639-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:31.028148-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:34.173695-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:37.141677-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:41.029523-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:41.029584-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:54:41.029609-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:44.204675-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:47.410227-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:50.485540-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:56.454355-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:54:56.454400-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:54:56.454424-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:00.876671-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:00.876721-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:55:15.628921-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:20.499592-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:20.499637-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:55:20.499662-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:20.499672-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:23.645864-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:26.810553-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:29.362919-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:32.503102-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:35.396247-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:38.178248-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:41.037792-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:43.798210-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:47.173558-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:53.049100-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:53.049160-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:55:53.049184-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:55.714115-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:55:58.526599-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:02.298817-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:04.927514-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:07.543865-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:10.279439-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:14.151515-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:14.151560-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:56:14.151586-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:18.532484-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:21.047348-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:23.764910-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:26.703553-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:29.724029-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:32.771631-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:35.419488-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:37.969324-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:40.591601-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:43.219286-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:46.643036-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:49.585632-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:52.296592-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:55.261279-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:56:57.936232-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:03.704673-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "no_response_prompt",
+        "utterance": "Let's gently return to what you were reading and keep going.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's gently return to what you were reading and keep going.`."
+          }
+        },
+        "attempt": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:04.597564-04:00",
+      "name": "no_response_prompt_generated",
+      "payload": {
+        "attempt": 1,
+        "summary": "",
+        "reminder": "Let's gently return to what you were reading and keep going.",
+        "used_fallback": true,
+        "fallback_reason": "missing_text",
+        "has_current_text": false
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:07.726925-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:07.726972-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:57:10.807701-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:17.958287-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:17.958345-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:57:19.391772-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:22.700613-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:28.288855-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:28.288901-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:57:28.288929-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:33.525992-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:33.526038-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:57:33.526062-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:36.952746-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:39.687809-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:42.515075-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:45.290865-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:48.015288-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:50.673858-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:53.290681-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:56.024482-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:57:58.975212-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:58:01.931621-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:58:04.593635-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:58:07.103188-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:58:09.702097-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:58:12.173710-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:58:15.291851-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:58:18.117591-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:58:21.713205-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "no_response_prompt",
+        "utterance": "Let's gently return to what you were reading and keep going.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's gently return to what you were reading and keep going.`."
+          }
+        },
+        "attempt": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:58:22.668623-04:00",
+      "name": "no_response_prompt_generated",
+      "payload": {
+        "attempt": 1,
+        "summary": "",
+        "reminder": "Let's gently return to what you were reading and keep going.",
+        "used_fallback": true,
+        "fallback_reason": "missing_text",
+        "has_current_text": false
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:58:25.652774-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:58:25.652823-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:00:42.375457-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:00:49.075232-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:00:49.075280-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:00:49.075320-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:00:55.653632-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:00:55.653678-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:01:10.504117-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:01:16.615239-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:01:16.615289-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:02:06.353920-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:02:10.398400-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:02:10.398444-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:02:10.398467-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:02:14.494971-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:02:14.495031-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:02:58.585897-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:03:05.431782-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:03:05.431844-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:03:05.431867-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:03:11.617353-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:03:11.617403-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:03:11.617427-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:03:11.617434-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:03:18.117341-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:03:18.117388-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:05:58.294361-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:06:05.781857-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:06:05.781904-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:09:49.417202-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:09:56.775548-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:09:56.775685-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:09:56.775730-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:09:56.775752-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:02.746604-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 22.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:02.746676-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-10T15:10:02.746714-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:02.746728-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:05.766772-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:09.376199-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:12.425612-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:14.975308-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:17.798715-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:20.722510-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:23.538664-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:26.735364-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:29.759652-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:32.566378-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:35.491107-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:39.066368-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:42.321820-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:45.492861-04:00",
+      "name": "gaze_check_error",
+      "payload": {
+        "reason": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+        "status": "vlm_error"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T15:10:50.943512-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!`."
+          }
+        }
+      }
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-04-10T14:42:14.769168-04:00",
+      "distraction_end_time": "2026-04-10T14:42:27.152433-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 12.38,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-04-10T14:45:48.966801-04:00",
+      "distraction_end_time": "2026-04-10T14:45:53.815414-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 4.85,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 3,
+      "distraction_start_time": "2026-04-10T14:45:56.795667-04:00",
+      "distraction_end_time": "2026-04-10T14:46:04.144959-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 7.35,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 4,
+      "distraction_start_time": "2026-04-10T14:46:07.231709-04:00",
+      "distraction_end_time": "2026-04-10T14:46:23.145973-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 15.91,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 5,
+      "distraction_start_time": "2026-04-10T14:47:01.491808-04:00",
+      "distraction_end_time": "2026-04-10T14:47:11.158385-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 9.67,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 6,
+      "distraction_start_time": "2026-04-10T14:47:14.415147-04:00",
+      "distraction_end_time": "2026-04-10T14:47:18.009892-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.59,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 7,
+      "distraction_start_time": "2026-04-10T14:47:21.125165-04:00",
+      "distraction_end_time": "2026-04-10T14:48:09.344107-04:00",
+      "distraction_end_signal_received": false,
+      "distraction_duration_s": 48.22,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "timeout",
+      "voice_prompt_used": true,
+      "voice_prompt_count": 1
+    },
+    {
+      "event_index": 8,
+      "distraction_start_time": "2026-04-10T14:48:38.436836-04:00",
+      "distraction_end_time": "2026-04-10T14:48:43.766686-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.33,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 9,
+      "distraction_start_time": "2026-04-10T14:48:46.945858-04:00",
+      "distraction_end_time": "2026-04-10T14:48:53.900753-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 6.95,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 10,
+      "distraction_start_time": "2026-04-10T14:48:56.855731-04:00",
+      "distraction_end_time": "2026-04-10T14:49:01.602058-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 4.75,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 11,
+      "distraction_start_time": "2026-04-10T14:49:04.608335-04:00",
+      "distraction_end_time": "2026-04-10T14:49:13.234884-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 8.63,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 12,
+      "distraction_start_time": "2026-04-10T14:49:16.905752-04:00",
+      "distraction_end_time": "2026-04-10T14:49:20.587341-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.68,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 13,
+      "distraction_start_time": "2026-04-10T14:53:12.973437-04:00",
+      "distraction_end_time": "2026-04-10T14:53:14.543948-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 1.57,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 14,
+      "distraction_start_time": "2026-04-10T14:53:17.738124-04:00",
+      "distraction_end_time": "2026-04-10T14:53:21.119850-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.38,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 15,
+      "distraction_start_time": "2026-04-10T14:53:42.061453-04:00",
+      "distraction_end_time": "2026-04-10T14:53:50.990816-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 8.93,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 16,
+      "distraction_start_time": "2026-04-10T14:53:53.970221-04:00",
+      "distraction_end_time": "2026-04-10T14:54:38.042784-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 44.07,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 17,
+      "distraction_start_time": "2026-04-10T14:54:41.029620-04:00",
+      "distraction_end_time": "2026-04-10T14:54:53.429611-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 12.4,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 18,
+      "distraction_start_time": "2026-04-10T14:54:56.454435-04:00",
+      "distraction_end_time": "2026-04-10T14:54:57.664359-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 1.21,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 19,
+      "distraction_start_time": "2026-04-10T14:55:15.628960-04:00",
+      "distraction_end_time": "2026-04-10T14:55:17.492282-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 1.86,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 20,
+      "distraction_start_time": "2026-04-10T14:55:20.499681-04:00",
+      "distraction_end_time": "2026-04-10T14:55:50.012347-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 29.51,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 21,
+      "distraction_start_time": "2026-04-10T14:55:53.049194-04:00",
+      "distraction_end_time": "2026-04-10T14:56:11.036183-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 17.99,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 22,
+      "distraction_start_time": "2026-04-10T14:56:14.151597-04:00",
+      "distraction_end_time": "2026-04-10T14:57:03.425286-04:00",
+      "distraction_end_signal_received": false,
+      "distraction_duration_s": 49.27,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "timeout",
+      "voice_prompt_used": true,
+      "voice_prompt_count": 1
+    },
+    {
+      "event_index": 23,
+      "distraction_start_time": "2026-04-10T14:57:10.807752-04:00",
+      "distraction_end_time": "2026-04-10T14:57:14.929838-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 4.12,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 24,
+      "distraction_start_time": "2026-04-10T14:57:19.391808-04:00",
+      "distraction_end_time": "2026-04-10T14:57:25.430519-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 6.04,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 25,
+      "distraction_start_time": "2026-04-10T14:57:28.288941-04:00",
+      "distraction_end_time": "2026-04-10T14:57:30.252427-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 1.96,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 26,
+      "distraction_start_time": "2026-04-10T14:57:33.526072-04:00",
+      "distraction_end_time": "2026-04-10T14:58:21.212522-04:00",
+      "distraction_end_signal_received": false,
+      "distraction_duration_s": 47.69,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "timeout",
+      "voice_prompt_used": true,
+      "voice_prompt_count": 1
+    },
+    {
+      "event_index": 27,
+      "distraction_start_time": "2026-04-10T15:00:42.375493-04:00",
+      "distraction_end_time": "2026-04-10T15:00:45.827008-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.45,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 28,
+      "distraction_start_time": "2026-04-10T15:00:49.075331-04:00",
+      "distraction_end_time": "2026-04-10T15:00:52.631009-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.56,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 29,
+      "distraction_start_time": "2026-04-10T15:01:10.504152-04:00",
+      "distraction_end_time": "2026-04-10T15:01:13.416585-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.91,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 30,
+      "distraction_start_time": "2026-04-10T15:02:06.353957-04:00",
+      "distraction_end_time": "2026-04-10T15:02:07.593132-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 1.24,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 31,
+      "distraction_start_time": "2026-04-10T15:02:10.398476-04:00",
+      "distraction_end_time": "2026-04-10T15:02:11.527712-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 1.13,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 32,
+      "distraction_start_time": "2026-04-10T15:02:58.585944-04:00",
+      "distraction_end_time": "2026-04-10T15:03:02.633915-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 4.05,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 33,
+      "distraction_start_time": "2026-04-10T15:03:05.431878-04:00",
+      "distraction_end_time": "2026-04-10T15:03:08.656326-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.22,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 34,
+      "distraction_start_time": "2026-04-10T15:03:11.617444-04:00",
+      "distraction_end_time": "2026-04-10T15:03:15.068031-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.45,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 35,
+      "distraction_start_time": "2026-04-10T15:05:58.294434-04:00",
+      "distraction_end_time": "2026-04-10T15:06:02.227569-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.93,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 36,
+      "distraction_start_time": "2026-04-10T15:09:49.417256-04:00",
+      "distraction_end_time": "2026-04-10T15:09:53.261596-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.84,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 37,
+      "distraction_start_time": "2026-04-10T15:09:56.775770-04:00",
+      "distraction_end_time": "2026-04-10T15:09:59.768898-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.99,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 38,
+      "distraction_start_time": "2026-04-10T15:10:02.746743-04:00",
+      "distraction_end_time": null,
+      "distraction_end_signal_received": false,
+      "distraction_duration_s": null,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    }
+  ],
+  "total_distraction_count": 38,
+  "total_voice_prompts": 3
+}

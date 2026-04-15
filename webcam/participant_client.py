@@ -6,40 +6,46 @@ import numpy as np
 import mediapipe as mp
 import websockets
 
+try:
+    from .posture_logic import compute_full_recovery, compute_reengage_threshold, compute_screen_facing
+except ImportError:
+    from posture_logic import compute_full_recovery, compute_reengage_threshold, compute_screen_facing
+
 SERVER_IP = "10.5.15.160"   # 改成你的电脑IP
 SERVER_PORT = 8765
 WS_URL = f"ws://{SERVER_IP}:{SERVER_PORT}"
 RECONNECT_DELAY = 3.0
 
-DISENGAGE_THRESHOLD = 3.0      # 偏离持续超过3秒 -> disengaged
-REENGAGE_THRESHOLD = 30.0      # 恢复朝向屏幕后持续30秒 -> re-engaged
+DISENGAGE_THRESHOLD = 2.0     # 更严格：偏离持续超过2.0秒 -> disengaged
+REENGAGE_THRESHOLD = 1.5  # 恢复朝向屏幕后持续1.5秒 -> re-engaged
+GAZE_REENGAGE_THRESHOLD = 3.0  # 走神恢复更保守，避免刚触发就被短暂回正取消
 
 EVENT_CALIBRATION_COMPLETE = "calibration_complete"
 EVENT_POSTURE = "posture"
 
 CALIBRATION_DURATION = 3.0     # 启动后前3秒自动校准
-YAW_DEVIATION_THRESHOLD = 34.0
-PITCH_DEVIATION_THRESHOLD = 18.0
-REENGAGE_YAW_DEVIATION_THRESHOLD = 50.0
-REENGAGE_PITCH_DEVIATION_THRESHOLD = 30.0
-YAW_HYSTERESIS_MARGIN = 10.0
-PITCH_HYSTERESIS_MARGIN = 7.0
+YAW_DEVIATION_THRESHOLD = 32.0
+PITCH_DEVIATION_THRESHOLD = 14.0
+REENGAGE_YAW_DEVIATION_THRESHOLD = 42.0
+REENGAGE_PITCH_DEVIATION_THRESHOLD = 24.0
+YAW_HYSTERESIS_MARGIN = 8.0
+PITCH_HYSTERESIS_MARGIN = 5.0
 POSE_SMOOTHING_ALPHA = 0.2
 REENGAGE_BREAK_TOLERANCE = 0.35
-AWAY_BREAK_TOLERANCE = 0.25
+AWAY_BREAK_TOLERANCE = 0.4
 MIN_VALID_FACE_FRAMES = 10     # 连续有效人脸/姿态帧达到后才开始判定
-FACE_MISSING_GRACE_PERIOD = 0.8
-POSE_INVALID_GRACE_PERIOD = 0.8
+FACE_MISSING_GRACE_PERIOD = 0.5
+POSE_INVALID_GRACE_PERIOD = 0.5
 
 # ─── Eye Gaze Augmentation ───
 ENABLE_EYE_GAZE = True                        # Set to False to disable gaze augmentation entirely
 GAZE_SMOOTHING_ALPHA = 0.15                    # EMA alpha for gaze (lower than head pose for noise)
-GAZE_YAW_DEVIATION_THRESHOLD = 0.10           # Stricter: 0.15 → 0.10
-GAZE_PITCH_DEVIATION_THRESHOLD = 0.06          # Stricter: 0.18 → 0.12
-GAZE_YAW_HYSTERESIS = 0.03                     # Hysteresis margin for horizontal gaze
-GAZE_PITCH_HYSTERESIS = 0.02                   # Hysteresis margin for vertical gaze
-GAZE_MIND_WANDERING_DURATION = 2.0             # Seconds of sustained gaze deviation before MW
-GAZE_MW_BREAK_TOLERANCE = 0.5                  # Brief gaze-returns don't reset MW timer
+GAZE_YAW_DEVIATION_THRESHOLD = 0.08           # 更严格：更小偏移就判为横向分心
+GAZE_PITCH_DEVIATION_THRESHOLD = 0.05         # 更严格：更小偏移就判为纵向分心
+GAZE_YAW_HYSTERESIS = 0.025                   # Slightly tighter horizontal hysteresis
+GAZE_PITCH_HYSTERESIS = 0.015                 # Slightly tighter vertical hysteresis
+GAZE_MIND_WANDERING_DURATION = 2.0         # 更严格：持续2.0秒眼动偏离就触发
+GAZE_MW_BREAK_TOLERANCE = 0.6                 # 更严格：短暂回正不轻易清空 MW 计时器
 GAZE_HEAD_YAW_LIMIT = 50                    # Only evaluate gaze when head yaw_dev < this (parallax guard)
 
 mp_face_mesh = mp.solutions.face_mesh
@@ -416,6 +422,7 @@ async def run_client():
                     reengage_break_start_time = None
                     detection_armed = False
                     valid_face_streak = 0
+                    disengage_reason_latched = None
                     smoothed_yaw = None
                     smoothed_pitch = None
                     face_missing_start_time = None
@@ -499,32 +506,17 @@ async def run_client():
                             yaw_deviation = abs(effective_yaw - reference_yaw)
                             pitch_deviation = abs(effective_pitch - reference_pitch)
 
-                            yaw_threshold = (
-                                REENGAGE_YAW_DEVIATION_THRESHOLD
-                                if disengaged else
-                                YAW_DEVIATION_THRESHOLD
+                            screen_facing, yaw_threshold, pitch_threshold = compute_screen_facing(
+                                yaw_deviation=yaw_deviation,
+                                pitch_deviation=pitch_deviation,
+                                disengaged=disengaged,
+                                yaw_threshold=YAW_DEVIATION_THRESHOLD,
+                                pitch_threshold=PITCH_DEVIATION_THRESHOLD,
+                                reengage_yaw_threshold=REENGAGE_YAW_DEVIATION_THRESHOLD,
+                                reengage_pitch_threshold=REENGAGE_PITCH_DEVIATION_THRESHOLD,
+                                yaw_hysteresis_margin=YAW_HYSTERESIS_MARGIN,
+                                pitch_hysteresis_margin=PITCH_HYSTERESIS_MARGIN,
                             )
-                            pitch_threshold = (
-                                REENGAGE_PITCH_DEVIATION_THRESHOLD
-                                if disengaged else
-                                PITCH_DEVIATION_THRESHOLD
-                            )
-
-                            if disengaged:
-                                screen_facing = (
-                                    yaw_deviation <= yaw_threshold and
-                                    pitch_deviation <= pitch_threshold
-                                )
-                            else:
-                                outside_yaw = yaw_deviation > (yaw_threshold + YAW_HYSTERESIS_MARGIN)
-                                outside_pitch = pitch_deviation > (pitch_threshold + PITCH_HYSTERESIS_MARGIN)
-
-                                if yaw_deviation <= yaw_threshold and pitch_deviation <= pitch_threshold:
-                                    screen_facing = True
-                                elif outside_yaw or outside_pitch:
-                                    screen_facing = False
-                                else:
-                                    screen_facing = True
 
                             reason = "screen_facing" if screen_facing else "looking_away"
                             last_stable_screen_facing = screen_facing
@@ -552,14 +544,13 @@ async def run_client():
                             invalid_pose_duration >= POSE_INVALID_GRACE_PERIOD
                         )
                         looking_away_confirmed = raw_face_present and yaw is not None and pitch is not None and (not screen_facing)
-
-                        is_away = face_missing_confirmed or invalid_pose_confirmed or looking_away_confirmed
                         state_changed = False
 
                         # Compute current-frame gaze deviation before recovery logic uses it.
                         gaze_yaw_dev = None
                         gaze_pitch_dev = None
                         gaze_looking_away = False
+                        gaze_error_confirmed = False
 
                         if ENABLE_EYE_GAZE and smoothed_gaze_yaw is not None:
                             gaze_yaw_dev = abs(smoothed_gaze_yaw - reference_gaze_yaw)
@@ -590,75 +581,113 @@ async def run_client():
 
                             if valid_face_streak >= MIN_VALID_FACE_FRAMES:
                                 detection_armed = True
-                        elif is_away:
-                            if away_start_time is None:
-                                away_start_time = now
-                            away_break_start_time = None
-                            away_duration = now - away_start_time
-
-                            if reengage_start_time is not None:
-                                if reengage_break_start_time is None:
-                                    reengage_break_start_time = now
-                                elif now - reengage_break_start_time >= REENGAGE_BREAK_TOLERANCE:
-                                    reengage_start_time = None
-                                    reengage_duration = 0.0
-                            else:
-                                reengage_duration = 0.0
-
-                            if (not disengaged) and away_duration >= DISENGAGE_THRESHOLD:
-                                disengaged = True
-                                state_changed = True
-                                if ENABLE_EYE_GAZE:
-                                    gaze_mind_wandering = True
                         else:
-                            reengage_break_start_time = None
-
-                            if away_start_time is not None:
-                                if away_break_start_time is None:
-                                    away_break_start_time = now
-                                elif now - away_break_start_time >= AWAY_BREAK_TOLERANCE:
-                                    away_start_time = None
-                                    away_duration = 0.0
-                            else:
-                                away_duration = 0.0
-
-                            if reengage_start_time is None:
-                                reengage_start_time = now
-                            reengage_duration = now - reengage_start_time
-
-                            if disengaged and reengage_duration >= REENGAGE_THRESHOLD and not (ENABLE_EYE_GAZE and gaze_looking_away):
-                                disengaged = False
-                                state_changed = True
-                                gaze_mind_wandering = False
-
-
-                        # Gaze mind wandering timer (independent from away_duration)
-                        if ENABLE_EYE_GAZE and detection_armed and (not disengaged or gaze_mind_wandering):
-                            if gaze_looking_away:
-                                if gaze_mw_start_time is None:
-                                    gaze_mw_start_time = now
-                                gaze_mw_break_start_time = None
-                                if (now - gaze_mw_start_time) >= GAZE_MIND_WANDERING_DURATION:
-                                    if not gaze_mind_wandering:
-                                        state_changed = True
-                                        reason = "gaze_mind_wandering"
-                                    gaze_mind_wandering = True
-                                    disengaged = True
-                            else:
-                                # Gaze back to normal - apply break tolerance
-                                if gaze_mw_start_time is not None:
+                            if ENABLE_EYE_GAZE:
+                                if gaze_looking_away:
+                                    if gaze_mw_start_time is None:
+                                        gaze_mw_start_time = now
+                                    gaze_mw_break_start_time = None
+                                elif gaze_mw_start_time is not None:
                                     if gaze_mw_break_start_time is None:
                                         gaze_mw_break_start_time = now
                                     elif now - gaze_mw_break_start_time >= GAZE_MW_BREAK_TOLERANCE:
                                         gaze_mw_start_time = None
                                         gaze_mw_break_start_time = None
-                                        gaze_mind_wandering = False
-                        else:
-                            # Reset gaze tracking when not armed or (disengaged by head pose, not gaze)
-                            if not detection_armed or (disengaged and not gaze_mind_wandering):
+
+                                gaze_error_confirmed = (
+                                    gaze_mw_start_time is not None and
+                                    (now - gaze_mw_start_time) >= GAZE_MIND_WANDERING_DURATION
+                                )
+                            else:
                                 gaze_mw_start_time = None
                                 gaze_mw_break_start_time = None
-                                gaze_mind_wandering = False
+
+                            gaze_mind_wandering = gaze_error_confirmed
+
+                            active_error_reason = None
+                            if face_missing_confirmed:
+                                active_error_reason = "face_missing"
+                            elif invalid_pose_confirmed:
+                                active_error_reason = "pose_estimation_failed"
+                            elif looking_away_confirmed:
+                                active_error_reason = "looking_away"
+                            elif gaze_error_confirmed:
+                                active_error_reason = "gaze_mind_wandering"
+
+                            fully_recovered = compute_full_recovery(
+                                enable_eye_gaze=ENABLE_EYE_GAZE,
+                                raw_face_present=raw_face_present,
+                                yaw=yaw,
+                                pitch=pitch,
+                                screen_facing=screen_facing,
+                                smoothed_gaze_yaw=smoothed_gaze_yaw,
+                                smoothed_gaze_pitch=smoothed_gaze_pitch,
+                                gaze_looking_away=gaze_looking_away,
+                                gaze_error_confirmed=gaze_error_confirmed,
+                            )
+
+                            reengage_threshold_s = compute_reengage_threshold(
+                                disengage_reason=disengage_reason_latched,
+                                default_threshold_s=REENGAGE_THRESHOLD,
+                                gaze_threshold_s=GAZE_REENGAGE_THRESHOLD,
+                            )
+
+                            if active_error_reason is not None:
+                                reason = disengage_reason_latched or active_error_reason
+
+                                if away_start_time is None:
+                                    away_start_time = now
+                                away_break_start_time = None
+                                away_duration = now - away_start_time
+
+                                if reengage_start_time is not None:
+                                    if reengage_break_start_time is None:
+                                        reengage_break_start_time = now
+                                    elif now - reengage_break_start_time >= REENGAGE_BREAK_TOLERANCE:
+                                        reengage_start_time = None
+                                        reengage_duration = 0.0
+                                else:
+                                    reengage_duration = 0.0
+
+                                if not disengaged:
+                                    disengaged = True
+                                    disengage_reason_latched = active_error_reason
+                                    reason = disengage_reason_latched
+                                    state_changed = True
+                            elif fully_recovered:
+                                reason = "gaze_recovered" if ENABLE_EYE_GAZE else "screen_facing"
+                                reengage_break_start_time = None
+
+                                if away_start_time is not None:
+                                    if away_break_start_time is None:
+                                        away_break_start_time = now
+                                    elif now - away_break_start_time >= AWAY_BREAK_TOLERANCE:
+                                        away_start_time = None
+                                        away_duration = 0.0
+                                else:
+                                    away_duration = 0.0
+
+                                if reengage_start_time is None:
+                                    reengage_start_time = now
+                                reengage_duration = now - reengage_start_time
+
+                                if disengaged and reengage_duration >= reengage_threshold_s:
+                                    disengaged = False
+                                    disengage_reason_latched = None
+                                    state_changed = True
+                            else:
+                                reason = disengage_reason_latched or "waiting_full_recovery"
+                                away_break_start_time = None
+                                away_duration = 0.0 if away_start_time is None else (now - away_start_time)
+
+                                if disengaged and reengage_start_time is not None:
+                                    if reengage_break_start_time is None:
+                                        reengage_break_start_time = now
+                                    elif now - reengage_break_start_time >= REENGAGE_BREAK_TOLERANCE:
+                                        reengage_start_time = None
+                                        reengage_duration = 0.0
+                                else:
+                                    reengage_duration = 0.0
 
                         gaze_mw_duration = (now - gaze_mw_start_time) if gaze_mw_start_time is not None else 0.0
 

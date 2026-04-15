@@ -38,9 +38,9 @@ class VisionUtilsTests(unittest.TestCase):
         created = []
         original_constructor = openai_client.openai.OpenAI
 
-        def fake_constructor(*, api_key: str, timeout: float):
+        def fake_constructor(*, api_key: str, timeout: float, max_retries: int):
             client = object()
-            created.append((api_key, timeout, client))
+            created.append((api_key, timeout, max_retries, client))
             return client
 
         openai_client.openai.OpenAI = fake_constructor
@@ -52,7 +52,7 @@ class VisionUtilsTests(unittest.TestCase):
 
             self.assertIs(first, second)
             self.assertEqual(len(created), 1)
-            self.assertEqual(created[0][:2], ("secret", 20.0))
+            self.assertEqual(created[0][:3], ("secret", 20.0, 0))
         finally:
             openai_client.openai.OpenAI = original_constructor
 

@@ -1,0 +1,4805 @@
+{
+  "session_id": "session_20260414_wen_e19c74",
+  "participant_id": "wen",
+  "start_time": "2026-04-14T22:00:03.401992-04:00",
+  "end_time": "2026-04-14T22:16:40.700542-04:00",
+  "screen_observations": [
+    {
+      "timestamp": "2026-04-14T22:02:59.906956-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    }
+  ],
+  "events": [
+    {
+      "timestamp": "2026-04-14T22:00:04.181328-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:04.312538-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_search_start",
+        "utterance": "I'm looking for your screen now.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I'm looking for your screen now.`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:04.312617-04:00",
+      "name": "screen_search_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:00:04.312661-04:00",
+      "name": "screen_search_seed",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:05.046123-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:06.035728-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:06.943111-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:06.943148-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:10.131960-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:10.132183-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:10.132226-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -10.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:11.055173-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:12.671476-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:12.671512-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:14.629538-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:14.629603-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": -10.0,
+        "pitch": 0.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:14.629632-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 10.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:15.595179-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:16.463012-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:16.463053-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:18.307608-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:18.711780-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:19.654693-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:19.654730-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:20.876313-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:20.878259-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 10.0,
+        "pitch": 0.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:20.878404-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -20.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:23.580782-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:24.460909-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:24.461047-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:25.737270-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:26.141083-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:27.266922-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:27.266955-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:28.649129-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:28.649346-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": -20.0,
+        "pitch": 0.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:28.649372-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 20.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:29.436154-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:30.410815-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:30.410849-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:31.718541-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:32.123809-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:33.581826-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:33.581860-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:34.893282-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:34.894625-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": 0.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:34.894652-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -30.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:35.856954-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:36.746433-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:36.746466-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:37.787170-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:37.788349-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": -30.0,
+        "pitch": 0.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:37.788374-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 30.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:38.712188-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:40.150370-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:40.150403-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:41.578738-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:41.980939-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:43.197918-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:43.197950-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:44.215529-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:44.215687-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 0.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:44.215721-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 0.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:45.258087-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:46.471316-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:46.471349-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:47.594218-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:47.995892-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:49.038690-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:49.038719-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:50.255199-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:50.255314-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": -8.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:50.255333-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -10.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:51.286893-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:52.209770-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:52.209817-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:53.641805-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:54.044626-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:55.179903-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:55.179935-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:56.398361-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:56.398415-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": -10.0,
+        "pitch": -8.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:56.398437-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 10.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:57.463934-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:58.360203-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:58.360240-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:00:59.710442-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:00.115480-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:01.011371-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:01.011401-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:02.132126-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:02.133319-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 10.0,
+        "pitch": -8.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:02.133343-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -20.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:03.015235-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:04.319151-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:04.319182-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:05.408303-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:05.812696-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:07.448121-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:07.448151-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:08.306597-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:08.306652-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": -20.0,
+        "pitch": -8.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:08.306674-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 20.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:09.046341-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:10.449505-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:10.449536-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:11.345704-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:11.347022-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": -8.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:11.347047-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -30.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:12.180336-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:13.192758-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:13.192790-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:14.422146-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:14.827495-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:16.088454-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:16.088489-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:17.189641-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:17.189818-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": -30.0,
+        "pitch": -8.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:17.189847-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 30.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:18.069599-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:19.283334-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:19.283366-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:20.654371-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:20.655943-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": -8.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:20.655976-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 0.0,
+        "pitch": 8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:21.648370-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:22.724059-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:22.724092-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:23.590860-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:23.592123-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 8.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:23.592144-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -10.0,
+        "pitch": 8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:24.374016-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:25.727079-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:25.727111-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:26.913282-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:27.313958-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:28.704199-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:28.704233-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:29.882600-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:29.882748-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": -10.0,
+        "pitch": 8.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:29.882769-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 10.0,
+        "pitch": 8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:30.720829-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:31.771261-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:31.771292-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:32.938261-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:33.338871-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:34.762850-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:34.762890-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:35.924798-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:35.926534-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 10.0,
+        "pitch": 8.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:35.926624-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -20.0,
+        "pitch": 8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:36.804890-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:37.794735-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:37.794768-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:38.997297-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:39.401517-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:40.665834-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:40.665868-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:42.273005-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:42.273141-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": -20.0,
+        "pitch": 8.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:42.273162-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 20.0,
+        "pitch": 8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:43.225691-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:44.158693-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:44.158724-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:45.172884-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:45.576875-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:47.280268-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:47.280298-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:48.827226-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:48.827360-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": 8.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:48.827381-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -30.0,
+        "pitch": 8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:49.769751-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:50.995220-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:50.995254-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:52.254488-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:52.659293-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:53.744573-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:53.744604-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:54.877593-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:54.877771-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": -30.0,
+        "pitch": 8.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:54.877798-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 30.0,
+        "pitch": 8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:55.866639-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:56.680543-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:56.680591-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:57.737111-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:57.738490-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 8.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:57.738536-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 0.0,
+        "pitch": -15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:01:58.782386-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:00.355475-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:00.355539-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:01.497834-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:01.499092-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": -15.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:01.499117-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -10.0,
+        "pitch": -15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:02.363829-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:03.391007-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:03.391039-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:04.495254-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:04.900123-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:06.084018-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:06.084049-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:07.464441-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:07.464577-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": -10.0,
+        "pitch": -15.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:07.464598-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 10.0,
+        "pitch": -15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:08.315754-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:09.218524-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:09.218555-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:10.125641-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:10.126820-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 10.0,
+        "pitch": -15.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:10.126846-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -20.0,
+        "pitch": -15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:11.064031-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:12.332544-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:12.332575-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:13.697847-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:13.699418-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": -20.0,
+        "pitch": -15.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:13.699460-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 20.0,
+        "pitch": -15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:14.659690-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:15.658498-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:15.658528-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:16.679076-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:16.680317-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": -15.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:16.680340-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -30.0,
+        "pitch": -15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:17.714139-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:18.754709-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:18.754741-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:19.605528-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:19.606709-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": -30.0,
+        "pitch": -15.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:19.606736-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 30.0,
+        "pitch": -15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:20.431704-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:21.297298-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:21.297329-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:22.313807-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:22.718357-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:24.177808-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:24.177844-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:25.065711-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "no_screen",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:25.066890-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": -15.0,
+        "check": 2,
+        "reason": "no_screen"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:25.066925-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 0.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:26.306233-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:27.614646-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:27.614685-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:28.555271-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:28.556559-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 15.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:28.556585-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -10.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:29.599048-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:30.776939-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:30.777010-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:32.141666-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:32.544645-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:33.717967-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:33.718000-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:35.212824-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:35.212870-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": -10.0,
+        "pitch": 15.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:35.212889-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 10.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:36.259469-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:37.710148-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:37.710178-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:38.910095-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:39.315712-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:40.829524-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:40.829562-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:41.844163-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:41.844328-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 10.0,
+        "pitch": 15.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:41.844353-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -20.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:42.611073-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:43.485149-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:43.485184-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:44.685907-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:44.685950-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": -20.0,
+        "pitch": 15.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:44.686016-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 20.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:45.673446-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:46.629584-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:46.629620-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:47.604906-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:47.606141-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": 15.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:47.606171-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -30.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:48.548331-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:49.345435-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:49.345471-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:50.267939-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:50.269306-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": -30.0,
+        "pitch": 15.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:50.269338-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 30.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:51.403005-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:52.653002-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:52.653039-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:53.613894-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:54.018601-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:55.399050-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:55.399083-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:56.309883-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:56.649949-04:00",
+      "name": "screen_search_verified",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:56.649977-04:00",
+      "name": "screen_position_initialized",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:56.838927-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_found",
+        "utterance": "I've found the screen!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I've found the screen!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:56.976588-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_start_reading",
+        "utterance": "Let's start reading. You can open the browser extension and start reading now.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading. You can open the browser extension and start reading now.`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:57.025398-04:00",
+      "name": "bootup_complete",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:02:59.906897-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:59.906975-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:02:59.907065-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 22
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:02:59.907091-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:03:17.405145-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:03:17.405185-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:03:33.282182-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:03:33.488698-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:03:33.488770-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:03:34.213978-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:03:34.214097-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:03:34.214139-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:03:51.601499-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:03:51.601519-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:03:54.681253-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:00.199750-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:00.844108-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:00.844164-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:00.844182-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:03.584753-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:03.584853-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:03.888886-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:04.226333-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:04.226381-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:04.635672-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:05.243650-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:05.243701-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:05.243720-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:05.243729-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:05.638339-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:05.638396-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:05.638423-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:05.638438-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:05.912054-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:05.912102-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:06.115410-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:07.893748-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:07.893809-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:07.893829-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:08.111400-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:08.111452-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:08.216508-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:25.292777-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:25.292795-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:26.002532-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:30.321549-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:30.814847-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:30.814893-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:30.814911-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:04:48.218376-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:04:48.218396-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:05:33.845195-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:05:39.363044-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:05:39.839772-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:05:39.839826-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:05:39.839844-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:05:43.543593-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:05:43.543641-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:05:48.351920-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:05:51.334644-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:05:51.334710-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:05:55.344739-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:03.727094-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:03.727143-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:06:09.890545-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:12.857838-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:12.857889-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:06:15.529318-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:15.529352-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:15.986328-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:15.986380-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:06:15.986399-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:15.986407-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:16.386883-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:16.386931-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:06:16.386950-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 2
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:16.386959-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:16.661698-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:16.661747-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:06:16.661765-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:16.661774-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:33.733233-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:06:33.733265-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:34.242108-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:06:42.146359-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:44.680065-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:06:44.680139-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:07:18.794139-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:07:25.420262-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:07:25.420314-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:07:44.013067-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:07:44.777051-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:07:44.777114-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:07:46.942988-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:07:49.584175-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:07:49.584231-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:07:51.745424-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:07:56.417675-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:07:56.417731-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:08:30.741363-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:08:35.101185-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:08:35.101239-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:08:58.556688-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:08:58.900432-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:08:58.900488-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:08:58.900510-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 2
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:08:58.900520-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:08:59.183875-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:08:59.183929-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:08:59.183951-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:08:59.183962-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:08:59.556378-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:08:59.556478-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:08:59.556503-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:09:01.599870-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:09:01.599927-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:00.687015-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:02.692530-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:02.692632-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:02.692653-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 2
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:02.692663-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:02.949680-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:02.949735-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:02.949757-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.162560-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.162622-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.162646-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.162662-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.440711-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.440768-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.440790-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.440800-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.739940-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.740011-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.740033-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.740043-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.993562-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.993618-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.993639-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:03.993648-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:04.254519-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:04.254573-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:04.254593-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:04.254603-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:04.538905-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:04.538967-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:04.538992-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:18.027028-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:18.027092-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:18.027159-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 2
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:18.027200-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:34.949016-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:34.949049-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:55.013551-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:10:55.116629-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:58.313496-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:10:58.313583-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:28.881875-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.256831-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.256919-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.256969-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.256990-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.538325-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.538419-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.538446-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.538457-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.813502-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.813796-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.813834-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:29.813853-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.075585-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.075682-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.075743-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.075777-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.341527-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.341585-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.341607-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.341618-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.608394-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.608452-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.608475-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.608485-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.908128-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.908222-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.908260-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:30.908280-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:31.232895-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:31.232956-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:31.232980-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:31.232991-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:31.454283-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:31.454375-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:31.454413-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:31.454433-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:33.660021-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 15.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:33.660082-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:33.660106-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:33.660117-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:11:51.113918-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:11:51.113939-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:12:51.159647-04:00",
+      "name": "post_sequence_wait_timed_out",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:12:51.576852-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "no_response_prompt",
+        "utterance": "Let's gently return to what you were reading and keep going.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's gently return to what you were reading and keep going.`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false,
+        "attempt": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:12:52.519539-04:00",
+      "name": "no_response_prompt_generated",
+      "payload": {
+        "attempt": 1,
+        "summary": "",
+        "reminder": "Let's gently return to what you were reading and keep going.",
+        "used_fallback": true,
+        "fallback_reason": "missing_text",
+        "has_current_text": false
+      }
+    },
+    {
+      "timestamp": "2026-04-14T22:12:52.519608-04:00",
+      "name": "post_sequence_quiet_wait_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T22:16:40.630816-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-04-14T22:02:59.907151-04:00",
+      "motion_end_time": "2026-04-14T22:03:17.405060-04:00",
+      "motion_duration_s": 17.5,
+      "distraction_end_time": "2026-04-14T22:03:33.282098-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 33.37,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-04-14T22:03:33.488805-04:00",
+      "motion_end_time": "2026-04-14T22:03:34.174351-04:00",
+      "motion_duration_s": 0.69,
+      "distraction_end_time": "2026-04-14T22:03:34.214054-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.73,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 3,
+      "distraction_start_time": "2026-04-14T22:03:34.214168-04:00",
+      "motion_end_time": "2026-04-14T22:03:51.601423-04:00",
+      "motion_duration_s": 17.39,
+      "distraction_end_time": "2026-04-14T22:03:54.681206-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 20.47,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 4,
+      "distraction_start_time": "2026-04-14T22:04:00.199806-04:00",
+      "motion_end_time": "2026-04-14T22:04:00.798651-04:00",
+      "motion_duration_s": 0.6,
+      "distraction_end_time": "2026-04-14T22:04:00.844144-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.64,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 5,
+      "distraction_start_time": "2026-04-14T22:04:00.844195-04:00",
+      "motion_end_time": "2026-04-14T22:04:03.554974-04:00",
+      "motion_duration_s": 2.71,
+      "distraction_end_time": "2026-04-14T22:04:03.584800-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.74,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 6,
+      "distraction_start_time": "2026-04-14T22:04:03.888924-04:00",
+      "motion_end_time": "2026-04-14T22:04:04.180775-04:00",
+      "motion_duration_s": 0.29,
+      "distraction_end_time": "2026-04-14T22:04:04.226362-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.34,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 7,
+      "distraction_start_time": "2026-04-14T22:04:04.635711-04:00",
+      "motion_end_time": "2026-04-14T22:04:05.195319-04:00",
+      "motion_duration_s": 0.56,
+      "distraction_end_time": "2026-04-14T22:04:05.243682-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.61,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 8,
+      "distraction_start_time": "2026-04-14T22:04:05.243740-04:00",
+      "motion_end_time": "2026-04-14T22:04:05.583718-04:00",
+      "motion_duration_s": 0.34,
+      "distraction_end_time": "2026-04-14T22:04:05.638372-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.39,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 9,
+      "distraction_start_time": "2026-04-14T22:04:05.638457-04:00",
+      "motion_end_time": "2026-04-14T22:04:05.869107-04:00",
+      "motion_duration_s": 0.23,
+      "distraction_end_time": "2026-04-14T22:04:05.912084-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.27,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 10,
+      "distraction_start_time": "2026-04-14T22:04:06.115463-04:00",
+      "motion_end_time": "2026-04-14T22:04:07.852800-04:00",
+      "motion_duration_s": 1.74,
+      "distraction_end_time": "2026-04-14T22:04:07.893789-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 1.78,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 11,
+      "distraction_start_time": "2026-04-14T22:04:07.893842-04:00",
+      "motion_end_time": "2026-04-14T22:04:08.069339-04:00",
+      "motion_duration_s": 0.18,
+      "distraction_end_time": "2026-04-14T22:04:08.111433-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.22,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 12,
+      "distraction_start_time": "2026-04-14T22:04:08.216547-04:00",
+      "motion_end_time": "2026-04-14T22:04:25.292723-04:00",
+      "motion_duration_s": 17.08,
+      "distraction_end_time": "2026-04-14T22:04:26.002490-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 17.79,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 13,
+      "distraction_start_time": "2026-04-14T22:04:30.321585-04:00",
+      "motion_end_time": "2026-04-14T22:04:30.770229-04:00",
+      "motion_duration_s": 0.45,
+      "distraction_end_time": "2026-04-14T22:04:30.814874-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.49,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 14,
+      "distraction_start_time": "2026-04-14T22:04:30.814924-04:00",
+      "motion_end_time": "2026-04-14T22:04:48.218320-04:00",
+      "motion_duration_s": 17.4,
+      "distraction_end_time": "2026-04-14T22:05:33.845148-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 63.03,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 15,
+      "distraction_start_time": "2026-04-14T22:05:39.363103-04:00",
+      "motion_end_time": "2026-04-14T22:05:39.794215-04:00",
+      "motion_duration_s": 0.43,
+      "distraction_end_time": "2026-04-14T22:05:39.839805-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.48,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 16,
+      "distraction_start_time": "2026-04-14T22:05:39.839858-04:00",
+      "motion_end_time": "2026-04-14T22:05:43.499440-04:00",
+      "motion_duration_s": 3.66,
+      "distraction_end_time": "2026-04-14T22:05:43.543621-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.7,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 17,
+      "distraction_start_time": "2026-04-14T22:05:48.351979-04:00",
+      "motion_end_time": "2026-04-14T22:05:51.291443-04:00",
+      "motion_duration_s": 2.94,
+      "distraction_end_time": "2026-04-14T22:05:51.334686-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.98,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 18,
+      "distraction_start_time": "2026-04-14T22:05:55.344821-04:00",
+      "motion_end_time": "2026-04-14T22:06:03.673059-04:00",
+      "motion_duration_s": 8.33,
+      "distraction_end_time": "2026-04-14T22:06:03.727124-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 8.38,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 19,
+      "distraction_start_time": "2026-04-14T22:06:09.890583-04:00",
+      "motion_end_time": "2026-04-14T22:06:12.604454-04:00",
+      "motion_duration_s": 2.71,
+      "distraction_end_time": "2026-04-14T22:06:12.857870-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.97,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 20,
+      "distraction_start_time": "2026-04-14T22:06:15.529369-04:00",
+      "motion_end_time": "2026-04-14T22:06:15.951025-04:00",
+      "motion_duration_s": 0.42,
+      "distraction_end_time": "2026-04-14T22:06:15.986359-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.46,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 21,
+      "distraction_start_time": "2026-04-14T22:06:15.986419-04:00",
+      "motion_end_time": "2026-04-14T22:06:16.332218-04:00",
+      "motion_duration_s": 0.35,
+      "distraction_end_time": "2026-04-14T22:06:16.386912-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.4,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 22,
+      "distraction_start_time": "2026-04-14T22:06:16.386971-04:00",
+      "motion_end_time": "2026-04-14T22:06:16.615027-04:00",
+      "motion_duration_s": 0.23,
+      "distraction_end_time": "2026-04-14T22:06:16.661727-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.27,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 23,
+      "distraction_start_time": "2026-04-14T22:06:16.661786-04:00",
+      "motion_end_time": "2026-04-14T22:06:33.733157-04:00",
+      "motion_duration_s": 17.07,
+      "distraction_end_time": "2026-04-14T22:06:34.242066-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 17.58,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 24,
+      "distraction_start_time": "2026-04-14T22:06:42.146399-04:00",
+      "motion_end_time": "2026-04-14T22:06:44.637449-04:00",
+      "motion_duration_s": 2.49,
+      "distraction_end_time": "2026-04-14T22:06:44.680108-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.53,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 25,
+      "distraction_start_time": "2026-04-14T22:07:18.794181-04:00",
+      "motion_end_time": "2026-04-14T22:07:25.379436-04:00",
+      "motion_duration_s": 6.59,
+      "distraction_end_time": "2026-04-14T22:07:25.420293-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 6.63,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 26,
+      "distraction_start_time": "2026-04-14T22:07:44.013115-04:00",
+      "motion_end_time": "2026-04-14T22:07:44.733924-04:00",
+      "motion_duration_s": 0.72,
+      "distraction_end_time": "2026-04-14T22:07:44.777090-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.76,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 27,
+      "distraction_start_time": "2026-04-14T22:07:46.943046-04:00",
+      "motion_end_time": "2026-04-14T22:07:49.550428-04:00",
+      "motion_duration_s": 2.61,
+      "distraction_end_time": "2026-04-14T22:07:49.584208-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.64,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 28,
+      "distraction_start_time": "2026-04-14T22:07:51.745468-04:00",
+      "motion_end_time": "2026-04-14T22:07:56.366177-04:00",
+      "motion_duration_s": 4.62,
+      "distraction_end_time": "2026-04-14T22:07:56.417708-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 4.67,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 29,
+      "distraction_start_time": "2026-04-14T22:08:30.741458-04:00",
+      "motion_end_time": "2026-04-14T22:08:35.061800-04:00",
+      "motion_duration_s": 4.32,
+      "distraction_end_time": "2026-04-14T22:08:35.101218-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 4.36,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 30,
+      "distraction_start_time": "2026-04-14T22:08:58.556747-04:00",
+      "motion_end_time": "2026-04-14T22:08:58.856075-04:00",
+      "motion_duration_s": 0.3,
+      "distraction_end_time": "2026-04-14T22:08:58.900466-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.34,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 31,
+      "distraction_start_time": "2026-04-14T22:08:58.900535-04:00",
+      "motion_end_time": "2026-04-14T22:08:59.148278-04:00",
+      "motion_duration_s": 0.25,
+      "distraction_end_time": "2026-04-14T22:08:59.183908-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.28,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 32,
+      "distraction_start_time": "2026-04-14T22:08:59.183975-04:00",
+      "motion_end_time": "2026-04-14T22:08:59.512893-04:00",
+      "motion_duration_s": 0.33,
+      "distraction_end_time": "2026-04-14T22:08:59.556418-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.37,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 33,
+      "distraction_start_time": "2026-04-14T22:08:59.556519-04:00",
+      "motion_end_time": "2026-04-14T22:09:01.557633-04:00",
+      "motion_duration_s": 2.0,
+      "distraction_end_time": "2026-04-14T22:09:01.599904-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.04,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 34,
+      "distraction_start_time": "2026-04-14T22:10:00.687061-04:00",
+      "motion_end_time": "2026-04-14T22:10:02.657299-04:00",
+      "motion_duration_s": 1.97,
+      "distraction_end_time": "2026-04-14T22:10:02.692600-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.01,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 35,
+      "distraction_start_time": "2026-04-14T22:10:02.692677-04:00",
+      "motion_end_time": "2026-04-14T22:10:02.911974-04:00",
+      "motion_duration_s": 0.22,
+      "distraction_end_time": "2026-04-14T22:10:02.949714-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.26,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 36,
+      "distraction_start_time": "2026-04-14T22:10:02.949771-04:00",
+      "motion_end_time": "2026-04-14T22:10:03.127335-04:00",
+      "motion_duration_s": 0.18,
+      "distraction_end_time": "2026-04-14T22:10:03.162599-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.21,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 37,
+      "distraction_start_time": "2026-04-14T22:10:03.162681-04:00",
+      "motion_end_time": "2026-04-14T22:10:03.398109-04:00",
+      "motion_duration_s": 0.24,
+      "distraction_end_time": "2026-04-14T22:10:03.440746-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.28,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 38,
+      "distraction_start_time": "2026-04-14T22:10:03.440812-04:00",
+      "motion_end_time": "2026-04-14T22:10:03.696683-04:00",
+      "motion_duration_s": 0.26,
+      "distraction_end_time": "2026-04-14T22:10:03.739987-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.3,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 39,
+      "distraction_start_time": "2026-04-14T22:10:03.740056-04:00",
+      "motion_end_time": "2026-04-14T22:10:03.955029-04:00",
+      "motion_duration_s": 0.21,
+      "distraction_end_time": "2026-04-14T22:10:03.993597-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.25,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 40,
+      "distraction_start_time": "2026-04-14T22:10:03.993664-04:00",
+      "motion_end_time": "2026-04-14T22:10:04.216392-04:00",
+      "motion_duration_s": 0.22,
+      "distraction_end_time": "2026-04-14T22:10:04.254553-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.26,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 41,
+      "distraction_start_time": "2026-04-14T22:10:04.254616-04:00",
+      "motion_end_time": "2026-04-14T22:10:04.494310-04:00",
+      "motion_duration_s": 0.24,
+      "distraction_end_time": "2026-04-14T22:10:04.538946-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.28,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 42,
+      "distraction_start_time": "2026-04-14T22:10:04.539019-04:00",
+      "motion_end_time": "2026-04-14T22:10:17.984419-04:00",
+      "motion_duration_s": 13.45,
+      "distraction_end_time": "2026-04-14T22:10:18.027067-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 13.49,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 43,
+      "distraction_start_time": "2026-04-14T22:10:18.027223-04:00",
+      "motion_end_time": "2026-04-14T22:10:34.948934-04:00",
+      "motion_duration_s": 16.92,
+      "distraction_end_time": "2026-04-14T22:10:55.013467-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 36.99,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 44,
+      "distraction_start_time": "2026-04-14T22:10:55.116672-04:00",
+      "motion_end_time": "2026-04-14T22:10:58.275578-04:00",
+      "motion_duration_s": 3.16,
+      "distraction_end_time": "2026-04-14T22:10:58.313547-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.2,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 45,
+      "distraction_start_time": "2026-04-14T22:11:28.881919-04:00",
+      "motion_end_time": "2026-04-14T22:11:29.213245-04:00",
+      "motion_duration_s": 0.33,
+      "distraction_end_time": "2026-04-14T22:11:29.256874-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.37,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 46,
+      "distraction_start_time": "2026-04-14T22:11:29.257013-04:00",
+      "motion_end_time": "2026-04-14T22:11:29.491879-04:00",
+      "motion_duration_s": 0.23,
+      "distraction_end_time": "2026-04-14T22:11:29.538389-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.28,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 47,
+      "distraction_start_time": "2026-04-14T22:11:29.538565-04:00",
+      "motion_end_time": "2026-04-14T22:11:29.767921-04:00",
+      "motion_duration_s": 0.23,
+      "distraction_end_time": "2026-04-14T22:11:29.813759-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.28,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 48,
+      "distraction_start_time": "2026-04-14T22:11:29.813878-04:00",
+      "motion_end_time": "2026-04-14T22:11:30.039267-04:00",
+      "motion_duration_s": 0.23,
+      "distraction_end_time": "2026-04-14T22:11:30.075629-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.26,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 49,
+      "distraction_start_time": "2026-04-14T22:11:30.075913-04:00",
+      "motion_end_time": "2026-04-14T22:11:30.308114-04:00",
+      "motion_duration_s": 0.23,
+      "distraction_end_time": "2026-04-14T22:11:30.341561-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.27,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 50,
+      "distraction_start_time": "2026-04-14T22:11:30.341632-04:00",
+      "motion_end_time": "2026-04-14T22:11:30.564387-04:00",
+      "motion_duration_s": 0.22,
+      "distraction_end_time": "2026-04-14T22:11:30.608429-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.27,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 51,
+      "distraction_start_time": "2026-04-14T22:11:30.608499-04:00",
+      "motion_end_time": "2026-04-14T22:11:30.846557-04:00",
+      "motion_duration_s": 0.24,
+      "distraction_end_time": "2026-04-14T22:11:30.908184-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.3,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 52,
+      "distraction_start_time": "2026-04-14T22:11:30.908306-04:00",
+      "motion_end_time": "2026-04-14T22:11:31.165615-04:00",
+      "motion_duration_s": 0.26,
+      "distraction_end_time": "2026-04-14T22:11:31.232931-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.32,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 53,
+      "distraction_start_time": "2026-04-14T22:11:31.233006-04:00",
+      "motion_end_time": "2026-04-14T22:11:31.400992-04:00",
+      "motion_duration_s": 0.17,
+      "distraction_end_time": "2026-04-14T22:11:31.454336-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.22,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 54,
+      "distraction_start_time": "2026-04-14T22:11:31.454490-04:00",
+      "motion_end_time": "2026-04-14T22:11:33.624016-04:00",
+      "motion_duration_s": 2.17,
+      "distraction_end_time": "2026-04-14T22:11:33.660057-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.21,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 55,
+      "distraction_start_time": "2026-04-14T22:11:33.660132-04:00",
+      "motion_end_time": "2026-04-14T22:11:51.113862-04:00",
+      "motion_duration_s": 17.45,
+      "distraction_end_time": null,
+      "distraction_end_signal_received": false,
+      "distraction_duration_s": null,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": true,
+      "voice_prompt_count": 1
+    }
+  ],
+  "total_distraction_count": 55,
+  "total_voice_prompts": 1
+}

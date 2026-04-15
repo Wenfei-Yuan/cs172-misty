@@ -42,12 +42,15 @@ class SessionLog:
             {
                 "event_index": len(self.distraction_events) + 1,
                 "distraction_start_time": _local_iso(),
+                "motion_end_time": None,
+                "motion_duration_s": None,
                 "distraction_end_time": None,
                 "distraction_end_signal_received": False,
                 "distraction_duration_s": None,
-                "gaze_detected": False,
-                "gaze_latency_s": None,
+                "sequence_completed": False,
+                "completion_latency_s": None,
                 "exit_reason": None,
+                "session_close_reason": None,
                 "voice_prompt_used": False,
                 "voice_prompt_count": 0,
             }
@@ -62,14 +65,19 @@ class SessionLog:
         end = datetime.fromisoformat(end_ts)
         current["distraction_duration_s"] = round((end - start).total_seconds(), 2)
 
-    def record_distraction_result(self, outcome: str, gaze_seen: bool, latency_s) -> None:
+    def record_distraction_result(self, outcome: str, sequence_completed: bool, latency_s) -> None:
         if not self.distraction_events:
             return
         current = self.distraction_events[-1]
-        current["gaze_detected"] = bool(gaze_seen)
-        current["gaze_latency_s"] = round(latency_s, 2) if latency_s is not None else None
+        current["sequence_completed"] = bool(sequence_completed)
+        current["completion_latency_s"] = round(latency_s, 2) if latency_s is not None else None
         current["exit_reason"] = outcome
-        self._close_distraction_event(current)
+        if current["motion_end_time"] is None:
+            end_ts = _local_iso()
+            current["motion_end_time"] = end_ts
+            start = datetime.fromisoformat(current["distraction_start_time"])
+            end = datetime.fromisoformat(end_ts)
+            current["motion_duration_s"] = round((end - start).total_seconds(), 2)
 
     def record_distraction_end(self) -> None:
         if not self.distraction_events:
@@ -78,6 +86,15 @@ class SessionLog:
         if current["distraction_end_signal_received"]:
             return
         current["distraction_end_signal_received"] = True
+        self._close_distraction_event(current)
+
+    def close_active_distraction(self, reason: str | None = None) -> None:
+        if not self.distraction_events:
+            return
+        current = self.distraction_events[-1]
+        if current["distraction_end_time"] is not None:
+            return
+        current["session_close_reason"] = reason
         self._close_distraction_event(current)
 
     def record_voice_prompt(self) -> None:

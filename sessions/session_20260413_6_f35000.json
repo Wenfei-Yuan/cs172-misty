@@ -1,0 +1,1777 @@
+{
+  "session_id": "session_20260413_6_f35000",
+  "participant_id": "6",
+  "start_time": "2026-04-13T15:25:24.854235-04:00",
+  "end_time": "2026-04-13T15:54:59.029553-04:00",
+  "screen_observations": [
+    {
+      "timestamp": "2026-04-13T15:25:35.939715-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:29:08.747007-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:29:24.572791-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:30:05.482963-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:30:18.085491-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:35:11.509098-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:35:21.704039-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:35:40.138621-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:35:54.476595-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:36:09.453291-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:36:17.321981-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:36:22.395830-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:36:38.477024-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:38:41.064322-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:38:53.637076-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:39:33.208302-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:39:46.575179-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:40:35.241657-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:40:50.488537-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:41:00.835675-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:41:41.230219-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:42:07.654513-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:43:20.256392-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:47:12.044753-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:48:18.139985-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:48:35.874689-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:48:50.597337-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:48:57.340560-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:49:11.468618-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:52:12.518282-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    },
+    {
+      "timestamp": "2026-04-13T15:52:32.277177-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    }
+  ],
+  "events": [
+    {
+      "timestamp": "2026-04-13T15:25:25.508067-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:25:32.550997-04:00",
+      "name": "screen_search_verified",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0,
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:25:32.551026-04:00",
+      "name": "screen_position_initialized",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:25:32.743107-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_found",
+        "utterance": "I've found the screen!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I've found the screen!`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:25:33.070780-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_start_reading",
+        "utterance": "Let's start reading. You can open the browser extension and start reading now.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading. You can open the browser extension and start reading now.`."
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:25:33.106608-04:00",
+      "name": "bootup_complete",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:25:35.939671-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:25:35.939726-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:25:35.939771-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:25:35.939781-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:25:41.389164-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:25:48.373313-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:26:48.412509-04:00",
+      "name": "gaze_redirect_wait_timed_out",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:26:50.942031-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "no_response_prompt",
+        "utterance": "Take a deep breath and let's dive back into the fascinating world of microplastics together!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Take a deep breath and let's dive back into the fascinating world of microplastics together!`."
+          }
+        },
+        "attempt": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:26:51.844092-04:00",
+      "name": "no_response_prompt_generated",
+      "payload": {
+        "attempt": 1,
+        "summary": "",
+        "reminder": "Take a deep breath and let's dive back into the fascinating world of microplastics together!",
+        "used_fallback": false,
+        "fallback_reason": null,
+        "has_current_text": true
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:26:51.844130-04:00",
+      "name": "gaze_redirect_quiet_wait_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:29:08.746905-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:29:08.747023-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:29:08.747050-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:29:13.915066-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:29:20.656889-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:29:24.572754-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:29:24.572800-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:29:24.572824-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:29:29.730318-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:29:36.469831-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:30:05.482857-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:30:05.482989-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:30:05.483018-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:30:10.623651-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:30:18.085449-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:30:18.085508-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:30:18.085543-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:30:23.224862-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:30:29.968752-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:31:30.041020-04:00",
+      "name": "gaze_redirect_wait_timed_out",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:31:31.497995-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "no_response_prompt",
+        "utterance": "You're doing great; just take a deep breath and dive back into the fascinating world of how microplastics affect our oceans!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `You're doing great; just take a deep breath and dive back into the fascinating world of how microplastics affect our oceans!`."
+          }
+        },
+        "attempt": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:31:32.382570-04:00",
+      "name": "no_response_prompt_generated",
+      "payload": {
+        "attempt": 1,
+        "summary": "",
+        "reminder": "You're doing great; just take a deep breath and dive back into the fascinating world of how microplastics affect our oceans!",
+        "used_fallback": false,
+        "fallback_reason": null,
+        "has_current_text": true
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:31:32.382632-04:00",
+      "name": "gaze_redirect_quiet_wait_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:35:11.509034-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:35:11.509108-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:35:11.509135-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:35:16.713161-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:35:21.703986-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:35:21.704069-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:35:21.704106-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:35:26.863304-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:35:33.660490-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:35:40.138587-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:35:40.138631-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:35:40.138654-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:35:45.291911-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:35:54.476552-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:35:54.476611-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:35:54.476656-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:35:59.631709-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:36:06.440437-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:36:09.453252-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:36:09.453301-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:36:09.453327-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:36:17.321946-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:36:17.321991-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:36:17.322015-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:36:22.395759-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:36:22.395882-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:36:22.395909-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:36:27.559129-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:36:34.345018-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:36:38.476991-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:36:38.477034-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:36:38.477058-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:36:43.630463-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:36:50.376430-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:37:50.473249-04:00",
+      "name": "gaze_redirect_wait_timed_out",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:37:52.352300-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "no_response_prompt",
+        "utterance": "Take a deep breath and dive back into exploring those exciting new interaction styles!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Take a deep breath and dive back into exploring those exciting new interaction styles!`."
+          }
+        },
+        "attempt": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:37:53.237584-04:00",
+      "name": "no_response_prompt_generated",
+      "payload": {
+        "attempt": 1,
+        "summary": "",
+        "reminder": "Take a deep breath and dive back into exploring those exciting new interaction styles!",
+        "used_fallback": false,
+        "fallback_reason": null,
+        "has_current_text": true
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:37:53.237677-04:00",
+      "name": "gaze_redirect_quiet_wait_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:38:41.064287-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:38:41.064331-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:38:41.064354-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:38:46.201753-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:38:53.636977-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:38:53.637092-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:38:53.637128-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:38:58.783789-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:39:05.529174-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:39:33.208266-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:39:33.208311-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:39:33.208336-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:39:38.500576-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:39:46.575146-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:39:46.575188-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:39:46.575212-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:39:51.707394-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:39:58.479628-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:40:35.241569-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:40:35.241668-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:40:35.241696-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:40:40.396403-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:40:47.178615-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:40:50.488503-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:40:50.488546-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:40:50.488571-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:40:55.641427-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:41:00.835614-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:41:00.835686-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:41:00.835711-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:41:05.997747-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:41:12.703709-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:41:41.230177-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:41:41.230228-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:41:41.230253-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:41:41.230260-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:41:46.378754-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:41:53.151250-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:42:07.654475-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:42:07.654522-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:42:07.654546-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:42:12.846795-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:42:19.579165-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:43:20.256342-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:43:20.256402-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:43:20.256430-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:43:25.461794-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:43:32.190153-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:44:32.291068-04:00",
+      "name": "gaze_redirect_wait_timed_out",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:44:34.317075-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "no_response_prompt",
+        "utterance": "You're doing great; just take a deep breath and dive back into the fascinating world of microplastics and their impact on health.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `You're doing great; just take a deep breath and dive back into the fascinating world of microplastics and their impact on health.`."
+          }
+        },
+        "attempt": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:44:35.209278-04:00",
+      "name": "no_response_prompt_generated",
+      "payload": {
+        "attempt": 1,
+        "summary": "",
+        "reminder": "You're doing great; just take a deep breath and dive back into the fascinating world of microplastics and their impact on health.",
+        "used_fallback": false,
+        "fallback_reason": null,
+        "has_current_text": true
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:44:35.209314-04:00",
+      "name": "gaze_redirect_quiet_wait_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:47:12.044698-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:47:12.044774-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:47:12.044815-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:47:12.044833-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:47:17.221692-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:47:23.994286-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:48:18.139951-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:48:18.139996-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:48:18.140024-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:48:23.310447-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:48:30.094523-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:48:35.874654-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:48:35.874698-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:48:35.874722-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:48:41.065338-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:48:50.597302-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:48:50.597347-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:48:53.675874-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:48:57.340525-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:48:57.340569-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:48:57.340594-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:48:57.340602-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:49:02.518413-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:49:11.468567-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:49:11.468634-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:49:11.468670-04:00",
+      "name": "stale_stop_events_cleared",
+      "payload": {
+        "count": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:49:11.468683-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:49:16.618122-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:49:23.384833-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:50:23.447933-04:00",
+      "name": "gaze_redirect_wait_timed_out",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:50:25.272831-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "no_response_prompt",
+        "utterance": "Take a deep breath and dive back into exploring that exciting interaction style\u2014you\u2019re doing great!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Take a deep breath and dive back into exploring that exciting interaction style\u2014you\u2019re doing great!`."
+          }
+        },
+        "attempt": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:50:26.155784-04:00",
+      "name": "no_response_prompt_generated",
+      "payload": {
+        "attempt": 1,
+        "summary": "",
+        "reminder": "Take a deep breath and dive back into exploring that exciting interaction style\u2014you\u2019re doing great!",
+        "used_fallback": false,
+        "fallback_reason": null,
+        "has_current_text": true
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:50:26.155819-04:00",
+      "name": "gaze_redirect_quiet_wait_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:52:12.518235-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:52:12.518292-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:52:12.518332-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:52:17.656812-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:52:24.428885-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:52:32.277140-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 42.0,
+        "pitch": 7.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:52:32.277186-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:52:32.277209-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:52:37.453463-04:00",
+      "name": "gaze_recovered",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:52:44.200813-04:00",
+      "name": "gaze_redirect_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:53:44.283520-04:00",
+      "name": "gaze_redirect_wait_timed_out",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:53:45.382851-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "no_response_prompt",
+        "utterance": "Take a deep breath and let's dive back into learning about GreenChoice\u2122 and its benefits for your kitchen!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Take a deep breath and let's dive back into learning about GreenChoice\u2122 and its benefits for your kitchen!`."
+          }
+        },
+        "attempt": 1
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:53:46.262059-04:00",
+      "name": "no_response_prompt_generated",
+      "payload": {
+        "attempt": 1,
+        "summary": "",
+        "reminder": "Take a deep breath and let's dive back into learning about GreenChoice\u2122 and its benefits for your kitchen!",
+        "used_fallback": false,
+        "fallback_reason": null,
+        "has_current_text": true
+      }
+    },
+    {
+      "timestamp": "2026-04-13T15:53:46.262093-04:00",
+      "name": "gaze_redirect_quiet_wait_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-13T15:54:58.948948-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!`."
+          }
+        }
+      }
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-04-13T15:25:35.939796-04:00",
+      "distraction_end_time": "2026-04-13T15:25:41.389076-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.45,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": true,
+      "voice_prompt_count": 1
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-04-13T15:29:08.747062-04:00",
+      "distraction_end_time": "2026-04-13T15:29:13.915011-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.17,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 3,
+      "distraction_start_time": "2026-04-13T15:29:24.572834-04:00",
+      "distraction_end_time": "2026-04-13T15:29:29.730264-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.16,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 4,
+      "distraction_start_time": "2026-04-13T15:30:05.483029-04:00",
+      "distraction_end_time": "2026-04-13T15:30:10.623596-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.14,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 5,
+      "distraction_start_time": "2026-04-13T15:30:18.085577-04:00",
+      "distraction_end_time": "2026-04-13T15:30:23.224796-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.14,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": true,
+      "voice_prompt_count": 1
+    },
+    {
+      "event_index": 6,
+      "distraction_start_time": "2026-04-13T15:35:11.509146-04:00",
+      "distraction_end_time": "2026-04-13T15:35:16.713067-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.2,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 7,
+      "distraction_start_time": "2026-04-13T15:35:21.704128-04:00",
+      "distraction_end_time": "2026-04-13T15:35:26.863250-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.16,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 8,
+      "distraction_start_time": "2026-04-13T15:35:40.138665-04:00",
+      "distraction_end_time": "2026-04-13T15:35:45.291834-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.15,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 9,
+      "distraction_start_time": "2026-04-13T15:35:54.476673-04:00",
+      "distraction_end_time": "2026-04-13T15:35:59.631657-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.15,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 10,
+      "distraction_start_time": "2026-04-13T15:36:09.453338-04:00",
+      "distraction_end_time": "2026-04-13T15:36:14.540956-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.09,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 11,
+      "distraction_start_time": "2026-04-13T15:36:17.322025-04:00",
+      "distraction_end_time": "2026-04-13T15:36:19.624048-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.3,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 12,
+      "distraction_start_time": "2026-04-13T15:36:22.395921-04:00",
+      "distraction_end_time": "2026-04-13T15:36:27.559024-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.16,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 13,
+      "distraction_start_time": "2026-04-13T15:36:38.477069-04:00",
+      "distraction_end_time": "2026-04-13T15:36:43.630393-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.15,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": true,
+      "voice_prompt_count": 1
+    },
+    {
+      "event_index": 14,
+      "distraction_start_time": "2026-04-13T15:38:41.064364-04:00",
+      "distraction_end_time": "2026-04-13T15:38:46.201695-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.14,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 15,
+      "distraction_start_time": "2026-04-13T15:38:53.637146-04:00",
+      "distraction_end_time": "2026-04-13T15:38:58.783736-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.15,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 16,
+      "distraction_start_time": "2026-04-13T15:39:33.208347-04:00",
+      "distraction_end_time": "2026-04-13T15:39:38.500517-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.29,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 17,
+      "distraction_start_time": "2026-04-13T15:39:46.575224-04:00",
+      "distraction_end_time": "2026-04-13T15:39:51.707332-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.13,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 18,
+      "distraction_start_time": "2026-04-13T15:40:35.241707-04:00",
+      "distraction_end_time": "2026-04-13T15:40:40.396347-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.15,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 19,
+      "distraction_start_time": "2026-04-13T15:40:50.488581-04:00",
+      "distraction_end_time": "2026-04-13T15:40:55.641372-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.15,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 20,
+      "distraction_start_time": "2026-04-13T15:41:00.835721-04:00",
+      "distraction_end_time": "2026-04-13T15:41:05.997691-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.16,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 21,
+      "distraction_start_time": "2026-04-13T15:41:41.230269-04:00",
+      "distraction_end_time": "2026-04-13T15:41:46.378696-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.15,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 22,
+      "distraction_start_time": "2026-04-13T15:42:07.654557-04:00",
+      "distraction_end_time": "2026-04-13T15:42:12.846741-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.19,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 23,
+      "distraction_start_time": "2026-04-13T15:43:20.256442-04:00",
+      "distraction_end_time": "2026-04-13T15:43:25.461685-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.21,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": true,
+      "voice_prompt_count": 1
+    },
+    {
+      "event_index": 24,
+      "distraction_start_time": "2026-04-13T15:47:12.044852-04:00",
+      "distraction_end_time": "2026-04-13T15:47:17.221622-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.18,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 25,
+      "distraction_start_time": "2026-04-13T15:48:18.140036-04:00",
+      "distraction_end_time": "2026-04-13T15:48:23.310391-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.17,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 26,
+      "distraction_start_time": "2026-04-13T15:48:35.874733-04:00",
+      "distraction_end_time": "2026-04-13T15:48:41.065284-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.19,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 27,
+      "distraction_start_time": "2026-04-13T15:48:53.675906-04:00",
+      "distraction_end_time": "2026-04-13T15:48:54.541877-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.87,
+      "gaze_detected": false,
+      "gaze_latency_s": null,
+      "exit_reason": "stop",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 28,
+      "distraction_start_time": "2026-04-13T15:48:57.340611-04:00",
+      "distraction_end_time": "2026-04-13T15:49:02.518328-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.18,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 29,
+      "distraction_start_time": "2026-04-13T15:49:11.468698-04:00",
+      "distraction_end_time": "2026-04-13T15:49:16.618069-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.15,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": true,
+      "voice_prompt_count": 1
+    },
+    {
+      "event_index": 30,
+      "distraction_start_time": "2026-04-13T15:52:12.518342-04:00",
+      "distraction_end_time": "2026-04-13T15:52:17.656755-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.14,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 31,
+      "distraction_start_time": "2026-04-13T15:52:32.277221-04:00",
+      "distraction_end_time": "2026-04-13T15:52:37.453407-04:00",
+      "distraction_end_signal_received": false,
+      "distraction_duration_s": 5.18,
+      "gaze_detected": true,
+      "gaze_latency_s": null,
+      "exit_reason": "gaze",
+      "voice_prompt_used": true,
+      "voice_prompt_count": 1
+    }
+  ],
+  "total_distraction_count": 31,
+  "total_voice_prompts": 6
+}

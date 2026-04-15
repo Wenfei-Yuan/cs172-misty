@@ -41,8 +41,6 @@ Supported plain text messages:
 
 - `posture_disengaged=true` (webcam-side distraction start)
 - `posture_disengaged=false` (webcam-side re-engagement)
-- `covert_disengagement=true` (extension-side distraction start)
-- `covert_disengagemnt=ture` (legacy typo alias, still supported)
 - `re-engagement` (webcam-side re-engagement alias)
 - `re-engament` (legacy typo alias, still supported)
 - `start`
@@ -57,10 +55,6 @@ Supported JSON messages:
 
 ```json
 {"posture_disengaged": false}
-```
-
-```json
-{"covert_disengagement": true}
 ```
 
 ```json
@@ -91,12 +85,7 @@ When extension needs to pass reading context to Misty, it can send:
 {"currentText": "the text user is currently reading"}
 ```
 
-This is used in both cases:
-
-- extension receives `posture_disengaged=true` from server, then replies with `{"currentText":"..."}`
-- extension itself detects covert disengagement and sends `{"currentText":"..."}`
-
-In both cases, server forwards this payload to `POST /current_text` on port `5050` (Misty side).
+The server forwards this payload to `POST /current_text` on port `5050` (Misty side).
 
 ### Server -> webcam responses
 
@@ -130,24 +119,24 @@ These notifications are only sent to the client registered as `extension`.
 
 When the webcam sends a disengagement-start signal that successfully becomes a distraction start event, the extension receives:
 
-```json
-{"posture_disengaged": true}
+```text
+ROBOT_REDIRECT
 ```
 
 When the distraction end condition is satisfied and `stop` is successfully forwarded, the extension receives:
 
 ```json
-{"re_engagement": true}
+{"eventName": "AttentionResumed"}
 ```
 
 ### Distraction state rules
 
-- `posture_disengaged=true` (webcam) or `covert_disengagement=true` (extension) both map to the same distraction-start signal and forward `POST /distraction/start` to port `5050`
+- `posture_disengaged=true` (webcam) maps to the distraction-start signal and forwards `POST /distraction/start` to port `5050`
 - While already in distraction, repeated start-side signals do not retrigger start
 - `posture_disengaged=false` (webcam) or webcam-side `re-engagement` / `{"re_engagement": true}` map to distraction stop and forward `POST /distraction/stop` to port `5050`
 - extension-side re-engagement messages are ignored and do not trigger stop
 - While already recovered, repeated recovery signals do not retrigger stop
-- extension `{"currentText":"..."}` messages are forwarded to `POST /current_text` on port `5050`
+- extension `ReadingState` payloads and `{"currentText":"..."}` messages are context-only and are forwarded to `POST /current_text` when text is present
 
 ### Typical flow
 
@@ -156,10 +145,33 @@ When the distraction end condition is satisfied and `stop` is successfully forwa
 3. `webcam` sends `{"posture_disengaged": true}`
 4. Server forwards `start` to Misty on port `5050`
 5. Server returns a JSON success response to `webcam`
-6. Server sends `{"posture_disengaged": true}` to `extension`
+6. Server sends `ROBOT_REDIRECT` to `extension`
 7. `extension` sends `{"currentText":"..."}` to server
 8. Server forwards that text to Misty on `POST /current_text` (port `5050`)
 9. `webcam` later sends `{"posture_disengaged": false}` (or webcam-side `re-engagement`)
 10. Server forwards `stop` to Misty on port `5050`
 11. Server returns a JSON success response to `webcam`
-12. Server sends `{"re_engagement": true}` to `extension`
+12. Server sends `{"eventName": "AttentionResumed"}` to `extension`
+
+## Webcam setup
+
+`webcam/participant_client.py` depends on `opencv-python`, `numpy`, `mediapipe`, and `websockets`.
+
+`mediapipe` does not currently publish wheels for Python 3.13, so the webcam client must run on Python 3.12.
+
+Example setup on macOS with Homebrew:
+
+```bash
+brew install python@3.12
+python3.12 -m venv .venv312
+. .venv312/bin/activate
+python -m pip install -r webcam/requirements.txt
+python webcam/participant_client.py
+```
+
+On the first `mediapipe` import, macOS may spend a short time building the matplotlib font cache.
+*** Add File: /Users/yuanwenfei/Documents/tufts/first sem/hci /misty/webcam/requirements.txt
+numpy==2.4.4
+opencv-python==4.13.0.92
+mediapipe==0.10.14
+websockets==16.0

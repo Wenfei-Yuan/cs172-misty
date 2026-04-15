@@ -11,6 +11,9 @@ class Config:
     ip: str
     openai_api_key: str
     participant_id: str
+    openai_timeout_s: float = 6.0
+    openai_max_retries: int = 0
+    camera_timeout_s: float = 1.5
     speech_volume: int = 90
     gaze_timeout_s: float = 45.0
     gaze_poll_interval_s: float = 0.7
@@ -26,6 +29,7 @@ class Config:
     shake_center_period_s: float = 0.25
     shake_center_pause_s: float = 0.35
     shake_velocity: int = 95
+    distraction_shake_cycles: int = 2
     arm_swing_up_deg: int = -80
     arm_swing_down_deg: int = 80
     arm_swing_velocity: int = 55
@@ -33,8 +37,10 @@ class Config:
     arm_swing_pause_s: float = 0.2
     signal_host: str = "127.0.0.1"
     signal_port: int = 5050
-    screen_init_left_front_yaw: float = 42.0
-    screen_init_left_front_pitch: float = 7.0
+    robot_action_timeout_s: float = 2.0
+    speech_timeout_s: float = 8.0
+    screen_search_seed_yaw: float = 0.0
+    screen_search_seed_pitch: float = 0.0
     screen_search_yaw_offsets: tuple[float, ...] = (0.0, -10.0, 10.0, -20.0, 20.0, -30.0, 30.0)
     screen_search_pitch_offsets: tuple[float, ...] = (0.0, -8.0, 8.0, -15.0, 15.0)
     screen_search_fine_yaw_offsets: tuple[float, ...] = (0.0, -5.0, 5.0, -10.0, 10.0)
@@ -57,6 +63,9 @@ class Config:
     redirect_left_arm_pause_s: float = 0.3
     redirect_settle_s: float = 1.5
     redirect_confirmation_wait_s: float = 60.0
+    distraction_user_focus_pause_s: float = 2.0
+    distraction_both_arms_repetitions: int = 2
+    distraction_both_arms_velocity: int = 110
     cache_screen_pos: bool = True
     escalation_prompts: tuple[str, ...] = (
         "Hey, are you still with me? Don't forget to focus!",

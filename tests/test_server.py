@@ -48,8 +48,7 @@ class ServerEventMappingTests(unittest.TestCase):
         self.assertEqual(server.parse_message_event('{"disengage": "true"}'), "start")
         self.assertEqual(server.parse_message_event('{"disengage": "false"}'), "stop")
 
-    def test_extension_covert_disengagement_alias_starts_distraction(self) -> None:
-        self.assertEqual(server.parse_message_event("covert_disengagemnt=ture"), "start")
+    def test_extension_covert_disengagement_alias_is_ignored(self) -> None:
         self.assertIsNone(server.parse_message_event("covert_disengagemnt=ture"))
 
     def test_posture_disengaged_and_reengagement_are_supported(self) -> None:
@@ -72,7 +71,6 @@ class ServerEventMappingTests(unittest.TestCase):
             {
                 "client": "extension",
                 "type": "ReadingState",
-                "covert_disengagement": True,
                 "pauseDuration": 9000,
                 "currentText": "Due Apr 6 2:59pm",
             }
@@ -84,7 +82,6 @@ class ServerEventMappingTests(unittest.TestCase):
             {
                 "client": "extension",
                 "type": "ReadingState",
-                "covert_disengagement": True,
                 "pauseDuration": 9000,
             }
         )
@@ -152,7 +149,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(len(websocket.sent_messages), 1)
         self.assertEqual(json.loads(websocket.sent_messages[0]), {"ok": True, "type": "registered", "client": "extension"})
 
-    def test_stop_event_sends_reengagement_message_to_extension(self) -> None:
+    def test_stop_event_does_not_send_reengagement_message_to_extension(self) -> None:
         async def fake_forward_event(event: str) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
@@ -169,10 +166,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(json.loads(webcam_socket.sent_messages[1])["event"], "stop")
         self.assertEqual(
             extension_socket.sent_messages,
-            [
-                server.POSTURE_DISENGAGED_MESSAGE,
-                server.REENGAGEMENT_MESSAGE,
-            ],
+            [server.POSTURE_DISENGAGED_MESSAGE],
         )
 
     def test_posture_disengaged_true_sends_posture_disengaged_message_to_extension(self) -> None:
@@ -206,7 +200,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(json.loads(webcam_socket.sent_messages[1]), {"ok": False, "reason": "state_not_changed"})
         self.assertEqual(extension_socket.sent_messages, [server.POSTURE_DISENGAGED_MESSAGE])
 
-    def test_extension_covert_disengagement_message_triggers_start(self) -> None:
+    def test_extension_covert_disengagement_message_is_rejected(self) -> None:
         async def fake_forward_event(event: str) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
@@ -216,9 +210,8 @@ class ServerHandlerTests(unittest.TestCase):
 
         asyncio.run(server.handler(extension_socket))
 
-        self.assertEqual(len(extension_socket.sent_messages), 2)
-        self.assertEqual(json.loads(extension_socket.sent_messages[0])["event"], "start")
-        self.assertEqual(extension_socket.sent_messages[1], server.POSTURE_DISENGAGED_MESSAGE)
+        self.assertEqual(len(extension_socket.sent_messages), 1)
+        self.assertEqual(json.loads(extension_socket.sent_messages[0]), {"ok": False, "reason": "unrecognized_message"})
 
     def test_extension_reengagement_message_is_rejected(self) -> None:
         async def fake_forward_event(event: str) -> tuple[bool, str]:
@@ -278,7 +271,6 @@ class ServerHandlerTests(unittest.TestCase):
                     {
                         "client": "extension",
                         "type": "ReadingState",
-                        "covert_disengagement": True,
                         "pauseDuration": 9000,
                         "currentText": "Due Apr 6 2:59pm",
                     }
@@ -307,7 +299,6 @@ class ServerHandlerTests(unittest.TestCase):
                     {
                         "client": "extension",
                         "type": "ReadingState",
-                        "covert_disengagement": True,
                         "pauseDuration": 9000,
                         "currentText": "Search entries or author...",
                     }
@@ -341,7 +332,6 @@ class ServerHandlerTests(unittest.TestCase):
                     {
                         "client": "extension",
                         "type": "ReadingState",
-                        "covert_disengagement": True,
                         "pauseDuration": 9000,
                         "currentText": "Due Apr 6 2:59pm",
                     }
@@ -357,16 +347,13 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(forwarded_events, ["start", "stop"])
         self.assertEqual(
             extension_socket.sent_messages,
-            [
-                server.POSTURE_DISENGAGED_MESSAGE,
-                server.REENGAGEMENT_MESSAGE,
-            ],
+            [server.POSTURE_DISENGAGED_MESSAGE],
         )
 
         asyncio.run(server.handler(extension_socket))
 
         self.assertEqual(forwarded_events, ["start", "stop"])
-        self.assertEqual(len(extension_socket.sent_messages), 3)
+        self.assertEqual(len(extension_socket.sent_messages), 2)
         payload = json.loads(extension_socket.sent_messages[-1])
         self.assertEqual(payload["ok"], True)
         self.assertEqual(payload["type"], "current_text")
