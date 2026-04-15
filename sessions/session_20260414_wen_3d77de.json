@@ -1,0 +1,1329 @@
+{
+  "session_id": "session_20260414_wen_3d77de",
+  "participant_id": "wen",
+  "start_time": "2026-04-14T23:07:39.445491-04:00",
+  "end_time": "2026-04-14T23:12:11.061585-04:00",
+  "screen_observations": [
+    {
+      "timestamp": "2026-04-14T23:08:45.761603-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    }
+  ],
+  "events": [
+    {
+      "timestamp": "2026-04-14T23:07:40.157960-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:40.305635-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_search_start",
+        "utterance": "I'm looking for your screen now.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I'm looking for your screen now.`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:40.305670-04:00",
+      "name": "screen_search_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:07:40.305691-04:00",
+      "name": "screen_search_seed",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:41.118109-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:42.184707-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:43.214312-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:43.214343-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:44.734138-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:44.735603-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:44.735642-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -10.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:45.479079-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:46.375304-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:46.375338-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:47.606595-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:48.009851-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:48.847450-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:48.847480-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:49.961071-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:49.961425-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": -10.0,
+        "pitch": 0.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:49.961460-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 10.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:50.908877-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:52.280363-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:52.280392-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:54.770262-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:55.175530-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:56.316094-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:56.316123-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:57.741233-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:57.742559-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 10.0,
+        "pitch": 0.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:57.742583-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -20.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:58.577645-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:59.375535-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:07:59.375565-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:00.914609-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:00.916089-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": -20.0,
+        "pitch": 0.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:00.916132-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 20.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:01.758600-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:02.810337-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:02.810366-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:04.679484-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:04.680584-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": 0.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:04.680605-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -30.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:05.566009-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:06.814523-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:06.814551-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:08.289522-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:08.693889-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:09.647734-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:09.647763-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:11.053098-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:11.054313-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": -30.0,
+        "pitch": 0.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:11.054337-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 30.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:12.100107-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:13.121419-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:13.121447-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:14.330120-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:14.734840-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:16.202363-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:16.202393-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:17.859415-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:17.860661-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 30.0,
+        "pitch": 0.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:17.860703-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 0.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:18.975543-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:20.326930-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:20.326960-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:21.701236-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:21.702610-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": -8.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:21.702635-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -10.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:22.744172-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:24.026596-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:24.026627-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:25.494266-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:25.495582-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": -10.0,
+        "pitch": -8.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:25.495608-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 10.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:26.336763-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:27.547036-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:27.547067-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:29.281730-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:29.686071-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:30.736677-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:30.736706-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:31.788894-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:31.788949-04:00",
+      "name": "screen_alignment_unstable",
+      "payload": {
+        "yaw": 10.0,
+        "pitch": -8.0,
+        "check": 2,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:31.788969-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -20.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:33.318291-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:34.428815-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:34.428846-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:35.528038-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:35.528083-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": -20.0,
+        "pitch": -8.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:35.528102-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 20.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:36.374572-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:37.679817-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:37.679849-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:38.903350-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:39.305570-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:40.687106-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:40.687134-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:41.876055-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:42.210131-04:00",
+      "name": "screen_search_verified",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": -8.0,
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:42.210156-04:00",
+      "name": "screen_position_initialized",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:42.456123-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_found",
+        "utterance": "I've found the screen!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I've found the screen!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:42.610601-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_start_reading",
+        "utterance": "Let's start reading. You can open the browser extension and start reading now.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading. You can open the browser extension and start reading now.`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:42.682029-04:00",
+      "name": "bootup_complete",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:08:45.761561-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": -8.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:08:45.761614-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:09:23.440242-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:09:38.429881-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:09:38.429904-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:09:41.520532-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:09:48.597964-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:09:50.587101-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": -8.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:09:50.587151-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:09:52.326201-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:09:54.176992-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": -8.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:09:54.177036-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:09:56.117738-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:09:57.902854-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": -8.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:09:57.902912-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:10:03.723380-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:10:18.630263-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:10:18.630280-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:10:20.673334-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:10:36.435004-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:10:51.303493-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:10:51.303510-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:10:54.279557-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:11:03.704882-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:11:17.229093-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": -8.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:11:17.229137-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:11:24.894501-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:11:27.211802-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": -8.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:11:27.211846-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:11:31.426732-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:11:36.996053-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 20.0,
+        "pitch": -8.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:11:36.996095-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:11:41.389555-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:11:57.347512-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-14T23:11:57.347530-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-14T23:12:10.980215-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-04-14T23:09:23.440288-04:00",
+      "motion_end_time": "2026-04-14T23:09:38.429815-04:00",
+      "motion_duration_s": 14.99,
+      "distraction_end_time": "2026-04-14T23:09:41.520493-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 18.08,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-04-14T23:09:48.598022-04:00",
+      "motion_end_time": "2026-04-14T23:09:50.552921-04:00",
+      "motion_duration_s": 1.95,
+      "distraction_end_time": "2026-04-14T23:09:50.587131-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 1.99,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 3,
+      "distraction_start_time": "2026-04-14T23:09:52.326269-04:00",
+      "motion_end_time": "2026-04-14T23:09:54.135505-04:00",
+      "motion_duration_s": 1.81,
+      "distraction_end_time": "2026-04-14T23:09:54.177019-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 1.85,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 4,
+      "distraction_start_time": "2026-04-14T23:09:56.117785-04:00",
+      "motion_end_time": "2026-04-14T23:09:57.861892-04:00",
+      "motion_duration_s": 1.74,
+      "distraction_end_time": "2026-04-14T23:09:57.902895-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 1.79,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 5,
+      "distraction_start_time": "2026-04-14T23:10:03.723435-04:00",
+      "motion_end_time": "2026-04-14T23:10:18.630208-04:00",
+      "motion_duration_s": 14.91,
+      "distraction_end_time": "2026-04-14T23:10:20.673280-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 16.95,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 6,
+      "distraction_start_time": "2026-04-14T23:10:36.435042-04:00",
+      "motion_end_time": "2026-04-14T23:10:51.303427-04:00",
+      "motion_duration_s": 14.87,
+      "distraction_end_time": "2026-04-14T23:10:54.279528-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 17.84,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 7,
+      "distraction_start_time": "2026-04-14T23:11:03.704915-04:00",
+      "motion_end_time": "2026-04-14T23:11:17.191232-04:00",
+      "motion_duration_s": 13.49,
+      "distraction_end_time": "2026-04-14T23:11:17.229119-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 13.52,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 8,
+      "distraction_start_time": "2026-04-14T23:11:24.894541-04:00",
+      "motion_end_time": "2026-04-14T23:11:27.167288-04:00",
+      "motion_duration_s": 2.27,
+      "distraction_end_time": "2026-04-14T23:11:27.211828-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 2.32,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 9,
+      "distraction_start_time": "2026-04-14T23:11:31.426771-04:00",
+      "motion_end_time": "2026-04-14T23:11:36.953858-04:00",
+      "motion_duration_s": 5.53,
+      "distraction_end_time": "2026-04-14T23:11:36.996077-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 5.57,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 10,
+      "distraction_start_time": "2026-04-14T23:11:41.389595-04:00",
+      "motion_end_time": "2026-04-14T23:11:57.347446-04:00",
+      "motion_duration_s": 15.96,
+      "distraction_end_time": null,
+      "distraction_end_signal_received": false,
+      "distraction_duration_s": null,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    }
+  ],
+  "total_distraction_count": 10,
+  "total_voice_prompts": 0
+}

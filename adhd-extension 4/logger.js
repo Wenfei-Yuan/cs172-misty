@@ -83,7 +83,7 @@
   let pauseTimer    = null;
   let pauseStart    = null;
   let isPaused      = false;
-  const REDIRECT_HIGHLIGHT_DELAY_MS = 4500;
+  const REDIRECT_HIGHLIGHT_DELAY_MS = 10500;
   const REDIRECT_HIGHLIGHT_DURATION_MS = 5000;
   let redirectHighlightStartTimer = null;
   let redirectHighlightTimer      = null;
