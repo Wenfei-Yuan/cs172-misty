@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Webcam Posture Monitor",
+  "version": "1.0.0",
+  "description": "Hidden webcam posture monitoring — sends frames to a local Python MediaPipe bridge for identical detection.",
+  "permissions": [
+    "offscreen",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Webcam Posture Monitor"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

@@ -173,7 +173,8 @@ def _perform_left_arm_cue(misty, cfg, repetitions: int, sleep_fn=None, action_ti
 
 def _perform_both_arm_wave(misty, cfg, sleep_fn=None, action_timeout_s: float | None = None) -> bool:
     arm_up_deg = int(getattr(cfg, "distraction_both_arms_up_deg", -80))
-    arm_down_deg = int(getattr(cfg, "distraction_both_arms_down_deg", 80))
+    arm_mid_deg = int(getattr(cfg, "distraction_both_arms_mid_deg", 0))
+    arm_rest_down_deg = int(getattr(cfg, "distraction_both_arms_down_deg", 80))
     arm_velocity = int(getattr(cfg, "distraction_both_arms_velocity", 110))
     repetitions = max(0, int(getattr(cfg, "distraction_both_arms_repetitions", 2)))
 
@@ -182,8 +183,8 @@ def _perform_both_arm_wave(misty, cfg, sleep_fn=None, action_timeout_s: float | 
         return False
 
     _do_sleep = sleep_fn if sleep_fn is not None else _default_sleep
-    current_left_arm_deg = float(arm_down_deg)
-    current_right_arm_deg = float(arm_down_deg)
+    current_left_arm_deg = float(arm_rest_down_deg)
+    current_right_arm_deg = float(arm_rest_down_deg)
 
     for _ in range(repetitions):
         up_move_s = _estimate_dual_arm_motion_duration_s(
@@ -209,20 +210,20 @@ def _perform_both_arm_wave(misty, cfg, sleep_fn=None, action_timeout_s: float | 
         down_move_s = _estimate_dual_arm_motion_duration_s(
             current_left_arm_deg,
             current_right_arm_deg,
-            arm_down_deg,
-            arm_down_deg,
+            arm_mid_deg,
+            arm_mid_deg,
             arm_velocity,
         )
         _arms_move(
             misty,
             timeout_s=action_timeout_s,
-            LeftArmPosition=arm_down_deg,
-            RightArmPosition=arm_down_deg,
+            LeftArmPosition=arm_mid_deg,
+            RightArmPosition=arm_mid_deg,
             LeftArmVelocity=arm_velocity,
             RightArmVelocity=arm_velocity,
         )
-        current_left_arm_deg = float(arm_down_deg)
-        current_right_arm_deg = float(arm_down_deg)
+        current_left_arm_deg = float(arm_mid_deg)
+        current_right_arm_deg = float(arm_mid_deg)
         if _do_sleep(down_move_s):
             return True
 

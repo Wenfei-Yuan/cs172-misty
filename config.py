@@ -65,6 +65,7 @@ class Config:
     redirect_confirmation_wait_s: float = 60.0
     distraction_user_focus_pause_s: float = 2.0
     distraction_both_arms_repetitions: int = 2
+    distraction_both_arms_mid_deg: int = 0
     distraction_both_arms_velocity: int = 110
     cache_screen_pos: bool = True
     escalation_prompts: tuple[str, ...] = (

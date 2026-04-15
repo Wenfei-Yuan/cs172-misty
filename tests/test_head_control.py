@@ -179,6 +179,7 @@ class HeadControlTests(unittest.TestCase):
             distraction_user_turn_move_s=0.4,
             distraction_user_focus_pause_s=2.0,
             distraction_both_arms_up_deg=-70,
+            distraction_both_arms_mid_deg=0,
             distraction_both_arms_down_deg=80,
             distraction_both_arms_velocity=90,
             distraction_both_arms_hold_s=0.2,
@@ -220,8 +221,8 @@ class HeadControlTests(unittest.TestCase):
                 (
                     "arms_move",
                     {
-                        "LeftArmPosition": 80,
-                        "RightArmPosition": 80,
+                        "LeftArmPosition": 0,
+                        "RightArmPosition": 0,
                         "LeftArmVelocity": 90,
                         "RightArmVelocity": 90,
                     },
@@ -238,8 +239,8 @@ class HeadControlTests(unittest.TestCase):
                 (
                     "arms_move",
                     {
-                        "LeftArmPosition": 80,
-                        "RightArmPosition": 80,
+                        "LeftArmPosition": 0,
+                        "RightArmPosition": 0,
                         "LeftArmVelocity": 90,
                         "RightArmVelocity": 90,
                     },
@@ -289,9 +290,9 @@ class HeadControlTests(unittest.TestCase):
                 69.0 / 88.0,
                 2.0,
                 150.0 / 90.0,
-                150.0 / 90.0,
-                150.0 / 90.0,
-                150.0 / 90.0,
+                70.0 / 90.0,
+                70.0 / 90.0,
+                70.0 / 90.0,
                 69.0 / 88.0 + 0.6,
                 0.3,
                 0.2,
