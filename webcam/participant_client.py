@@ -40,11 +40,11 @@ POSE_INVALID_GRACE_PERIOD = 0.5
 # ─── Eye Gaze Augmentation ───
 ENABLE_EYE_GAZE = True                        # Set to False to disable gaze augmentation entirely
 GAZE_SMOOTHING_ALPHA = 0.15                    # EMA alpha for gaze (lower than head pose for noise)
-GAZE_YAW_DEVIATION_THRESHOLD = 0.08           # 更严格：更小偏移就判为横向分心
-GAZE_PITCH_DEVIATION_THRESHOLD = 0.05         # 更严格：更小偏移就判为纵向分心
+GAZE_YAW_DEVIATION_THRESHOLD = 0.07           # 更严格：更小偏移就判为横向分心
+GAZE_PITCH_DEVIATION_THRESHOLD = 0.04         # 更严格：更小偏移就判为纵向分心
 GAZE_YAW_HYSTERESIS = 0.025                   # Slightly tighter horizontal hysteresis
 GAZE_PITCH_HYSTERESIS = 0.015                 # Slightly tighter vertical hysteresis
-GAZE_MIND_WANDERING_DURATION = 2.0         # 更严格：持续2.0秒眼动偏离就触发
+GAZE_MIND_WANDERING_DURATION = 1.8         # 更严格：持续1.8秒眼动偏离就触发
 GAZE_MW_BREAK_TOLERANCE = 0.6                 # 更严格：短暂回正不轻易清空 MW 计时器
 GAZE_HEAD_YAW_LIMIT = 50                    # Only evaluate gaze when head yaw_dev < this (parallax guard)
 

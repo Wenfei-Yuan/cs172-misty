@@ -23,6 +23,7 @@ import concurrent.futures
 import json
 import os
 import sys
+import threading
 import time
 
 import cv2
@@ -78,18 +79,16 @@ from posture_logic import (
 )
 
 # ---------------------------------------------------------------------------
-# Local server config — the Chrome extension connects here
+# Local server config
 # ---------------------------------------------------------------------------
-LOCAL_HOST = "127.0.0.1"
+LOCAL_HOST = "0.0.0.0"          # accept remote connections
 LOCAL_PORT = int(os.getenv("BRIDGE_LOCAL_PORT", "9876"))
+HTTP_PORT  = int(os.getenv("BRIDGE_HTTP_PORT", "9877"))     # participant page + control API
+PREVIEW_PORT = int(os.getenv("BRIDGE_PREVIEW_PORT", "9878"))  # researcher live preview WS
 
-# Browser bridge calibration overrides — the Chrome extension path has lower
-# effective FPS than direct webcam capture because analyze_frame() blocks the
-# event loop.  Give calibration more time and require fewer samples.
-_BRIDGE_CALIBRATION_DURATION = 12.0  # seconds (vs 3.0 for direct webcam)
-_BRIDGE_MIN_CALIBRATION_SAMPLES = 5  # samples  (vs 10 in participant_client)
+_BRIDGE_CALIBRATION_DURATION = 12.0
+_BRIDGE_MIN_CALIBRATION_SAMPLES = 5
 
-# Bridge server — the main server.py
 BRIDGE_WS_URL = f"ws://{SERVER_IP}:{SERVER_PORT}"
 
 
@@ -97,6 +96,436 @@ def decode_jpeg_frame(data: bytes) -> np.ndarray | None:
     buf = np.frombuffer(data, dtype=np.uint8)
     frame = cv2.imdecode(buf, cv2.IMREAD_COLOR)
     return frame
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Shared state — accessed by asyncio handlers + HTTP thread
+# ═══════════════════════════════════════════════════════════════════════════
+_event_loop: asyncio.AbstractEventLoop | None = None
+_participant_ws: websockets.WebSocketServerProtocol | None = None
+_participant_lock = threading.Lock()
+_camera_status = "disconnected"   # disconnected | connected | streaming
+_preview_clients: set[websockets.WebSocketServerProtocol] = set()
+
+
+def _send_to_participant(cmd: dict) -> bool:
+    """Thread-safe: send JSON command to the connected participant page."""
+    with _participant_lock:
+        loop = _event_loop
+        ws = _participant_ws
+    if loop is None or ws is None:
+        return False
+    try:
+        fut = asyncio.run_coroutine_threadsafe(ws.send(json.dumps(cmd)), loop)
+        fut.result(timeout=5)
+        return True
+    except Exception:
+        return False
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Participant HTML page — camera is HIDDEN, controlled by researcher
+# ═══════════════════════════════════════════════════════════════════════════
+PARTICIPANT_PAGE = r"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Session</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f5; color: #333;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+  }
+  .card {
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 48px 40px; width: 380px; text-align: center;
+  }
+  .icon { font-size: 48px; margin-bottom: 12px; }
+  h1 { font-size: 22px; margin-bottom: 8px; }
+  #status {
+    font-size: 15px; color: #888; margin-top: 16px;
+    padding: 10px; border-radius: 8px; background: #f0f0f0;
+  }
+  .dot {
+    display: inline-block; width: 10px; height: 10px;
+    border-radius: 50%; margin-right: 6px; vertical-align: middle;
+  }
+  .dot-green  { background: #2ecc71; }
+  .dot-yellow { background: #f39c12; }
+  .dot-red    { background: #e74c3c; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">&#x1F4D6;</div>
+  <h1>Study Session Active</h1>
+  <p style="color:#888;font-size:13px;margin-bottom:12px;">Please keep this tab open during the study.</p>
+  <div id="status"><span class="dot dot-yellow"></span>Connecting...</div>
+</div>
+<!-- Hidden camera elements -->
+<video id="v" style="display:none" autoplay muted playsinline></video>
+<canvas id="c" style="display:none"></canvas>
+<script>
+var WS_PORT = __WS_PORT__;
+var WS_URL = 'ws://' + location.hostname + ':' + WS_PORT;
+var ws, stream, timer, streaming = false;
+var video = document.getElementById('v');
+var canvas = document.getElementById('c');
+var ctx = canvas.getContext('2d');
+
+function setStatus(dot, text) {
+  document.getElementById('status').innerHTML =
+    '<span class="dot dot-' + dot + '"></span>' + text;
+}
+
+function connect() {
+  ws = new WebSocket(WS_URL);
+  ws.binaryType = 'arraybuffer';
+  ws.onopen = function() {
+    setStatus('green', 'Connected &mdash; ready');
+    ws.send(JSON.stringify({type: 'hello', role: 'participant'}));
+  };
+  ws.onmessage = function(e) {
+    try {
+      var msg = JSON.parse(e.data);
+      if (msg.type === 'start_camera') startCamera();
+      else if (msg.type === 'stop_camera') stopCamera();
+    } catch(_) {}
+  };
+  ws.onclose = function() {
+    setStatus('red', 'Disconnected &mdash; reconnecting...');
+    stopCamera();
+    setTimeout(connect, 3000);
+  };
+  ws.onerror = function() {};
+}
+
+async function startCamera() {
+  if (streaming) return;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: {ideal: 640}, height: {ideal: 480} },
+      audio: false
+    });
+    video.srcObject = stream;
+    await video.play();
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    streaming = true;
+    setStatus('green', 'Session in progress...');
+    sendFrames();
+  } catch(err) {
+    setStatus('red', 'Camera error: ' + err.message);
+  }
+}
+
+function stopCamera() {
+  streaming = false;
+  if (timer) { clearTimeout(timer); timer = null; }
+  if (stream) {
+    stream.getTracks().forEach(function(t) { t.stop(); });
+    stream = null;
+  }
+  video.srcObject = null;
+  if (ws && ws.readyState === WebSocket.OPEN)
+    setStatus('green', 'Connected &mdash; ready');
+}
+
+function sendFrames() {
+  if (!streaming) return;
+  ctx.drawImage(video, 0, 0);
+  canvas.toBlob(function(blob) {
+    if (blob && ws && ws.readyState === WebSocket.OPEN)
+      blob.arrayBuffer().then(function(buf) { ws.send(new Uint8Array(buf)); });
+    timer = setTimeout(sendFrames, 66);
+  }, 'image/jpeg', 0.85);
+}
+
+connect();
+</script>
+</body>
+</html>
+"""
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  HTTP server — participant page + camera control API
+# ═══════════════════════════════════════════════════════════════════════════
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Researcher control page — camera start/stop + live preview
+# ═══════════════════════════════════════════════════════════════════════════
+RESEARCHER_PAGE = r"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Researcher — Camera Control</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    color: #e0e0e0;
+  }
+  .card {
+    background: rgba(255,255,255,0.07); backdrop-filter: blur(10px);
+    border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    padding: 36px 32px; width: 500px; text-align: center;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  h1 { font-size: 24px; margin-bottom: 6px; }
+  .sub { font-size: 13px; color: #aaa; margin-bottom: 24px; }
+  .btn {
+    width: 48%; padding: 14px; border: none; border-radius: 10px;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s; margin: 0 1%;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-start {
+    background: linear-gradient(135deg, #43e97b, #38f9d7); color: #fff;
+  }
+  .btn-stop {
+    background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff;
+  }
+  #status {
+    margin-top: 16px; padding: 10px; border-radius: 8px;
+    font-size: 14px; background: rgba(255,255,255,0.05);
+  }
+  .dot {
+    display: inline-block; width: 10px; height: 10px;
+    border-radius: 50%; margin-right: 6px; vertical-align: middle;
+  }
+  .dot-green  { background: #2ecc71; }
+  .dot-yellow { background: #f39c12; }
+  .dot-red    { background: #e74c3c; }
+  .dot-gray   { background: #888; }
+  #previewCanvas {
+    display: none; margin-top: 16px; width: 100%;
+    border-radius: 12px; border: 2px solid rgba(255,255,255,0.15);
+    background: #000;
+  }
+  .no-preview {
+    margin-top: 16px; padding: 40px; border-radius: 12px;
+    background: rgba(0,0,0,0.3); color: #666; font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>&#x1F3A5; Camera Control</h1>
+  <p class="sub">Control the participant's webcam remotely</p>
+
+  <button class="btn btn-start" id="btnStart" onclick="camStart()">&#x25B6; Start Camera</button>
+  <button class="btn btn-stop" id="btnStop" onclick="camStop()" disabled>&#x23F9; Stop Camera</button>
+
+  <div id="status"><span class="dot dot-gray"></span>Checking connection...</div>
+  <canvas id="previewCanvas" width="640" height="480"></canvas>
+  <div class="no-preview" id="noPreview">No preview &mdash; camera not started</div>
+</div>
+
+<script>
+var CAM_API = location.origin;
+var PREVIEW_WS = 'ws://' + location.hostname + ':' + __PREVIEW_PORT__;
+var previewWs = null;
+var statusTimer = null;
+
+function setStatus(dot, text) {
+  document.getElementById('status').innerHTML =
+    '<span class="dot dot-' + dot + '"></span>' + text;
+}
+
+async function pollStatus() {
+  try {
+    var res = await fetch(CAM_API + '/api/camera/status');
+    var d = await res.json();
+    if (!d.connected) {
+      setStatus('red', 'Participant not connected');
+    } else if (d.status === 'streaming') {
+      setStatus('green', 'Camera streaming');
+    } else {
+      setStatus('yellow', 'Participant connected &mdash; camera idle');
+    }
+  } catch(e) {
+    setStatus('red', 'Cannot reach bridge server');
+  }
+}
+
+async function camStart() {
+  setStatus('yellow', 'Starting camera...');
+  try {
+    var res = await fetch(CAM_API + '/api/camera/start', {method:'POST'});
+    var d = await res.json();
+    if (d.ok) {
+      setStatus('green', 'Camera streaming');
+      document.getElementById('btnStart').disabled = true;
+      document.getElementById('btnStop').disabled = false;
+      startPreview();
+    } else {
+      setStatus('red', 'Failed &mdash; is participant page open?');
+    }
+  } catch(e) {
+    setStatus('red', 'Error: ' + e.message);
+  }
+}
+
+async function camStop() {
+  try { await fetch(CAM_API + '/api/camera/stop', {method:'POST'}); } catch(e) {}
+  setStatus('yellow', 'Camera stopped');
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnStop').disabled = true;
+  stopPreview();
+}
+
+function startPreview() {
+  stopPreview();
+  document.getElementById('noPreview').style.display = 'none';
+  var canvas = document.getElementById('previewCanvas');
+  var ctx = canvas.getContext('2d');
+  canvas.style.display = 'block';
+  previewWs = new WebSocket(PREVIEW_WS);
+  previewWs.binaryType = 'arraybuffer';
+  previewWs.onmessage = function(e) {
+    var blob = new Blob([e.data], {type:'image/jpeg'});
+    var url = URL.createObjectURL(blob);
+    var img = new Image();
+    img.onload = function() {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  };
+  previewWs.onclose = function() {
+    canvas.style.display = 'none';
+    document.getElementById('noPreview').style.display = 'block';
+  };
+}
+
+function stopPreview() {
+  if (previewWs) { try { previewWs.close(); } catch(e) {} previewWs = null; }
+  document.getElementById('previewCanvas').style.display = 'none';
+  document.getElementById('noPreview').style.display = 'block';
+}
+
+pollStatus();
+statusTimer = setInterval(pollStatus, 5000);
+</script>
+</body>
+</html>
+"""
+
+
+class _BridgeHTTPHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path in ("/", "/index.html"):
+            page = PARTICIPANT_PAGE.replace("__WS_PORT__", str(LOCAL_PORT))
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.path == "/researcher":
+            page = RESEARCHER_PAGE.replace("__PREVIEW_PORT__", str(PREVIEW_PORT))
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.path == "/api/camera/status":
+            with _participant_lock:
+                data = {"status": _camera_status, "connected": _participant_ws is not None}
+            self._json(200, data)
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def do_POST(self):
+        global _camera_status
+        if self.path == "/api/camera/start":
+            ok = _send_to_participant({"type": "start_camera"})
+            if ok:
+                _camera_status = "streaming"
+            self._json(200 if ok else 503, {"ok": ok})
+        elif self.path == "/api/camera/stop":
+            ok = _send_to_participant({"type": "stop_camera"})
+            if ok:
+                _camera_status = "connected"
+            self._json(200 if ok else 503, {"ok": ok})
+        else:
+            self._json(404, {"ok": False})
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self._cors()
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
+    def _cors(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+
+    def _json(self, code, data):
+        body = json.dumps(data).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self._cors()
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, fmt, *args):
+        print(f"[CameraHTTP] {args[0]}")
+
+
+def _run_http_server():
+    srv = HTTPServer(("0.0.0.0", HTTP_PORT), _BridgeHTTPHandler)
+    print(f"[CameraHTTP] Participant page at http://0.0.0.0:{HTTP_PORT}")
+    srv.serve_forever()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Researcher preview — WS on PREVIEW_PORT pushes live JPEG frames
+# ═══════════════════════════════════════════════════════════════════════════
+
+async def _handle_preview_client(ws: websockets.WebSocketServerProtocol) -> None:
+    _preview_clients.add(ws)
+    remote = ws.remote_address or ("?", 0)
+    print(f"[Preview] Researcher connected from {remote[0]}:{remote[1]}")
+    try:
+        async for _ in ws:
+            pass
+    except websockets.ConnectionClosed:
+        pass
+    finally:
+        _preview_clients.discard(ws)
+        print("[Preview] Researcher disconnected")
+
+
+async def _broadcast_frame(data: bytes) -> None:
+    if not _preview_clients:
+        return
+    dead = []
+    for ws in list(_preview_clients):
+        try:
+            await ws.send(data)
+        except Exception:
+            dead.append(ws)
+    for ws in dead:
+        _preview_clients.discard(ws)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -166,6 +595,14 @@ class PostureEngine:
         self._frame_count = 0
         self._stats_time = time.time()
 
+        # rolling FPS
+        self._fps = 0.0
+        self._fps_count = 0
+        self._fps_time = time.time()
+
+        # snapshot for overlay annotation (populated each frame)
+        self.last_frame_info: dict = {}
+
     # ── public API ─────────────────────────────────────────────────────
 
     def process_frame(self, frame: np.ndarray) -> tuple[list[dict], dict]:
@@ -179,12 +616,24 @@ class PostureEngine:
         """
         self._frame_count += 1
         now = time.time()
+
+        # rolling FPS (update every 0.5s)
+        self._fps_count += 1
+        fps_elapsed = now - self._fps_time
+        if fps_elapsed >= 0.5:
+            self._fps = self._fps_count / fps_elapsed
+            self._fps_count = 0
+            self._fps_time = now
+
         result = analyze_frame(frame)
 
         if not self.calibrated:
-            return self._calibrate(result, now)
+            msgs, status = self._calibrate(result, now)
+        else:
+            msgs, status = self._detect(result, now)
 
-        return self._detect(result, now)
+        self.last_frame_info["fps"] = self._fps
+        return msgs, status
 
     def get_stats_line(self) -> str | None:
         now = time.time()
@@ -220,6 +669,11 @@ class PostureEngine:
         remaining = max(0.0, cal_dur - elapsed)
 
         if elapsed < cal_dur:
+            self.last_frame_info = {
+                "phase": "calibrating",
+                "remaining": remaining,
+                "samples": len(self.yaw_samples),
+            }
             return [], {
                 "phase": "calibrating",
                 "remaining": round(remaining, 1),
@@ -234,6 +688,7 @@ class PostureEngine:
             self.pitch_samples.clear()
             self.gaze_yaw_samples.clear()
             self.gaze_pitch_samples.clear()
+            self.last_frame_info = {"phase": "calibration_retry"}
             return [], {"phase": "calibration_retry"}
 
         self.reference_yaw = float(np.mean(self.yaw_samples))
@@ -270,6 +725,7 @@ class PostureEngine:
             "reference_gaze_pitch": round(self.reference_gaze_pitch, 4) if ENABLE_EYE_GAZE else None,
             "timestamp": now,
         }
+        self.last_frame_info = {"phase": "calibrated"}
         return [msg], {"phase": "calibrated"}
 
     # ── detection (main state machine) ─────────────────────────────────
@@ -425,6 +881,13 @@ class PostureEngine:
                 "streak": self.valid_face_streak,
                 "needed": MIN_VALID_FACE_FRAMES,
             }
+            self.last_frame_info = {
+                "phase": "arming",
+                "face_present": raw_face_present,
+                "yaw": yaw,
+                "pitch": pitch,
+                "valid_face_streak": self.valid_face_streak,
+            }
             return [], status
 
         # ── gaze mind-wandering timer ──
@@ -578,7 +1041,164 @@ class PostureEngine:
             "armed": self.detection_armed,
             "reason": reason,
         }
+
+        gaze_mw_duration = 0.0 if self.gaze_mw_start_time is None else (now - self.gaze_mw_start_time)
+
+        self.last_frame_info = {
+            "phase": "active",
+            "face_present": face_present,
+            "raw_face_present": raw_face_present,
+            "yaw": yaw,
+            "pitch": pitch,
+            "effective_yaw": effective_yaw,
+            "effective_pitch": effective_pitch,
+            "reference_yaw": self.reference_yaw,
+            "reference_pitch": self.reference_pitch,
+            "yaw_deviation": yaw_deviation,
+            "pitch_deviation": pitch_deviation,
+            "yaw_threshold": yaw_threshold,
+            "pitch_threshold": pitch_threshold,
+            "reported_screen_facing": reported_screen_facing,
+            "reason": reason,
+            "disengaged": self.disengaged,
+            "detection_armed": self.detection_armed,
+            "valid_face_streak": self.valid_face_streak,
+            "away_duration": self.away_duration,
+            "reengage_duration": self.reengage_duration,
+            "reengage_threshold_s": reengage_threshold_s,
+            "active_error_reason": active_error_reason,
+            "smoothed_gaze_yaw": self.smoothed_gaze_yaw,
+            "smoothed_gaze_pitch": self.smoothed_gaze_pitch,
+            "gaze_yaw_dev": gaze_yaw_dev,
+            "gaze_pitch_dev": gaze_pitch_dev,
+            "gaze_looking_away": gaze_looking_away,
+            "gaze_mind_wandering": self.gaze_mind_wandering,
+            "gaze_mw_duration": gaze_mw_duration,
+        }
+
         return messages, status
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Annotated frame overlay (mirrors participant_client.py cv2 display)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _annotate_frame(frame: np.ndarray, info: dict) -> np.ndarray:
+    """Draw detection overlay onto *frame* (in-place) and return it."""
+    phase = info.get("phase", "")
+    font = cv2.FONT_HERSHEY_SIMPLEX
+
+    # FPS counter — top-right corner
+    fps_val = info.get("fps", 0.0)
+    fps_text = f"{fps_val:.1f} fps"
+    (tw, th), _ = cv2.getTextSize(fps_text, font, 0.55, 2)
+    h, w = frame.shape[:2]
+    cv2.putText(frame, fps_text, (w - tw - 10, 25), font, 0.55, (0, 255, 0), 2)
+
+    if phase == "calibrating":
+        remaining = info.get("remaining", 0)
+        samples = info.get("samples", 0)
+        cv2.putText(frame, f"CALIBRATING  {remaining:.1f}s left  ({samples} samples)",
+                     (20, 30), font, 0.55, (0, 255, 255), 2)
+        return frame
+
+    if phase == "calibration_retry":
+        cv2.putText(frame, "CALIBRATION RETRY — not enough samples",
+                     (20, 30), font, 0.55, (0, 0, 255), 2)
+        return frame
+
+    if phase == "calibrated":
+        cv2.putText(frame, "CALIBRATION COMPLETE — arming...",
+                     (20, 30), font, 0.55, (0, 255, 0), 2)
+        return frame
+
+    if phase == "arming":
+        streak = info.get("valid_face_streak", 0)
+        cv2.putText(frame, f"ARMING  {streak}/{MIN_VALID_FACE_FRAMES}",
+                     (20, 30), font, 0.55, (0, 255, 255), 2)
+        return frame
+
+    # ── active detection phase ──
+    disengaged = info.get("disengaged", False)
+    color = (0, 0, 255) if disengaged else (0, 255, 0)  # BGR
+
+    face_present = info.get("face_present", False)
+    yaw = info.get("yaw")
+    pitch = info.get("pitch")
+    effective_yaw = info.get("effective_yaw")
+    effective_pitch = info.get("effective_pitch")
+
+    # line 1: face + yaw + pitch + smooth
+    line1 = f"face={face_present}"
+    line1 += f" | yaw={yaw:.1f}" if yaw is not None else " | yaw=None"
+    line1 += f" | pitch={pitch:.1f}" if pitch is not None else " | pitch=None"
+    if effective_yaw is not None and effective_pitch is not None:
+        line1 += f" | smooth=({effective_yaw:.1f},{effective_pitch:.1f})"
+    cv2.putText(frame, line1, (20, 30), font, 0.55, color, 2)
+
+    # line 2: reference
+    ref_yaw = info.get("reference_yaw", 0)
+    ref_pitch = info.get("reference_pitch", 0)
+    line2 = f"ref_yaw={ref_yaw:.1f} | ref_pitch={ref_pitch:.1f}"
+    cv2.putText(frame, line2, (20, 60), font, 0.55, (255, 255, 0), 2)
+
+    # line 3: deviations + thresholds
+    yaw_dev = info.get("yaw_deviation")
+    pitch_dev = info.get("pitch_deviation")
+    yaw_th = info.get("yaw_threshold", 0)
+    pitch_th = info.get("pitch_threshold", 0)
+    line3 = f"yaw_dev={yaw_dev:.1f}" if yaw_dev is not None else "yaw_dev=None"
+    line3 += f" | pitch_dev={pitch_dev:.1f}" if pitch_dev is not None else " | pitch_dev=None"
+    if yaw is not None and pitch is not None:
+        line3 += f" | th=({yaw_th:.1f},{pitch_th:.1f})"
+    cv2.putText(frame, line3, (20, 90), font, 0.55, (255, 255, 0), 2)
+
+    # line 4: reason, facing, durations, disengaged
+    reason = info.get("reason", "")
+    facing = info.get("reported_screen_facing", False)
+    away_dur = info.get("away_duration", 0.0)
+    back_dur = info.get("reengage_duration", 0.0)
+    detection_armed = info.get("detection_armed", False)
+    line4 = (f"reason={reason} | facing={facing} | away={away_dur:.1f}s"
+             f" | back={back_dur:.1f}s | disengaged={disengaged}")
+    if not detection_armed:
+        streak = info.get("valid_face_streak", 0)
+        line4 += f" | arming={streak}/{MIN_VALID_FACE_FRAMES}"
+    cv2.putText(frame, line4, (20, 120), font, 0.55, color, 2)
+
+    # line 5: gaze
+    if ENABLE_EYE_GAZE:
+        sg_yaw = info.get("smoothed_gaze_yaw")
+        sg_pitch = info.get("smoothed_gaze_pitch")
+        if sg_yaw is not None and sg_pitch is not None:
+            g_yaw_dev = info.get("gaze_yaw_dev")
+            g_pitch_dev = info.get("gaze_pitch_dev")
+            gaze_mw_dur = info.get("gaze_mw_duration", 0.0)
+            dev_str = ""
+            if g_yaw_dev is not None:
+                dev_str = f" | dev=({g_yaw_dev:.2f},{g_pitch_dev:.2f})"
+            line5 = f"gaze=({sg_yaw:.2f},{sg_pitch:.2f}){dev_str} | mw={gaze_mw_dur:.1f}s"
+            gaze_color = (0, 165, 255) if info.get("gaze_looking_away") else (0, 255, 0)
+            cv2.putText(frame, line5, (20, 150), font, 0.55, gaze_color, 2)
+        else:
+            cv2.putText(frame, "gaze=N/A", (20, 150), font, 0.55, (128, 128, 128), 2)
+
+    # line 6: pending start / pending stop
+    if detection_armed:
+        active_err = info.get("active_error_reason")
+        if not disengaged and active_err is not None and active_err != "gaze_mind_wandering":
+            remaining = max(0.0, DISENGAGE_THRESHOLD - away_dur)
+            line6 = (f"PENDING start: {active_err} | away={away_dur:.1f}s/"
+                     f"{DISENGAGE_THRESHOLD:.1f}s (still {remaining:.1f}s)")
+            cv2.putText(frame, line6, (20, 180), font, 0.50, (0, 165, 255), 2)
+        elif disengaged and back_dur > 0:
+            re_th = info.get("reengage_threshold_s", REENGAGE_THRESHOLD)
+            remaining = max(0.0, re_th - back_dur)
+            line6 = (f"PENDING stop | back={back_dur:.1f}s/"
+                     f"{re_th:.1f}s (still {remaining:.1f}s)")
+            cv2.putText(frame, line6, (20, 180), font, 0.50, (255, 128, 0), 2)
+
+    return frame
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -591,8 +1211,14 @@ _frame_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
 
 async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
+    global _participant_ws, _camera_status
+
     remote = ext_ws.remote_address or ("unknown", 0)
-    print(f"[BrowserBridge] Extension connected from {remote[0]}:{remote[1]}")
+    print(f"[BrowserBridge] Client connected from {remote[0]}:{remote[1]}")
+
+    with _participant_lock:
+        _participant_ws = ext_ws
+        _camera_status = "connected"
 
     engine = PostureEngine()
     bridge_ws: websockets.WebSocketClientProtocol | None = None
@@ -634,6 +1260,7 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
     async def _receiver() -> None:
         """Receive WS messages; store latest binary frame, handle text cmds."""
         nonlocal latest_frame_data
+        _frame_count = 0
         try:
             async for raw_message in ext_ws:
                 if stop_flag.is_set():
@@ -641,6 +1268,9 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
                 if isinstance(raw_message, bytes):
                     latest_frame_data = raw_message
                     frame_ready.set()
+                    _frame_count += 1
+                    if _frame_count <= 3 or _frame_count % 100 == 0:
+                        print(f"[BrowserBridge] Frame #{_frame_count} received ({len(raw_message)} bytes, {len(_preview_clients)} preview clients)")
                 elif isinstance(raw_message, str):
                     try:
                         cmd = json.loads(raw_message)
@@ -683,6 +1313,14 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
                 _frame_pool, engine.process_frame, frame
             )
 
+            # Broadcast annotated frame to researcher preview
+            if _preview_clients:
+                annotated = _annotate_frame(frame, engine.last_frame_info)
+                ok, buf = cv2.imencode('.jpg', annotated,
+                                       [cv2.IMWRITE_JPEG_QUALITY, 70])
+                if ok:
+                    asyncio.ensure_future(_broadcast_frame(buf.tobytes()))
+
             # Forward posture events to bridge server
             for msg in messages:
                 ws = await ensure_bridge()
@@ -708,8 +1346,11 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
     try:
         await asyncio.gather(_receiver(), _processor())
     except websockets.ConnectionClosed:
-        print("[BrowserBridge] Extension disconnected")
+        print("[BrowserBridge] Client disconnected")
     finally:
+        with _participant_lock:
+            _participant_ws = None
+            _camera_status = "disconnected"
         if bridge_ws is not None:
             try:
                 await bridge_ws.close()
@@ -719,17 +1360,28 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
 
 
 async def main() -> None:
+    global _event_loop
+    _event_loop = asyncio.get_event_loop()
+
+    # HTTP server in daemon thread
+    threading.Thread(target=_run_http_server, daemon=True).start()
+
     print("=" * 60)
     print("  Webcam Monitor — Browser Bridge Server")
     print("=" * 60)
-    print(f"  Local WebSocket : ws://{LOCAL_HOST}:{LOCAL_PORT}")
+    print(f"  Participant WS  : ws://0.0.0.0:{LOCAL_PORT}")
+    print(f"  Participant page: http://0.0.0.0:{HTTP_PORT}")
+    print(f"  Preview WS      : ws://0.0.0.0:{PREVIEW_PORT}")
+    print(f"  Control API     : http://0.0.0.0:{HTTP_PORT}/api/camera/{{start|stop|status}}")
     print(f"  Bridge target   : {BRIDGE_WS_URL}")
     print(f"  Eye gaze        : {'ENABLED' if ENABLE_EYE_GAZE else 'DISABLED'}")
     print("=" * 60)
-    print("Waiting for Chrome extension connection...\n")
+    print(f"Participant: open http://<this-ip>:{HTTP_PORT}  (standalone camera page)")
+    print(f"Researcher:  open http://localhost:{HTTP_PORT}/researcher  (camera control + preview)\n")
 
     async with websockets.serve(handle_extension, LOCAL_HOST, LOCAL_PORT):
-        await asyncio.Future()  # run forever
+        async with websockets.serve(_handle_preview_client, "0.0.0.0", PREVIEW_PORT):
+            await asyncio.Future()
 
 
 if __name__ == "__main__":
