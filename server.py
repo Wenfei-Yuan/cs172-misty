@@ -13,6 +13,12 @@ WS_PORT = int(os.getenv("WS_PORT", "8765"))
 TRIGGER_HOST = os.getenv("TRIGGER_HOST", "127.0.0.1")
 TRIGGER_PORT = int(os.getenv("TRIGGER_PORT", "5050"))
 
+# ── Control-group mode ────────────────────────────────────────────────
+# Set CONTROL_MODE=1 to run webcam-only monitoring without robot or
+# extension interventions.  All distraction events are still logged
+# to sessions/control_<timestamp>.json for post-study analysis.
+CONTROL_MODE = os.getenv("CONTROL_MODE", "0").strip().lower() in ("1", "true", "yes")
+
 EVENT_TO_PATH = {
     "start": "/distraction/start",
     "stop": "/distraction/stop",
@@ -39,6 +45,49 @@ connected_clients = set()
 client_roles = {}
 role_clients = {}
 POSTURE_DISENGAGED_MESSAGE = "ROBOT_REDIRECT"
+
+# ── Control-group session logger ──────────────────────────────────────
+
+class ControlSessionLog:
+    """Append-only JSON log for control-group distraction events."""
+
+    def __init__(self) -> None:
+        self._path: str | None = None
+        self._events: list[dict] = []
+        self._start_time: str | None = None
+
+    def ensure_started(self) -> None:
+        if self._path is not None:
+            return
+        ts = datetime.now()
+        self._start_time = ts.isoformat()
+        fname = f"control_{ts.strftime('%Y%m%d_%H%M%S')}.json"
+        sessions_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sessions")
+        os.makedirs(sessions_dir, exist_ok=True)
+        self._path = os.path.join(sessions_dir, fname)
+        self._flush()
+
+    def log_event(self, event_type: str, reason: str | None = None) -> None:
+        self.ensure_started()
+        entry = {"ts": datetime.now().isoformat(), "event": event_type}
+        if reason:
+            entry["reason"] = reason
+        self._events.append(entry)
+        self._flush()
+
+    def _flush(self) -> None:
+        if self._path is None:
+            return
+        data = {
+            "mode": "control",
+            "start_time": self._start_time,
+            "events": self._events,
+        }
+        with open(self._path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+control_log = ControlSessionLog()
 
 
 def _log(sender: str, receiver: str, message: str) -> None:
@@ -233,9 +282,20 @@ def trigger_url_for_event(event: str) -> str:
     return f"http://{TRIGGER_HOST}:{TRIGGER_PORT}{EVENT_TO_PATH[event]}"
 
 
-def post_trigger_event(event: str) -> tuple[bool, str]:
+def _extract_disengage_reason(message: str) -> str | None:
+    """Extract the webcam 'reason' field from a JSON message."""
+    try:
+        payload = json.loads(message.strip())
+    except (json.JSONDecodeError, AttributeError):
+        return None
+    reason = payload.get("reason")
+    return reason if isinstance(reason, str) and reason.strip() else None
+
+
+def post_trigger_event(event: str, reason: str | None = None) -> tuple[bool, str]:
     endpoint = trigger_url_for_event(event)
-    req = request.Request(endpoint, data=b"{}", method="POST")
+    body = json.dumps({"reason": reason}).encode("utf-8") if reason else b"{}"
+    req = request.Request(endpoint, data=body, method="POST")
     req.add_header("Content-Type", "application/json")
 
     try:
@@ -260,8 +320,8 @@ def post_current_text(text: str) -> tuple[bool, str]:
         return False, str(exc)
 
 
-async def forward_event(event: str) -> tuple[bool, str]:
-    return await asyncio.to_thread(post_trigger_event, event)
+async def forward_event(event: str, reason: str | None = None) -> tuple[bool, str]:
+    return await asyncio.to_thread(post_trigger_event, event, reason)
 
 
 async def forward_current_text(text: str) -> tuple[bool, str]:
@@ -270,6 +330,9 @@ async def forward_current_text(text: str) -> tuple[bool, str]:
 
 async def notify_extension_posture_disengagement(source_role: str | None, signal: str | None, event: str | None, forwarded: bool) -> None:
     if signal != "disengaged_true" or event != "start":
+        return
+    if CONTROL_MODE:
+        _log("server", "console", "[对照组] 跳过 extension 高亮通知")
         return
     extension_socket = role_clients.get("extension")
     if extension_socket is None:
@@ -282,7 +345,7 @@ async def notify_extension_posture_disengagement(source_role: str | None, signal
     _log("server", "extension", f"WebSocket 定向发送 -> extension: {POSTURE_DISENGAGED_MESSAGE}")
     try:
         await extension_socket.send(POSTURE_DISENGAGED_MESSAGE)
-    except websockets.exceptions.ConnectionClosed:
+    except websockets.ConnectionClosed:
         _log("server", "console", "extension WebSocket 在发送前关闭，通知未送达")
 
 
@@ -311,12 +374,15 @@ async def handler(websocket):
             if not event:
                 current_text = parse_current_text_message(message)
                 if current_text:
-                    ok, detail = await forward_current_text(current_text)
-                    response = {"ok": ok, "type": "current_text"}
-                    if ok:
-                        response["trigger_response"] = detail
+                    if CONTROL_MODE:
+                        response = {"ok": True, "type": "current_text", "mode": "control"}
                     else:
-                        response["reason"] = detail
+                        ok, detail = await forward_current_text(current_text)
+                        response = {"ok": ok, "type": "current_text"}
+                        if ok:
+                            response["trigger_response"] = detail
+                        else:
+                            response["reason"] = detail
                     await websocket.send(json.dumps(response))
                     if is_duplicate_active_start(signal, event):
                         _log(source_role, "console", "检测到重复的 disengaged_true，当前已处于 distraction_active，跳过重复 start 转发到 5050")
@@ -331,10 +397,22 @@ async def handler(websocket):
                 continue
 
             current_text = parse_current_text_message(message)
-            if current_text:
+            if current_text and not CONTROL_MODE:
                 text_ok, text_detail = await forward_current_text(current_text)
 
-            ok, detail = await forward_event(event)
+            disengage_reason = _extract_disengage_reason(message) if event == "start" else None
+
+            if CONTROL_MODE:
+                # 对照组: 只记录，不转发到 pipeline，不触发机器人
+                control_log.log_event(event, reason=disengage_reason)
+                _log("server", "console", f"[对照组] 记录事件: {event} (reason={disengage_reason})")
+                response = {"ok": True, "event": event, "mode": "control"}
+                _log("server", receiver_role, f"WebSocket 定向发送 -> {receiver_role}: {json.dumps(response, ensure_ascii=False)}")
+                await websocket.send(json.dumps(response))
+                await notify_extension_posture_disengagement(receiver_role, signal, event, False)
+                continue
+
+            ok, detail = await forward_event(event, reason=disengage_reason)
             response = {"ok": ok, "event": event}
             if ok:
                 response["trigger_response"] = detail
@@ -349,7 +427,7 @@ async def handler(websocket):
             await websocket.send(json.dumps(response))
             await notify_extension_posture_disengagement(receiver_role, signal, event, ok)
 
-    except websockets.exceptions.ConnectionClosed:
+    except websockets.ConnectionClosed:
         _log(client_ip, "server", f"客户端断开: {client_ip}")
     finally:
         connected_clients.discard(websocket)
@@ -359,8 +437,14 @@ async def handler(websocket):
 async def main():
     server = await websockets.serve(handler, WS_HOST, WS_PORT)
     _log("server", "console", "WebSocket bridge 已启动")
+    if CONTROL_MODE:
+        _log("server", "console", "══════ 对照组模式 ══════")
+        _log("server", "console", "  • 不转发事件到 pipeline（无机器人干预）")
+        _log("server", "console", "  • 不发送 ROBOT_REDIRECT 到扩展（无页面高亮）")
+        _log("server", "console", "  • 走神事件记录到 sessions/control_*.json")
+    else:
+        _log("server", "console", f"触发器目标: http://{TRIGGER_HOST}:{TRIGGER_PORT}")
     _log("server", "console", f"监听地址: ws://{WS_HOST}:{WS_PORT}")
-    _log("server", "console", f"触发器目标: http://{TRIGGER_HOST}:{TRIGGER_PORT}")
     _log("server", "console", '客户端可先发送 JSON 注册身份: {"client": "webcam"} 或 {"client": "extension"}')
     _log("server", "console", "支持消息: start, stop, shutdown, posture_disengaged=true/false, re-engagement")
     _log("server", "console", '也支持 JSON: {"event": "start"} 或 {"posture_disengaged": true}')

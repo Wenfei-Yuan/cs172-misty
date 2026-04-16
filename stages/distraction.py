@@ -26,8 +26,8 @@ def _stop_thread(stop_event, thread, timeout: float = 2.0) -> None:
     thread.join(timeout=timeout)
 
 
-def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None) -> DistractionResult:
-    log.record_distraction_start()
+def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None, trigger_reason: str | None = None) -> DistractionResult:
+    log.record_distraction_start(trigger_reason=trigger_reason)
     show_image(misty, DISTRACTION_FACE)
 
     motion_done = threading.Event()

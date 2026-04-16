@@ -77,7 +77,7 @@ def run(misty, cfg: Config) -> None:
             start_signal = signal_rx.wait_for_start()
             if start_signal.stale_stop_events_cleared:
                 log.record("stale_stop_events_cleared", count=start_signal.stale_stop_events_cleared)
-            log.record("start_signal_received", event=start_signal.event)
+            log.record("start_signal_received", event=start_signal.event, trigger_reason=start_signal.trigger_reason)
             if start_signal.event == "shutdown":
                 _close_active_distraction(log, "shutdown")
                 break
@@ -92,6 +92,7 @@ def run(misty, cfg: Config) -> None:
                 log,
                 screen_pos,
                 consume_interrupt=signal_rx.consume_interrupt,
+                trigger_reason=start_signal.trigger_reason,
             )
 
             if distraction.outcome == "stop":

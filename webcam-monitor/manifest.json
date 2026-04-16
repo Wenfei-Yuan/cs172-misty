@@ -5,7 +5,8 @@
   "description": "Hidden webcam posture monitoring — sends frames to a local Python MediaPipe bridge for identical detection.",
   "permissions": [
     "offscreen",
-    "storage"
+    "storage",
+    "alarms"
   ],
   "action": {
     "default_popup": "popup.html",

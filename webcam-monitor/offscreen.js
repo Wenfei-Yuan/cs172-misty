@@ -130,12 +130,23 @@ async function start() {
   running = true;
 
   try {
+    console.log("[Webcam Monitor] Starting camera…");
     await startCamera();
+    console.log("[Webcam Monitor] Camera started, resolution:", video.videoWidth, "x", video.videoHeight);
+    sendStatus("STARTED");
     connectWS();
     startLoop();
-    sendStatus("STARTED");
   } catch (err) {
-    sendStatus("ERROR", err.message);
+    console.error("[Webcam Monitor] Start failed:", err);
+    let detail = err.message;
+    if (err.name === "NotAllowedError") {
+      detail = "Camera permission denied. Go to chrome://settings/content/camera and allow this extension.";
+    } else if (err.name === "NotFoundError") {
+      detail = "No camera found on this device.";
+    } else if (err.name === "NotReadableError") {
+      detail = "Camera is in use by another app. Close other apps using the camera.";
+    }
+    sendStatus("ERROR", detail);
     running = false;
   }
 }
@@ -167,6 +178,11 @@ function stop() {
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.target !== "offscreen-webcam") return;
 
+  if (msg.type === "PING") {
+    sendResponse({ ok: true });
+    return;
+  }
+
   if (msg.type === "START") {
     start()
       .then(() => sendResponse({ ok: true }))
@@ -179,3 +195,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     sendResponse({ ok: true });
   }
 });
+
+// Signal to background.js that this script is loaded and ready
+chrome.runtime.sendMessage({ type: "OFFSCREEN_READY" }).catch(() => {});

@@ -37,11 +37,12 @@ class SessionLog:
             }
         )
 
-    def record_distraction_start(self) -> None:
+    def record_distraction_start(self, trigger_reason: str | None = None) -> None:
         self.distraction_events.append(
             {
                 "event_index": len(self.distraction_events) + 1,
                 "distraction_start_time": _local_iso(),
+                "trigger_reason": trigger_reason,
                 "motion_end_time": None,
                 "motion_duration_s": None,
                 "distraction_end_time": None,

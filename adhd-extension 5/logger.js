@@ -293,7 +293,7 @@
 
     if (msg.type === "ROBOT_REDIRECT") {
       const idx    = getVisibleParagraphIndex();
-      const DELAY_MS = 6000; // wait for user to notice robot + turn back
+      const DELAY_MS = 10500; // wait for user to notice robot + turn back
       const HOLD_MS  = 5000;  // solid highlight duration
       const FADE_MS  = 1500;  // gentle fade-out so it doesn't hard-cut
 

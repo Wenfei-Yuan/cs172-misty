@@ -176,7 +176,8 @@ def _perform_both_arm_wave(misty, cfg, sleep_fn=None, action_timeout_s: float | 
     arm_mid_deg = int(getattr(cfg, "distraction_both_arms_mid_deg", 0))
     arm_rest_down_deg = int(getattr(cfg, "distraction_both_arms_down_deg", 80))
     arm_velocity = int(getattr(cfg, "distraction_both_arms_velocity", 110))
-    repetitions = max(0, int(getattr(cfg, "distraction_both_arms_repetitions", 2)))
+    up_hold_s = max(0.0, float(getattr(cfg, "distraction_both_arms_up_hold_s", 0.5)))
+    mid_hold_s = max(0.0, float(getattr(cfg, "distraction_both_arms_mid_hold_s", 0.3)))
 
     def _default_sleep(duration_s: float) -> bool:
         time.sleep(duration_s)
@@ -186,46 +187,63 @@ def _perform_both_arm_wave(misty, cfg, sleep_fn=None, action_timeout_s: float | 
     current_left_arm_deg = float(arm_rest_down_deg)
     current_right_arm_deg = float(arm_rest_down_deg)
 
-    for _ in range(repetitions):
-        up_move_s = _estimate_dual_arm_motion_duration_s(
-            current_left_arm_deg,
-            current_right_arm_deg,
-            arm_up_deg,
-            arm_up_deg,
-            arm_velocity,
-        )
-        _arms_move(
-            misty,
-            timeout_s=action_timeout_s,
-            LeftArmPosition=arm_up_deg,
-            RightArmPosition=arm_up_deg,
-            LeftArmVelocity=arm_velocity,
-            RightArmVelocity=arm_velocity,
-        )
-        current_left_arm_deg = float(arm_up_deg)
-        current_right_arm_deg = float(arm_up_deg)
-        if _do_sleep(up_move_s):
-            return True
+    # Step 1: raise both arms to highest point, hold
+    move_s = _estimate_dual_arm_motion_duration_s(
+        current_left_arm_deg, current_right_arm_deg,
+        arm_up_deg, arm_up_deg, arm_velocity,
+    )
+    _arms_move(
+        misty, timeout_s=action_timeout_s,
+        LeftArmPosition=arm_up_deg, RightArmPosition=arm_up_deg,
+        LeftArmVelocity=arm_velocity, RightArmVelocity=arm_velocity,
+    )
+    current_left_arm_deg = float(arm_up_deg)
+    current_right_arm_deg = float(arm_up_deg)
+    if _do_sleep(move_s + up_hold_s):
+        return True
 
-        down_move_s = _estimate_dual_arm_motion_duration_s(
-            current_left_arm_deg,
-            current_right_arm_deg,
-            arm_mid_deg,
-            arm_mid_deg,
-            arm_velocity,
-        )
-        _arms_move(
-            misty,
-            timeout_s=action_timeout_s,
-            LeftArmPosition=arm_mid_deg,
-            RightArmPosition=arm_mid_deg,
-            LeftArmVelocity=arm_velocity,
-            RightArmVelocity=arm_velocity,
-        )
-        current_left_arm_deg = float(arm_mid_deg)
-        current_right_arm_deg = float(arm_mid_deg)
-        if _do_sleep(down_move_s):
-            return True
+    # Step 2: lower to middle point, hold
+    move_s = _estimate_dual_arm_motion_duration_s(
+        current_left_arm_deg, current_right_arm_deg,
+        arm_mid_deg, arm_mid_deg, arm_velocity,
+    )
+    _arms_move(
+        misty, timeout_s=action_timeout_s,
+        LeftArmPosition=arm_mid_deg, RightArmPosition=arm_mid_deg,
+        LeftArmVelocity=arm_velocity, RightArmVelocity=arm_velocity,
+    )
+    current_left_arm_deg = float(arm_mid_deg)
+    current_right_arm_deg = float(arm_mid_deg)
+    if _do_sleep(move_s + mid_hold_s):
+        return True
+
+    # Step 3: raise both arms to highest point again, hold
+    move_s = _estimate_dual_arm_motion_duration_s(
+        current_left_arm_deg, current_right_arm_deg,
+        arm_up_deg, arm_up_deg, arm_velocity,
+    )
+    _arms_move(
+        misty, timeout_s=action_timeout_s,
+        LeftArmPosition=arm_up_deg, RightArmPosition=arm_up_deg,
+        LeftArmVelocity=arm_velocity, RightArmVelocity=arm_velocity,
+    )
+    current_left_arm_deg = float(arm_up_deg)
+    current_right_arm_deg = float(arm_up_deg)
+    if _do_sleep(move_s + up_hold_s):
+        return True
+
+    # Step 4: lower to rest position (reset)
+    move_s = _estimate_dual_arm_motion_duration_s(
+        current_left_arm_deg, current_right_arm_deg,
+        arm_rest_down_deg, arm_rest_down_deg, arm_velocity,
+    )
+    _arms_move(
+        misty, timeout_s=action_timeout_s,
+        LeftArmPosition=arm_rest_down_deg, RightArmPosition=arm_rest_down_deg,
+        LeftArmVelocity=arm_velocity, RightArmVelocity=arm_velocity,
+    )
+    if _do_sleep(move_s):
+        return True
 
     return False
 
@@ -276,10 +294,6 @@ def perform_distraction_start_sequence(misty, cfg, screen_pos, stop_event=None) 
         return
 
     if _sleep(user_focus_pause_s):
-        _recover()
-        return
-
-    if _perform_both_arm_wave(misty, cfg, sleep_fn=_sleep, action_timeout_s=action_timeout_s):
         _recover()
         return
 

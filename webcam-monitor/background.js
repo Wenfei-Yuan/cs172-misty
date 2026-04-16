@@ -49,12 +49,39 @@ async function closeOffscreen() {
 
 async function startMonitor() {
   await ensureOffscreen();
-  await chrome.runtime.sendMessage({
+  // Wait for offscreen.js to signal it's loaded
+  await waitForOffscreenReady();
+  const resp = await chrome.runtime.sendMessage({
     target: "offscreen-webcam",
     type: "START",
   });
+  if (resp && !resp.ok) {
+    throw new Error(resp.error || "offscreen start failed");
+  }
   isRunning = true;
   updateBadge("ON", "#1f8f5f");
+}
+
+function waitForOffscreenReady() {
+  return new Promise((resolve) => {
+    // Check if already ready via a ping
+    chrome.runtime.sendMessage({ target: "offscreen-webcam", type: "PING" }, (resp) => {
+      if (resp && resp.ok) { resolve(); return; }
+      // Not ready yet, listen for READY signal
+      const listener = (msg) => {
+        if (msg.type === "OFFSCREEN_READY") {
+          chrome.runtime.onMessage.removeListener(listener);
+          resolve();
+        }
+      };
+      chrome.runtime.onMessage.addListener(listener);
+      // Safety timeout — resolve after 3s no matter what
+      setTimeout(() => {
+        chrome.runtime.onMessage.removeListener(listener);
+        resolve();
+      }, 3000);
+    });
+  });
 }
 
 async function stopMonitor() {
@@ -80,18 +107,68 @@ function updateBadge(text, color) {
   if (color) chrome.action.setBadgeBackgroundColor({ color });
 }
 
+// ── Grant flow: open a real tab to get camera permission ─────
+
+let pendingGrantResolve = null;
+let pendingGrantReject = null;
+
+async function requestCameraViaTab() {
+  return new Promise((resolve, reject) => {
+    pendingGrantResolve = resolve;
+    pendingGrantReject = reject;
+    chrome.tabs.create({ url: chrome.runtime.getURL("grant.html"), active: true }, (tab) => {
+      // Safety timeout — if grant page doesn't respond in 30s, reject
+      setTimeout(() => {
+        if (pendingGrantResolve) {
+          pendingGrantResolve = null;
+          pendingGrantReject = null;
+          reject(new Error("Camera permission timeout"));
+        }
+      }, 30000);
+    });
+  });
+}
+
+async function startWithGrant() {
+  // Open grant.html tab to get camera permission first
+  await requestCameraViaTab();
+  // Permission granted, now start offscreen monitor
+  await startMonitor();
+}
+
 // ── Message router ───────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "TOGGLE") {
-    (isRunning ? stopMonitor() : startMonitor())
+    (isRunning ? stopMonitor() : startWithGrant())
       .then(() => sendResponse({ ok: true, running: isRunning }))
-      .catch((e) => sendResponse({ ok: false, error: e.message }));
+      .catch((e) => sendResponse({ ok: false, error: e.message, running: false }));
     return true; // async
   }
 
   if (msg.type === "GET_STATUS") {
     sendResponse({ running: isRunning });
+    return;
+  }
+
+  // Camera grant page signals
+  if (msg.type === "CAMERA_GRANTED") {
+    if (pendingGrantResolve) {
+      const res = pendingGrantResolve;
+      pendingGrantResolve = null;
+      pendingGrantReject = null;
+      res();
+    }
+    return;
+  }
+  if (msg.type === "CAMERA_DENIED") {
+    if (pendingGrantReject) {
+      const rej = pendingGrantReject;
+      pendingGrantResolve = null;
+      pendingGrantReject = null;
+      rej(new Error("Camera permission denied"));
+    }
+    updateBadge("ERR", "#b42318");
     return;
   }
 

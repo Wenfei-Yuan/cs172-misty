@@ -19,6 +19,7 @@ bridge server on SERVER_IP:SERVER_PORT.
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import json
 import os
 import sys
@@ -27,6 +28,7 @@ import time
 import cv2
 import numpy as np
 import websockets
+from websockets.protocol import State as _WsState
 
 # ---------------------------------------------------------------------------
 # Import detection + posture logic from the existing webcam package
@@ -80,6 +82,12 @@ from posture_logic import (
 # ---------------------------------------------------------------------------
 LOCAL_HOST = "127.0.0.1"
 LOCAL_PORT = int(os.getenv("BRIDGE_LOCAL_PORT", "9876"))
+
+# Browser bridge calibration overrides — the Chrome extension path has lower
+# effective FPS than direct webcam capture because analyze_frame() blocks the
+# event loop.  Give calibration more time and require fewer samples.
+_BRIDGE_CALIBRATION_DURATION = 12.0  # seconds (vs 3.0 for direct webcam)
+_BRIDGE_MIN_CALIBRATION_SAMPLES = 5  # samples  (vs 10 in participant_client)
 
 # Bridge server — the main server.py
 BRIDGE_WS_URL = f"ws://{SERVER_IP}:{SERVER_PORT}"
@@ -207,9 +215,11 @@ class PostureEngine:
             self.gaze_yaw_samples.append(result["gaze"]["gaze_yaw_ratio"])
             self.gaze_pitch_samples.append(result["gaze"]["gaze_pitch_ratio"])
 
-        remaining = max(0.0, CALIBRATION_DURATION - elapsed)
+        cal_dur = _BRIDGE_CALIBRATION_DURATION
+        min_samples = _BRIDGE_MIN_CALIBRATION_SAMPLES
+        remaining = max(0.0, cal_dur - elapsed)
 
-        if elapsed < CALIBRATION_DURATION:
+        if elapsed < cal_dur:
             return [], {
                 "phase": "calibrating",
                 "remaining": round(remaining, 1),
@@ -217,7 +227,7 @@ class PostureEngine:
             }
 
         # ── calibration period done ──
-        if len(self.yaw_samples) < 10 or len(self.pitch_samples) < 10:
+        if len(self.yaw_samples) < min_samples or len(self.pitch_samples) < min_samples:
             print("[BrowserBridge] Calibration failed — not enough samples, retrying")
             self.calibration_start = None
             self.yaw_samples.clear()
@@ -575,6 +585,11 @@ class PostureEngine:
 #  WebSocket connection management
 # ═══════════════════════════════════════════════════════════════════════════
 
+# Single-worker pool — MediaPipe FaceMesh is not thread-safe across
+# concurrent calls, but we only need one thread to keep the event loop free.
+_frame_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+
 async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
     remote = ext_ws.remote_address or ("unknown", 0)
     print(f"[BrowserBridge] Extension connected from {remote[0]}:{remote[1]}")
@@ -586,7 +601,7 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
         nonlocal bridge_ws
         if bridge_ws is not None:
             try:
-                if bridge_ws.open:
+                if bridge_ws.state == _WsState.OPEN:
                     return bridge_ws
             except Exception:
                 pass
@@ -598,6 +613,8 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
                 ping_interval=20,
                 ping_timeout=60,
             )
+            # Register as webcam client so server.py routes events correctly
+            await bridge_ws.send(json.dumps({"client": "webcam"}))
             print(f"[BrowserBridge] Connected to bridge server: {BRIDGE_WS_URL}")
             return bridge_ws
         except Exception as exc:
@@ -605,50 +622,92 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
             bridge_ws = None
             return None
 
-    try:
-        async for raw_message in ext_ws:
-            # ── binary frame = JPEG data ──
-            if isinstance(raw_message, bytes):
-                frame = decode_jpeg_frame(raw_message)
-                if frame is None:
-                    continue
+    # ── Frame-dropping receiver / processor architecture ──
+    # The extension sends ~15fps but MediaPipe may be slower.  A separate
+    # receiver task stores only the latest frame; the processor always
+    # picks up the freshest data, skipping stale frames.
+    latest_frame_data: bytearray | None = None
+    frame_ready = asyncio.Event()
+    stop_flag = asyncio.Event()
+    loop = asyncio.get_event_loop()
 
-                messages, status = engine.process_frame(frame)
-
-                # Forward posture events to bridge server
-                for msg in messages:
-                    ws = await ensure_bridge()
-                    if ws is not None:
-                        try:
-                            await ws.send(json.dumps(msg))
-                            print(f"[BrowserBridge] Sent to bridge: {json.dumps(msg, ensure_ascii=False)}")
-                        except websockets.exceptions.ConnectionClosed:
-                            bridge_ws = None
-                            print("[BrowserBridge] Bridge disconnected during send")
-
-                # Send status to extension
-                await ext_ws.send(json.dumps({"type": "status", **status}))
-
-                # Periodic stats
-                stats = engine.get_stats_line()
-                if stats:
-                    print(f"[BrowserBridge] {stats}")
-
-            # ── text message = control command ──
-            elif isinstance(raw_message, str):
-                try:
-                    cmd = json.loads(raw_message)
-                except json.JSONDecodeError:
-                    continue
-
-                if cmd.get("type") == "stop":
-                    print("[BrowserBridge] Extension requested stop")
+    async def _receiver() -> None:
+        """Receive WS messages; store latest binary frame, handle text cmds."""
+        nonlocal latest_frame_data
+        try:
+            async for raw_message in ext_ws:
+                if stop_flag.is_set():
                     break
-                elif cmd.get("type") == "reset":
-                    engine.reset()
-                    print("[BrowserBridge] Engine reset — will re-calibrate")
+                if isinstance(raw_message, bytes):
+                    latest_frame_data = raw_message
+                    frame_ready.set()
+                elif isinstance(raw_message, str):
+                    try:
+                        cmd = json.loads(raw_message)
+                    except json.JSONDecodeError:
+                        continue
+                    if cmd.get("type") == "stop":
+                        print("[BrowserBridge] Extension requested stop")
+                        stop_flag.set()
+                        frame_ready.set()  # wake processor
+                        break
+                    elif cmd.get("type") == "reset":
+                        engine.reset()
+                        print("[BrowserBridge] Engine reset — will re-calibrate")
+        except websockets.ConnectionClosed:
+            pass
+        finally:
+            stop_flag.set()
+            frame_ready.set()  # ensure processor exits
 
-    except websockets.exceptions.ConnectionClosed:
+    async def _processor() -> None:
+        """Process the latest available frame in a thread pool."""
+        nonlocal bridge_ws
+        while not stop_flag.is_set():
+            await frame_ready.wait()
+            if stop_flag.is_set():
+                break
+            frame_ready.clear()
+
+            data = latest_frame_data
+            if data is None:
+                continue
+
+            frame = decode_jpeg_frame(data)
+            if frame is None:
+                continue
+
+            # Run CPU-heavy MediaPipe in a thread so the event loop
+            # stays responsive for WS ping/pong and frame receiving.
+            messages, status = await loop.run_in_executor(
+                _frame_pool, engine.process_frame, frame
+            )
+
+            # Forward posture events to bridge server
+            for msg in messages:
+                ws = await ensure_bridge()
+                if ws is not None:
+                    try:
+                        await ws.send(json.dumps(msg))
+                        print(f"[BrowserBridge] Sent to bridge: {json.dumps(msg, ensure_ascii=False)}")
+                    except websockets.ConnectionClosed:
+                        bridge_ws = None
+                        print("[BrowserBridge] Bridge disconnected during send")
+
+            # Send status to extension
+            try:
+                await ext_ws.send(json.dumps({"type": "status", **status}))
+            except websockets.ConnectionClosed:
+                break
+
+            # Periodic stats
+            stats = engine.get_stats_line()
+            if stats:
+                print(f"[BrowserBridge] {stats}")
+
+    try:
+        await asyncio.gather(_receiver(), _processor())
+    except websockets.ConnectionClosed:
         print("[BrowserBridge] Extension disconnected")
     finally:
         if bridge_ws is not None:

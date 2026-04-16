@@ -14,7 +14,7 @@ class Config:
     openai_timeout_s: float = 6.0
     openai_max_retries: int = 0
     camera_timeout_s: float = 1.5
-    speech_volume: int = 90
+    speech_volume: int = 30
     gaze_timeout_s: float = 45.0
     gaze_poll_interval_s: float = 0.7
     fast_gaze_poll_interval_s: float = 0.18
@@ -64,9 +64,11 @@ class Config:
     redirect_settle_s: float = 1.5
     redirect_confirmation_wait_s: float = 60.0
     distraction_user_focus_pause_s: float = 2.0
-    distraction_both_arms_repetitions: int = 2
+    distraction_both_arms_repetitions: int = 2  # vestigial — kept for config compat
     distraction_both_arms_mid_deg: int = 0
     distraction_both_arms_velocity: int = 110
+    distraction_both_arms_up_hold_s: float = 0.5
+    distraction_both_arms_mid_hold_s: float = 0.3
     cache_screen_pos: bool = True
     escalation_prompts: tuple[str, ...] = (
         "Hey, are you still with me? Don't forget to focus!",

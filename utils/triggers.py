@@ -12,6 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 class StartSignalResult:
     event: str
     stale_stop_events_cleared: int = 0
+    trigger_reason: str | None = None
 
 
 class ExternalSignalReceiver:
@@ -20,6 +21,7 @@ class ExternalSignalReceiver:
         self.port = port
         self._events = deque()
         self._current_text = ""
+        self._last_trigger_reason: str | None = None
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
         self._redirect_stop_event = threading.Event()
@@ -37,8 +39,17 @@ class ExternalSignalReceiver:
                     raw_body = self.rfile.read(length)
 
                 event = None
+                trigger_reason = None
                 if self.path == "/distraction/start":
                     event = "start"
+                    if raw_body:
+                        try:
+                            body_payload = json.loads(raw_body.decode("utf-8"))
+                            r = body_payload.get("reason")
+                            if isinstance(r, str) and r.strip():
+                                trigger_reason = r.strip()
+                        except (json.JSONDecodeError, UnicodeDecodeError):
+                            pass
                 elif self.path == "/distraction/stop":
                     event = "stop"
                 elif self.path == "/shutdown":
@@ -72,6 +83,8 @@ class ExternalSignalReceiver:
                 if event:
                     with parent._lock:
                         parent._events.append(event)
+                        if event == "start" and trigger_reason:
+                            parent._last_trigger_reason = trigger_reason
                     if event in ("stop", "shutdown"):
                         parent._redirect_stop_event.set()
                     self.send_response(200)
@@ -125,7 +138,9 @@ class ExternalSignalReceiver:
                     if shutdown_seen:
                         return StartSignalResult(event="shutdown", stale_stop_events_cleared=stale_stop_events_cleared)
                     if start_seen:
-                        return StartSignalResult(event="start", stale_stop_events_cleared=stale_stop_events_cleared)
+                        reason = self._last_trigger_reason
+                        self._last_trigger_reason = None
+                        return StartSignalResult(event="start", stale_stop_events_cleared=stale_stop_events_cleared, trigger_reason=reason)
             time.sleep(0.1)
         return StartSignalResult(event="shutdown", stale_stop_events_cleared=stale_stop_events_cleared)
 

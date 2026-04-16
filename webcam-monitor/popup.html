@@ -3,6 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="popup.css" />
+    <style>
+      #log { font-size: 11px; font-family: monospace; background: #1a1a2e; color: #0f0; padding: 6px; border-radius: 4px; max-height: 140px; overflow-y: auto; margin-top: 8px; white-space: pre-wrap; word-break: break-all; }
+      #log:empty { display: none; }
+    </style>
   </head>
   <body>
     <div class="container">
@@ -12,6 +16,7 @@
       <p class="hint">
         Make sure <code>browser_bridge.py</code> is running first.
       </p>
+      <div id="log"></div>
     </div>
     <script src="popup.js"></script>
   </body>

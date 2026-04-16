@@ -1,0 +1,263 @@
+{
+  "session_id": "session_20260415_wenfei_80ca83",
+  "participant_id": "wenfei",
+  "start_time": "2026-04-15T13:36:39.642338-04:00",
+  "end_time": "2026-04-15T13:38:22.893994-04:00",
+  "screen_observations": [],
+  "events": [
+    {
+      "timestamp": "2026-04-15T13:36:40.570730-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:36:40.730876-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_search_start",
+        "utterance": "I'm looking for your screen now.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I'm looking for your screen now.`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:36:40.730915-04:00",
+      "name": "screen_search_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T13:36:40.730938-04:00",
+      "name": "screen_search_seed",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:36:41.465562-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:36:42.307789-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:36:43.419791-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:36:43.419838-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:13.634207-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "visible",
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:13.634386-04:00",
+      "name": "screen_verification_visible",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "reason": "screen_visible_not_centered"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:13.634418-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": -10.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:14.652009-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:15.772830-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:15.772862-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:18.115841-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:18.520387-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:19.494627-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:19.494658-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:21.307148-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:21.637180-04:00",
+      "name": "screen_search_verified",
+      "payload": {
+        "yaw": -10.0,
+        "pitch": 0.0,
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:21.637210-04:00",
+      "name": "screen_position_initialized",
+      "payload": {
+        "yaw": -10.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:21.865026-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_found",
+        "utterance": "I've found the screen!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I've found the screen!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:22.039937-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_start_reading",
+        "utterance": "Let's start reading. You can open the browser extension and start reading now.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading. You can open the browser extension and start reading now.`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-15T13:38:22.089536-04:00",
+      "name": "bootup_complete",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T13:38:22.681642-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    }
+  ],
+  "distraction_events": [],
+  "total_distraction_count": 0,
+  "total_voice_prompts": 0
+}

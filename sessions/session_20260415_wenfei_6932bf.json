@@ -1,0 +1,702 @@
+{
+  "session_id": "session_20260415_wenfei_6932bf",
+  "participant_id": "wenfei",
+  "start_time": "2026-04-15T15:42:13.184669-04:00",
+  "end_time": "2026-04-15T15:51:19.254161-04:00",
+  "screen_observations": [
+    {
+      "timestamp": "2026-04-15T15:42:26.908097-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    }
+  ],
+  "events": [
+    {
+      "timestamp": "2026-04-15T15:42:14.001401-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Hello! I'm Misty. Let's focus today!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:14.164579-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_search_start",
+        "utterance": "I'm looking for your screen now.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I'm looking for your screen now.`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:14.164615-04:00",
+      "name": "screen_search_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:42:14.164638-04:00",
+      "name": "screen_search_seed",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:14.909096-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:15.735965-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:17.005648-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:17.005681-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:19.591895-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:19.994837-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:21.527990-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:21.528021-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:23.158685-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:23.405745-04:00",
+      "name": "screen_search_verified",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:23.405816-04:00",
+      "name": "screen_position_initialized",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:23.675904-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_found",
+        "utterance": "I've found the screen!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `I've found the screen!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:23.832106-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_start_reading",
+        "utterance": "Let's start reading. You can open the browser extension and start reading now.",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Let's start reading. You can open the browser extension and start reading now.`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:24.002767-04:00",
+      "name": "bootup_complete",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:42:26.908045-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:26.908140-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:42:26.908241-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:30.160946-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:30.160992-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:42:36.028558-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "looking_away"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:42:48.340892-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:42:48.340913-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:43:24.531626-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:43:47.920858-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:43:56.134655-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:43:56.134700-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:44:02.084832-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:44:14.189286-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:44:14.189303-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:44:30.533658-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:44:35.469440-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "face_missing"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:44:48.295230-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:44:48.295249-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:44:56.434213-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:45:39.845169-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:45:52.497210-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:45:52.497227-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:46:13.563081-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:46:18.988497-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "looking_away"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:46:20.727008-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:46:20.727053-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:46:27.287139-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "face_missing"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:46:40.215579-04:00",
+      "name": "sequence_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:46:40.215597-04:00",
+      "name": "post_sequence_wait_started",
+      "payload": {
+        "wait_s": 60.0
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:46:42.173443-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:46:49.557668-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:46:53.381007-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:46:53.381051-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:47:13.229129-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:47:13.668556-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:47:13.668599-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:47:15.516922-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "looking_away"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:47:26.063450-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:47:26.063512-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:48:10.752203-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:48:17.702650-04:00",
+      "name": "returned_to_waiting_position",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "source": "bootup"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T15:48:17.702697-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-15T15:51:18.771909-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!",
+        "success": true,
+        "response": {
+          "overall_success": true,
+          "rest_response": {
+            "success": true,
+            "message": "Talking successful. Utterance: `Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!`."
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-04-15T15:42:26.908271-04:00",
+      "trigger_reason": "gaze_mind_wandering",
+      "motion_end_time": "2026-04-15T15:42:30.110185-04:00",
+      "motion_duration_s": 3.2,
+      "distraction_end_time": "2026-04-15T15:42:30.160973-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.25,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-04-15T15:42:36.028595-04:00",
+      "trigger_reason": "looking_away",
+      "motion_end_time": "2026-04-15T15:42:48.340839-04:00",
+      "motion_duration_s": 12.31,
+      "distraction_end_time": "2026-04-15T15:43:24.531587-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 48.5,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 3,
+      "distraction_start_time": "2026-04-15T15:43:47.920904-04:00",
+      "trigger_reason": "gaze_mind_wandering",
+      "motion_end_time": "2026-04-15T15:43:56.105371-04:00",
+      "motion_duration_s": 8.18,
+      "distraction_end_time": "2026-04-15T15:43:56.134683-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 8.21,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 4,
+      "distraction_start_time": "2026-04-15T15:44:02.084871-04:00",
+      "trigger_reason": "gaze_mind_wandering",
+      "motion_end_time": "2026-04-15T15:44:14.189232-04:00",
+      "motion_duration_s": 12.1,
+      "distraction_end_time": "2026-04-15T15:44:30.533618-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 28.45,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 5,
+      "distraction_start_time": "2026-04-15T15:44:35.469478-04:00",
+      "trigger_reason": "face_missing",
+      "motion_end_time": "2026-04-15T15:44:48.295171-04:00",
+      "motion_duration_s": 12.83,
+      "distraction_end_time": "2026-04-15T15:44:56.434172-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 20.96,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 6,
+      "distraction_start_time": "2026-04-15T15:45:39.845207-04:00",
+      "trigger_reason": "gaze_mind_wandering",
+      "motion_end_time": "2026-04-15T15:45:52.497156-04:00",
+      "motion_duration_s": 12.65,
+      "distraction_end_time": "2026-04-15T15:46:13.563040-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 33.72,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 7,
+      "distraction_start_time": "2026-04-15T15:46:18.988560-04:00",
+      "trigger_reason": "looking_away",
+      "motion_end_time": "2026-04-15T15:46:20.684490-04:00",
+      "motion_duration_s": 1.7,
+      "distraction_end_time": "2026-04-15T15:46:20.727036-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 1.74,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 8,
+      "distraction_start_time": "2026-04-15T15:46:27.287173-04:00",
+      "trigger_reason": "face_missing",
+      "motion_end_time": "2026-04-15T15:46:40.215528-04:00",
+      "motion_duration_s": 12.93,
+      "distraction_end_time": "2026-04-15T15:46:42.173060-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 14.89,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 9,
+      "distraction_start_time": "2026-04-15T15:46:49.557705-04:00",
+      "trigger_reason": "gaze_mind_wandering",
+      "motion_end_time": "2026-04-15T15:46:53.334288-04:00",
+      "motion_duration_s": 3.78,
+      "distraction_end_time": "2026-04-15T15:46:53.381033-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 3.82,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 10,
+      "distraction_start_time": "2026-04-15T15:47:13.229169-04:00",
+      "trigger_reason": "gaze_mind_wandering",
+      "motion_end_time": "2026-04-15T15:47:13.610075-04:00",
+      "motion_duration_s": 0.38,
+      "distraction_end_time": "2026-04-15T15:47:13.668582-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.44,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 11,
+      "distraction_start_time": "2026-04-15T15:47:15.516956-04:00",
+      "trigger_reason": "looking_away",
+      "motion_end_time": "2026-04-15T15:47:26.011671-04:00",
+      "motion_duration_s": 10.49,
+      "distraction_end_time": "2026-04-15T15:47:26.063478-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 10.55,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 12,
+      "distraction_start_time": "2026-04-15T15:48:10.752252-04:00",
+      "trigger_reason": "gaze_mind_wandering",
+      "motion_end_time": "2026-04-15T15:48:17.532303-04:00",
+      "motion_duration_s": 6.78,
+      "distraction_end_time": "2026-04-15T15:48:17.702679-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 6.95,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    }
+  ],
+  "total_distraction_count": 12,
+  "total_voice_prompts": 0
+}

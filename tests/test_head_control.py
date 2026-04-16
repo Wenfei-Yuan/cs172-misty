@@ -178,13 +178,7 @@ class HeadControlTests(unittest.TestCase):
             distraction_user_turn_yaw_deg=-45.0,
             distraction_user_turn_move_s=0.4,
             distraction_user_focus_pause_s=2.0,
-            distraction_both_arms_up_deg=-70,
-            distraction_both_arms_mid_deg=0,
             distraction_both_arms_down_deg=80,
-            distraction_both_arms_velocity=90,
-            distraction_both_arms_hold_s=0.2,
-            distraction_both_arms_pause_s=0.1,
-            distraction_both_arms_repetitions=2,
             distraction_left_arm_repetitions=2,
             redirect_head_velocity=88,
             redirect_screen_focus_pause_s=0.6,
@@ -208,44 +202,11 @@ class HeadControlTests(unittest.TestCase):
         self.assertEqual(
             misty.actions,
             [
+                # Turn head left toward user
                 ("head_move", {"Yaw": -45.0, "Pitch": 8.0, "Velocity": 88}),
-                (
-                    "arms_move",
-                    {
-                        "LeftArmPosition": -70,
-                        "RightArmPosition": -70,
-                        "LeftArmVelocity": 90,
-                        "RightArmVelocity": 90,
-                    },
-                ),
-                (
-                    "arms_move",
-                    {
-                        "LeftArmPosition": 0,
-                        "RightArmPosition": 0,
-                        "LeftArmVelocity": 90,
-                        "RightArmVelocity": 90,
-                    },
-                ),
-                (
-                    "arms_move",
-                    {
-                        "LeftArmPosition": -70,
-                        "RightArmPosition": -70,
-                        "LeftArmVelocity": 90,
-                        "RightArmVelocity": 90,
-                    },
-                ),
-                (
-                    "arms_move",
-                    {
-                        "LeftArmPosition": 0,
-                        "RightArmPosition": 0,
-                        "LeftArmVelocity": 90,
-                        "RightArmVelocity": 90,
-                    },
-                ),
+                # Turn head back to screen
                 ("head_move", {"Yaw": 24.0, "Pitch": 8.0, "Velocity": 88}),
+                # Left arm cue x2
                 (
                     "arms_move",
                     {
@@ -287,18 +248,14 @@ class HeadControlTests(unittest.TestCase):
         self.assertFloatSequenceAlmostEqual(
             sleep_calls,
             [
-                69.0 / 88.0,
-                2.0,
-                150.0 / 90.0,
-                70.0 / 90.0,
-                70.0 / 90.0,
-                70.0 / 90.0,
-                69.0 / 88.0 + 0.6,
-                0.3,
-                0.2,
-                0.3,
-                0.2,
-                0.1,
+                69.0 / 88.0,               # head turn move time
+                2.0,                        # user focus pause
+                69.0 / 88.0 + 0.6,         # return to screen + focus pause
+                0.3,                        # left arm hold
+                0.2,                        # left arm pause
+                0.3,                        # second rep hold
+                0.2,                        # second rep pause
+                0.1,                        # settle
             ],
         )
 
