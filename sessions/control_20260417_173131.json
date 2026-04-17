@@ -1,0 +1,29 @@
+{
+  "mode": "control",
+  "start_time": "2026-04-17T17:31:31.821423",
+  "events": [
+    {
+      "ts": "2026-04-17T17:31:31.822906",
+      "event": "start",
+      "reason": "gaze_mind_wandering"
+    },
+    {
+      "ts": "2026-04-17T17:31:35.986584",
+      "event": "stop"
+    },
+    {
+      "ts": "2026-04-17T17:31:43.799471",
+      "event": "start",
+      "reason": "looking_away"
+    },
+    {
+      "ts": "2026-04-17T17:31:58.243641",
+      "event": "stop"
+    },
+    {
+      "ts": "2026-04-17T17:32:09.966496",
+      "event": "start",
+      "reason": "gaze_mind_wandering"
+    }
+  ]
+}

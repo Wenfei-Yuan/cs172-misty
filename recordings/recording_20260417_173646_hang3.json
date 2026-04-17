@@ -1,0 +1,12 @@
+{
+  "video_file": "recording_20260417_173646_hang3.avi",
+  "username": "hang3",
+  "video_start_ts": "2026-04-17T17:36:46.968081-04:00",
+  "video_end_ts": "2026-04-17T17:38:16.233883-04:00",
+  "total_frames": 1860,
+  "nominal_fps": 15,
+  "resolution": [
+    640,
+    480
+  ]
+}

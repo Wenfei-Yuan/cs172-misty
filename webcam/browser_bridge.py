@@ -25,6 +25,7 @@ import os
 import sys
 import threading
 import time
+from datetime import datetime, timezone
 
 import cv2
 import numpy as np
@@ -91,11 +92,144 @@ _BRIDGE_MIN_CALIBRATION_SAMPLES = 5
 
 BRIDGE_WS_URL = f"ws://{SERVER_IP}:{SERVER_PORT}"
 
+# ---------------------------------------------------------------------------
+# Baseline session state (no-robot condition)
+# ---------------------------------------------------------------------------
+import uuid as _uuid
+
+_SESSIONS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sessions")
+_baseline_lock = threading.Lock()
+_baseline_session: dict | None = None
+
+
+def _gen_baseline_id(participant_id: str) -> str:
+    date_str = datetime.now().strftime("%Y%m%d")
+    return f"baseline_{date_str}_{participant_id}_{_uuid.uuid4().hex[:6]}"
+
+
+def _process_baseline_events(raw_events: list, session_end_time: str) -> list:
+    """Convert raw start/stop events into distraction_events list."""
+    distraction_events = []
+    current_start = None
+    current_reason = None
+    idx = 0
+    for e in raw_events:
+        event_type = e.get("event")
+        if event_type == "start":
+            current_start = e.get("ts")
+            current_reason = e.get("reason")
+        elif event_type == "stop" and current_start:
+            idx += 1
+            start_dt = datetime.fromisoformat(current_start)
+            end_dt = datetime.fromisoformat(e["ts"])
+            duration_s = round((end_dt - start_dt).total_seconds(), 2)
+            distraction_events.append({
+                "event_index": idx,
+                "distraction_start_time": current_start,
+                "distraction_end_time": e["ts"],
+                "distraction_duration_s": duration_s,
+                "distraction_end_signal_received": True,
+                "exit_reason": "self_recovered",
+                "trigger_source": current_reason or "unknown",
+                "voice_prompt_used": False,
+                "voice_prompt_count": 0,
+                "gaze_detected": True,
+                "gaze_latency_s": duration_s,
+            })
+            current_start = None
+            current_reason = None
+    if current_start:
+        idx += 1
+        start_dt = datetime.fromisoformat(current_start)
+        end_dt = datetime.fromisoformat(session_end_time)
+        duration_s = round((end_dt - start_dt).total_seconds(), 2)
+        distraction_events.append({
+            "event_index": idx,
+            "distraction_start_time": current_start,
+            "distraction_end_time": session_end_time,
+            "distraction_duration_s": duration_s,
+            "distraction_end_signal_received": False,
+            "exit_reason": "session_ended",
+            "trigger_source": current_reason or "unknown",
+            "voice_prompt_used": False,
+            "voice_prompt_count": 0,
+            "gaze_detected": False,
+            "gaze_latency_s": None,
+        })
+    return distraction_events
+
+
+def _handle_baseline_start(payload: dict) -> tuple[int, dict]:
+    global _baseline_session
+    username = payload.get("username", "").strip()
+    if not username:
+        return 400, {"ok": False, "detail": "username required"}
+    with _baseline_lock:
+        if _baseline_session:
+            return 409, {"ok": False, "detail": "Session already active"}
+        sid = _gen_baseline_id(username)
+        _baseline_session = {
+            "session_id": sid,
+            "participant_id": username,
+            "start_time": datetime.now().astimezone().isoformat(),
+        }
+    print(f"[baseline] Session started: {sid} (participant={username})")
+    _request_recording_start(username)
+    return 200, {"ok": True, "session_id": sid}
+
+
+def _handle_baseline_stop(payload: dict) -> tuple[int, dict]:
+    global _baseline_session
+    raw_events = payload.get("events", [])
+    with _baseline_lock:
+        if not _baseline_session:
+            return 404, {"ok": False, "detail": "No active session"}
+        session = dict(_baseline_session)
+        _baseline_session = None
+    end_time = datetime.now().astimezone().isoformat()
+    events = []
+    for e in raw_events:
+        ev_name = "disengagement_start" if e.get("event") == "start" else "disengagement_end"
+        entry = {"timestamp": e.get("ts", ""), "name": ev_name, "payload": {}}
+        if e.get("reason"):
+            entry["payload"]["reason"] = e["reason"]
+        events.append(entry)
+    distraction_events = _process_baseline_events(raw_events, end_time)
+    session_data = {
+        "session_id": session["session_id"],
+        "participant_id": session["participant_id"],
+        "condition": "no_system",
+        "start_time": session["start_time"],
+        "end_time": end_time,
+        "events": events,
+        "distraction_events": distraction_events,
+        "total_distraction_count": len(distraction_events),
+        "total_voice_prompts": 0,
+    }
+    os.makedirs(_SESSIONS_DIR, exist_ok=True)
+    fpath = os.path.join(_SESSIONS_DIR, f"{session['session_id']}.json")
+    with open(fpath, "w", encoding="utf-8") as f:
+        json.dump(session_data, f, indent=2, ensure_ascii=False)
+    print(f"[baseline] Session saved: {fpath}  ({len(distraction_events)} distractions)")
+    _request_recording_stop()
+    return 200, {"ok": True, "session_id": session["session_id"], "num_distractions": len(distraction_events)}
+
 
 def decode_jpeg_frame(data: bytes) -> np.ndarray | None:
     buf = np.frombuffer(data, dtype=np.uint8)
     frame = cv2.imdecode(buf, cv2.IMREAD_COLOR)
     return frame
+
+
+def _json_default(obj):
+    """json.dumps fallback for numpy types."""
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, (np.floating,)):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -106,6 +240,131 @@ _participant_ws: websockets.WebSocketServerProtocol | None = None
 _participant_lock = threading.Lock()
 _camera_status = "disconnected"   # disconnected | connected | streaming
 _preview_clients: set[websockets.WebSocketServerProtocol] = set()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Video recording — saves session video for offline review
+# ═══════════════════════════════════════════════════════════════════════════
+_RECORDINGS_DIR = os.path.normpath(os.path.join(_dir, "..", "recordings"))
+_REC_NOMINAL_FPS = 15
+
+_rec_lock = threading.Lock()
+_rec_pending_start: dict | None = None
+_rec_pending_stop: bool = False
+_rec_writer: cv2.VideoWriter | None = None
+_rec_active: bool = False
+_rec_start_ts: str = ""
+_rec_frame_count: int = 0
+_rec_filename: str = ""
+_rec_username: str = ""
+_rec_resolution: tuple[int, int] = (0, 0)
+
+
+def _request_recording_start(username: str) -> dict:
+    global _rec_pending_start
+    with _rec_lock:
+        if _rec_active:
+            return {"ok": False, "detail": "Already recording"}
+        _rec_pending_start = {"username": username}
+    return {"ok": True, "detail": "Recording start requested"}
+
+
+def _request_recording_stop() -> dict:
+    global _rec_pending_stop
+    with _rec_lock:
+        if not _rec_active:
+            return {"ok": False, "detail": "Not recording"}
+        _rec_pending_stop = True
+    return {"ok": True, "detail": "Recording stop requested"}
+
+
+def _do_start_recording(username: str, frame: np.ndarray) -> None:
+    """Create VideoWriter on first frame after start is requested."""
+    global _rec_writer, _rec_active, _rec_start_ts, _rec_frame_count
+    global _rec_filename, _rec_username, _rec_resolution
+
+    os.makedirs(_RECORDINGS_DIR, exist_ok=True)
+
+    now = datetime.now(timezone.utc).astimezone()
+    _rec_start_ts = now.isoformat()
+    ts_str = now.strftime("%Y%m%d_%H%M%S")
+    _rec_filename = f"recording_{ts_str}_{username}.avi"
+    _rec_username = username
+    _rec_frame_count = 0
+
+    h, w = frame.shape[:2]
+    _rec_resolution = (w, h)
+
+    path = os.path.join(_RECORDINGS_DIR, _rec_filename)
+    fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+    _rec_writer = cv2.VideoWriter(path, fourcc, _REC_NOMINAL_FPS, (w, h))
+
+    if _rec_writer.isOpened():
+        _rec_active = True
+        print(f"[Recording] Started: {_rec_filename} ({w}x{h} @ {_REC_NOMINAL_FPS}fps nominal)")
+    else:
+        print(f"[Recording] ERROR: failed to open VideoWriter for {path}")
+        _rec_writer = None
+
+
+def _do_stop_recording() -> None:
+    """Release VideoWriter and save metadata JSON alongside the video."""
+    global _rec_writer, _rec_active
+
+    if _rec_writer is None:
+        _rec_active = False
+        return
+
+    _rec_writer.release()
+    _rec_writer = None
+    _rec_active = False
+
+    end_ts = datetime.now(timezone.utc).astimezone().isoformat()
+
+    meta = {
+        "video_file": _rec_filename,
+        "username": _rec_username,
+        "video_start_ts": _rec_start_ts,
+        "video_end_ts": end_ts,
+        "total_frames": _rec_frame_count,
+        "nominal_fps": _REC_NOMINAL_FPS,
+        "resolution": list(_rec_resolution),
+    }
+
+    meta_path = os.path.join(_RECORDINGS_DIR, _rec_filename.replace(".avi", ".json"))
+    with open(meta_path, "w") as f:
+        json.dump(meta, f, indent=2)
+
+    print(f"[Recording] Stopped: {_rec_filename} ({_rec_frame_count} frames)")
+    print(f"[Recording] Metadata saved: {meta_path}")
+
+
+def _check_and_handle_recording_bytes(data: bytes) -> None:
+    """Decode raw JPEG and write to video. Called for EVERY received frame."""
+    global _rec_pending_start, _rec_pending_stop, _rec_frame_count
+
+    with _rec_lock:
+        start_cmd = _rec_pending_start
+        stop_cmd = _rec_pending_stop
+        _rec_pending_start = None
+        _rec_pending_stop = False
+
+    frame = None
+
+    if stop_cmd and _rec_active:
+        _do_stop_recording()
+
+    if start_cmd is not None and not _rec_active:
+        frame = decode_jpeg_frame(data)
+        if frame is not None:
+            _do_start_recording(start_cmd["username"], frame)
+
+    if _rec_active and _rec_writer is not None:
+        if frame is None:
+            frame = decode_jpeg_frame(data)
+        if frame is not None:
+            _rec_writer.write(frame)
+            _rec_frame_count += 1
 
 
 def _send_to_participant(cmd: dict) -> bool:
@@ -243,11 +502,305 @@ function sendFrames() {
   canvas.toBlob(function(blob) {
     if (blob && ws && ws.readyState === WebSocket.OPEN)
       blob.arrayBuffer().then(function(buf) { ws.send(new Uint8Array(buf)); });
-    timer = setTimeout(sendFrames, 66);
+    timer = setTimeout(sendFrames, 33);
   }, 'image/jpeg', 0.85);
 }
 
 connect();
+</script>
+</body>
+</html>
+"""
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Baseline page — camera + session management combined (served at /baseline)
+# ═══════════════════════════════════════════════════════════════════════════
+
+BASELINE_PAGE = r"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Study — Baseline</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card {
+    background: #fff; border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    padding: 48px 40px; width: 440px; text-align: center;
+  }
+  .card h1 { font-size: 26px; color: #333; margin-bottom: 8px; }
+  .card .subtitle { font-size: 14px; color: #888; margin-bottom: 32px; }
+  .icon { font-size: 56px; margin-bottom: 12px; }
+  label { display: block; text-align: left; font-weight: 600; color: #555; margin-bottom: 6px; font-size: 14px; }
+  input[type="text"] {
+    width: 100%; padding: 12px 16px; border: 2px solid #ddd;
+    border-radius: 10px; font-size: 16px; outline: none;
+    transition: border-color 0.2s; margin-bottom: 24px;
+  }
+  input[type="text"]:focus { border-color: #74b9ff; }
+  .btn {
+    width: 100%; padding: 14px; border: none; border-radius: 10px;
+    font-size: 17px; font-weight: 600; cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s; margin-bottom: 12px;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-start { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #fff; box-shadow: 0 4px 15px rgba(67,233,123,0.4); }
+  .btn-stop  { background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff; box-shadow: 0 4px 15px rgba(245,87,108,0.4); }
+  #status { margin-top: 20px; padding: 12px; border-radius: 10px; font-size: 14px; display: none; }
+  .status-ok   { background: #e6ffed; color: #27ae60; display: block !important; }
+  .status-err  { background: #ffeaea; color: #e74c3c; display: block !important; }
+  .status-info { background: #eef2ff; color: #667eea; display: block !important; }
+  .divider { border: none; border-top: 2px solid #eee; margin: 28px 0 20px; }
+  #camStatus { padding: 10px; border-radius: 10px; font-size: 13px; display: block; background: #f0f0f0; color: #888; }
+  .cam-ok   { background: #e6ffed !important; color: #27ae60 !important; }
+  .cam-info { background: #eef2ff !important; color: #667eea !important; }
+  .cam-err  { background: #ffeaea !important; color: #e74c3c !important; }
+  #serverStatus { margin-top: 10px; padding: 10px; border-radius: 10px; font-size: 13px; background: #f0f0f0; color: #888; }
+  .srv-ok  { background: #e6ffed !important; color: #27ae60 !important; }
+  .srv-err { background: #ffeaea !important; color: #e74c3c !important; }
+  #eventLog { margin-top: 10px; padding: 10px; border-radius: 10px; font-size: 13px; background: #f9f9f9; color: #555; }
+  .timer { font-size: 22px; font-weight: 700; color: #333; margin: 16px 0; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">📖</div>
+  <h1>Reading Study</h1>
+  <p class="subtitle">Baseline — click Start to begin reading</p>
+
+  <label for="username">Your Name</label>
+  <input type="text" id="username" placeholder="e.g. participant1" autocomplete="off">
+
+  <button class="btn btn-start" id="btnStart" onclick="startSession()">▶ Start Reading</button>
+  <button class="btn btn-stop" id="btnStop" onclick="stopSession()" disabled>■ End Reading</button>
+
+  <div id="timer" class="timer" style="display:none">00:00</div>
+  <div id="status"></div>
+  <hr class="divider">
+  <div id="camStatus">📷 Initializing…</div>
+  <div id="serverStatus">🔗 Connecting to detection server…</div>
+  <div id="eventLog"></div>
+</div>
+
+<video id="camVideo" style="display:none" autoplay muted playsinline></video>
+<canvas id="camCanvas" style="display:none"></canvas>
+
+<script>
+var CAM_WS_PORT    = __WS_PORT__;
+var SERVER_WS_PORT = 8765;
+
+var sessionId = null, sessionEvents = [], timerInterval = null, sessionStart = null;
+var camWs = null, camStream = null, camTimer = null, camStreaming = false;
+var camVideo  = document.getElementById('camVideo');
+var camCanvas = document.getElementById('camCanvas');
+var camCtx    = camCanvas.getContext('2d');
+var serverWs = null;
+
+function setStatus(msg, type) {
+  var el = document.getElementById('status');
+  el.textContent = msg; el.className = 'status-' + type;
+}
+function setCamStatus(msg, type) {
+  var el = document.getElementById('camStatus');
+  el.textContent = msg; el.className = type ? ('cam-' + type) : '';
+}
+function setServerStatus(msg, type) {
+  var el = document.getElementById('serverStatus');
+  el.textContent = msg; el.className = type ? ('srv-' + type) : '';
+}
+function updateEventLog() {
+  var el = document.getElementById('eventLog');
+  if (!sessionId) { el.textContent = ''; return; }
+  var starts = sessionEvents.filter(function(e){ return e.event === 'start'; }).length;
+  var stops  = sessionEvents.filter(function(e){ return e.event === 'stop'; }).length;
+  el.textContent = 'Distractions detected: ' + starts + '  |  Re-engaged: ' + stops;
+}
+function updateTimer() {
+  if (!sessionStart) return;
+  var elapsed = Math.floor((Date.now() - sessionStart) / 1000);
+  var m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  var s = String(elapsed % 60).padStart(2, '0');
+  document.getElementById('timer').textContent = m + ':' + s;
+}
+
+/* ── Camera ──────────────────────────────────────────── */
+function connectBridge() {
+  var wsUrl = 'ws://' + location.hostname + ':' + CAM_WS_PORT;
+  setCamStatus('📷 Connecting to camera bridge…', 'info');
+  camWs = new WebSocket(wsUrl);
+  camWs.binaryType = 'arraybuffer';
+  camWs.onopen = function() {
+    camWs.send(JSON.stringify({type: 'hello', role: 'participant'}));
+    setCamStatus('📷 Bridge connected — camera ready', 'ok');
+  };
+  camWs.onmessage = function(e) {
+    try {
+      var msg = JSON.parse(e.data);
+      if (msg.type === 'start_camera') startCamera();
+      else if (msg.type === 'stop_camera') stopCamera();
+    } catch(_) {}
+  };
+  camWs.onclose = function(ev) {
+    stopCamera();
+    setCamStatus('📷 Bridge disconnected — reconnecting…', 'err');
+    setTimeout(connectBridge, 3000);
+  };
+  camWs.onerror = function() { setCamStatus('📷 Bridge connection error', 'err'); };
+}
+
+async function startCamera() {
+  if (camStreaming) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setCamStatus('📷 Camera blocked — open page via HTTPS or localhost', 'err');
+    return;
+  }
+  setCamStatus('📷 Opening camera…', 'info');
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: {ideal: 640}, height: {ideal: 480} },
+      audio: false
+    });
+    camVideo.srcObject = camStream;
+    await camVideo.play();
+    camCanvas.width  = camVideo.videoWidth;
+    camCanvas.height = camVideo.videoHeight;
+    camStreaming = true;
+    setCamStatus('📷 Camera active — streaming (' + camVideo.videoWidth + 'x' + camVideo.videoHeight + ')', 'ok');
+    sendCamFrames();
+  } catch(err) {
+    setCamStatus('📷 Camera error: ' + err.name + ' — ' + err.message, 'err');
+  }
+}
+
+function stopCamera() {
+  camStreaming = false;
+  if (camTimer) { clearTimeout(camTimer); camTimer = null; }
+  if (camStream) { camStream.getTracks().forEach(function(t){ t.stop(); }); camStream = null; }
+  camVideo.srcObject = null;
+}
+
+function sendCamFrames() {
+  if (!camStreaming) return;
+  camCtx.drawImage(camVideo, 0, 0);
+  camCanvas.toBlob(function(blob) {
+    if (blob && camWs && camWs.readyState === WebSocket.OPEN)
+      blob.arrayBuffer().then(function(buf){ camWs.send(new Uint8Array(buf)); });
+    camTimer = setTimeout(sendCamFrames, 33);
+  }, 'image/jpeg', 0.85);
+}
+
+/* ── Detection server WebSocket ──────────────────────── */
+function connectServer() {
+  var wsUrl = 'ws://' + location.hostname + ':' + SERVER_WS_PORT;
+  setServerStatus('🔗 Connecting…', '');
+  serverWs = new WebSocket(wsUrl);
+  serverWs.onopen = function() {
+    serverWs.send(JSON.stringify({client: 'baseline'}));
+    setServerStatus('🔗 Detection server connected', 'ok');
+  };
+  serverWs.onmessage = function(e) {
+    try {
+      var msg = JSON.parse(e.data);
+      if (msg.type === 'baseline_event' && sessionId) {
+        sessionEvents.push(msg);
+        updateEventLog();
+      }
+    } catch(_) {}
+  };
+  serverWs.onclose = function() {
+    setServerStatus('🔗 Disconnected — reconnecting…', 'err');
+    setTimeout(connectServer, 3000);
+  };
+  serverWs.onerror = function() { setServerStatus('🔗 Connection error', 'err'); };
+}
+
+/* ── Session control ─────────────────────────────────── */
+async function startSession() {
+  var username = document.getElementById('username').value.trim();
+  if (!username) { setStatus('Please enter your name', 'err'); return; }
+
+  // Open camera FIRST (needs user-gesture context for permission prompt)
+  if (!camStreaming) {
+    await startCamera();
+  }
+
+  setStatus('Starting session…', 'info');
+  document.getElementById('btnStart').disabled = true;
+
+  try {
+    var res = await fetch('/api/baseline/start', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username: username})
+    });
+    var data = await res.json();
+    if (data.ok) {
+      sessionId = data.session_id;
+      sessionEvents = [];
+      sessionStart = Date.now();
+      setStatus('Session active — focus on your reading!', 'ok');
+      document.getElementById('btnStop').disabled = false;
+      document.getElementById('username').disabled = true;
+      document.getElementById('timer').style.display = 'block';
+      timerInterval = setInterval(updateTimer, 1000);
+      updateEventLog();
+    } else {
+      setStatus('Error: ' + data.detail, 'err');
+      document.getElementById('btnStart').disabled = false;
+    }
+  } catch(e) {
+    setStatus('Request failed: ' + e.message, 'err');
+    document.getElementById('btnStart').disabled = false;
+  }
+}
+
+async function stopSession() {
+  setStatus('Ending session…', 'info');
+  document.getElementById('btnStop').disabled = true;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+  stopCamera();
+
+  try {
+    var res = await fetch('/api/baseline/stop', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session_id: sessionId, events: sessionEvents})
+    });
+    var data = await res.json();
+    if (data.ok) {
+      setStatus('Session ended! Distractions: ' + data.num_distractions, 'ok');
+    } else {
+      setStatus('Error: ' + data.detail, 'err');
+      document.getElementById('btnStop').disabled = false;
+    }
+  } catch(e) {
+    setStatus('Request failed: ' + e.message, 'err');
+    document.getElementById('btnStop').disabled = false;
+  }
+
+  sessionId = null; sessionEvents = []; sessionStart = null;
+  setTimeout(function() {
+    document.getElementById('btnStart').disabled = false;
+    document.getElementById('username').disabled = false;
+    document.getElementById('timer').style.display = 'none';
+    document.getElementById('eventLog').textContent = '';
+  }, 2000);
+}
+
+/* ── Boot ─────────────────────────────────────────────── */
+connectBridge();
+connectServer();
 </script>
 </body>
 </html>
@@ -331,7 +884,10 @@ RESEARCHER_PAGE = r"""
   <button class="btn btn-stop" id="btnStop" onclick="camStop()" disabled>&#x23F9; Stop Camera</button>
 
   <div id="status"><span class="dot dot-gray"></span>Checking connection...</div>
-  <canvas id="previewCanvas" width="640" height="480"></canvas>
+  <div id="previewContainer" style="position:relative; display:none; margin-top:16px;">
+    <canvas id="previewCanvas" width="640" height="480" style="width:100%; border-radius:12px; border:2px solid rgba(255,255,255,0.15); background:#000; display:block;"></canvas>
+    <div id="overlay" style="position:absolute; top:0; left:0; right:0; padding:8px 10px; font-family:monospace; font-size:11px; color:#0f0; background:rgba(0,0,0,0.45); border-radius:12px 12px 0 0; pointer-events:none; white-space:pre-line; line-height:1.5;"></div>
+  </div>
   <div class="no-preview" id="noPreview">No preview &mdash; camera not started</div>
 </div>
 
@@ -391,32 +947,66 @@ async function camStop() {
 function startPreview() {
   stopPreview();
   document.getElementById('noPreview').style.display = 'none';
+  var container = document.getElementById('previewContainer');
   var canvas = document.getElementById('previewCanvas');
   var ctx = canvas.getContext('2d');
-  canvas.style.display = 'block';
+  var overlayDiv = document.getElementById('overlay');
+  container.style.display = 'block';
   previewWs = new WebSocket(PREVIEW_WS);
   previewWs.binaryType = 'arraybuffer';
   previewWs.onmessage = function(e) {
-    var blob = new Blob([e.data], {type:'image/jpeg'});
-    var url = URL.createObjectURL(blob);
-    var img = new Image();
-    img.onload = function() {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      URL.revokeObjectURL(url);
-    };
-    img.src = url;
+    if (e.data instanceof ArrayBuffer) {
+      var blob = new Blob([e.data], {type:'image/jpeg'});
+      var url = URL.createObjectURL(blob);
+      var img = new Image();
+      img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+      };
+      img.onerror = function() { URL.revokeObjectURL(url); };
+      img.src = url;
+    } else {
+      try {
+        var d = JSON.parse(e.data);
+        if (d.type === 'overlay') {
+          var lines = [];
+          lines.push('phase: ' + (d.phase || ''));
+          if (d.face_present !== undefined) lines.push('face: ' + d.face_present);
+          if (d.yaw !== undefined && d.yaw !== null) lines.push('yaw: ' + (typeof d.yaw === 'number' ? d.yaw.toFixed(1) : d.yaw) + '  pitch: ' + (typeof d.pitch === 'number' ? d.pitch.toFixed(1) : d.pitch));
+          if (d.yaw_deviation !== undefined && d.yaw_deviation !== null) lines.push('yaw_dev: ' + d.yaw_deviation.toFixed(1) + '  pitch_dev: ' + (d.pitch_deviation !== null ? d.pitch_deviation.toFixed(1) : 'N/A'));
+          if (d.yaw_threshold !== undefined) lines.push('thresh: yaw=' + d.yaw_threshold.toFixed(1) + '  pitch=' + d.pitch_threshold.toFixed(1));
+          if (d.disengaged !== undefined) {
+            lines.push('disengaged: ' + d.disengaged + '  reason: ' + (d.reason || ''));
+          }
+          if (d.away_duration !== undefined) lines.push('away: ' + d.away_duration.toFixed(1) + 's  reengage: ' + d.reengage_duration.toFixed(1) + 's  (thresh: ' + (d.reengage_threshold_s || 0).toFixed(1) + 's)');
+          if (d.smoothed_gaze_yaw !== undefined && d.smoothed_gaze_yaw !== null) {
+            var gLine = 'gaze: (' + d.smoothed_gaze_yaw.toFixed(2) + ', ' + d.smoothed_gaze_pitch.toFixed(2) + ')';
+            if (d.gaze_yaw_dev !== null) gLine += '  dev=(' + d.gaze_yaw_dev.toFixed(2) + ', ' + d.gaze_pitch_dev.toFixed(2) + ')';
+            if (d.gaze_mind_wandering) gLine += '  MW!';
+            lines.push(gLine);
+          }
+          if (d.fps !== undefined) lines.push('fps: ' + d.fps.toFixed(1));
+          overlayDiv.innerHTML = lines.join('\n');
+          if (d.disengaged) {
+            overlayDiv.style.color = '#f55';
+          } else {
+            overlayDiv.style.color = '#0f0';
+          }
+        }
+      } catch(_) {}
+    }
   };
   previewWs.onclose = function() {
-    canvas.style.display = 'none';
+    container.style.display = 'none';
     document.getElementById('noPreview').style.display = 'block';
   };
 }
 
 function stopPreview() {
   if (previewWs) { try { previewWs.close(); } catch(e) {} previewWs = null; }
-  document.getElementById('previewCanvas').style.display = 'none';
+  document.getElementById('previewContainer').style.display = 'none';
   document.getElementById('noPreview').style.display = 'block';
 }
 
@@ -446,9 +1036,22 @@ class _BridgeHTTPHandler(BaseHTTPRequestHandler):
             self._cors()
             self.end_headers()
             self.wfile.write(body)
+        elif self.path == "/baseline":
+            page = BASELINE_PAGE.replace("__WS_PORT__", str(LOCAL_PORT))
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(body)
         elif self.path == "/api/camera/status":
             with _participant_lock:
                 data = {"status": _camera_status, "connected": _participant_ws is not None}
+            self._json(200, data)
+        elif self.path == "/api/recording/status":
+            with _rec_lock:
+                data = {"active": _rec_active, "filename": _rec_filename,
+                        "frames": _rec_frame_count}
             self._json(200, data)
         else:
             self.send_response(404)
@@ -466,6 +1069,37 @@ class _BridgeHTTPHandler(BaseHTTPRequestHandler):
             if ok:
                 _camera_status = "connected"
             self._json(200 if ok else 503, {"ok": ok})
+        elif self.path == "/api/recording/start":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length) if length else b""
+            try:
+                payload = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                payload = {}
+            username = payload.get("username", "participant")
+            result = _request_recording_start(username)
+            self._json(200, result)
+        elif self.path == "/api/recording/stop":
+            result = _request_recording_stop()
+            self._json(200, result)
+        elif self.path == "/api/baseline/start":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length) if length else b""
+            try:
+                payload = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                payload = {}
+            code, data = _handle_baseline_start(payload)
+            self._json(code, data)
+        elif self.path == "/api/baseline/stop":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length) if length else b""
+            try:
+                payload = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                payload = {}
+            code, data = _handle_baseline_stop(payload)
+            self._json(code, data)
         else:
             self._json(404, {"ok": False})
 
@@ -518,12 +1152,16 @@ async def _handle_preview_client(ws: websockets.WebSocketServerProtocol) -> None
 async def _broadcast_frame(data: bytes) -> None:
     if not _preview_clients:
         return
-    dead = []
-    for ws in list(_preview_clients):
+    dead: list[websockets.WebSocketServerProtocol] = []
+
+    async def _send_one(ws: websockets.WebSocketServerProtocol) -> None:
         try:
-            await ws.send(data)
-        except Exception:
+            await asyncio.wait_for(ws.send(data), timeout=2.0)
+        except (asyncio.TimeoutError, Exception):
             dead.append(ws)
+
+    await asyncio.gather(*(_send_one(ws) for ws in list(_preview_clients)),
+                         return_exceptions=True)
     for ws in dead:
         _preview_clients.discard(ws)
 
@@ -1209,6 +1847,10 @@ def _annotate_frame(frame: np.ndarray, info: dict) -> np.ndarray:
 # concurrent calls, but we only need one thread to keep the event loop free.
 _frame_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
+# Separate executor for recording I/O (cv2 decode + VideoWriter.write)
+# so that disk/codec work never blocks the asyncio event loop.
+_rec_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
 
 async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
     global _participant_ws, _camera_status
@@ -1234,32 +1876,44 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
             bridge_ws = None
 
         try:
-            bridge_ws = await websockets.connect(
-                BRIDGE_WS_URL,
-                ping_interval=20,
-                ping_timeout=60,
+            bridge_ws = await asyncio.wait_for(
+                websockets.connect(
+                    BRIDGE_WS_URL,
+                    ping_interval=20,
+                    ping_timeout=60,
+                ),
+                timeout=5.0,
             )
             # Register as webcam client so server.py routes events correctly
             await bridge_ws.send(json.dumps({"client": "webcam"}))
             print(f"[BrowserBridge] Connected to bridge server: {BRIDGE_WS_URL}")
             return bridge_ws
+        except asyncio.TimeoutError:
+            print(f"[BrowserBridge] Bridge connection timeout (5s): {BRIDGE_WS_URL}")
+            bridge_ws = None
+            return None
         except Exception as exc:
             print(f"[BrowserBridge] Bridge connection failed: {exc}")
             bridge_ws = None
             return None
 
     # ── Frame-dropping receiver / processor architecture ──
-    # The extension sends ~15fps but MediaPipe may be slower.  A separate
+    # The extension sends ~30fps but MediaPipe may be slower.  A separate
     # receiver task stores only the latest frame; the processor always
     # picks up the freshest data, skipping stale frames.
+    # Preview frames are broadcast via a dedicated _preview_broadcaster()
+    # coroutine that always sends the latest frame, dropping intermediate
+    # ones when the event loop is under load.
     latest_frame_data: bytearray | None = None
+    latest_preview_data: bytes | None = None
     frame_ready = asyncio.Event()
+    preview_ready = asyncio.Event()
     stop_flag = asyncio.Event()
     loop = asyncio.get_event_loop()
 
     async def _receiver() -> None:
         """Receive WS messages; store latest binary frame, handle text cmds."""
-        nonlocal latest_frame_data
+        nonlocal latest_frame_data, latest_preview_data
         _frame_count = 0
         try:
             async for raw_message in ext_ws:
@@ -1268,6 +1922,18 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
                 if isinstance(raw_message, bytes):
                     latest_frame_data = raw_message
                     frame_ready.set()
+                    # Record EVERY received frame — offload to thread so
+                    # cv2 decode + VideoWriter.write never block the event loop.
+                    asyncio.ensure_future(
+                        loop.run_in_executor(
+                            _rec_executor,
+                            _check_and_handle_recording_bytes,
+                            raw_message,
+                        )
+                    )
+                    # Signal preview broadcaster with latest frame
+                    latest_preview_data = raw_message
+                    preview_ready.set()
                     _frame_count += 1
                     if _frame_count <= 3 or _frame_count % 100 == 0:
                         print(f"[BrowserBridge] Frame #{_frame_count} received ({len(raw_message)} bytes, {len(_preview_clients)} preview clients)")
@@ -1313,24 +1979,42 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
                 _frame_pool, engine.process_frame, frame
             )
 
-            # Broadcast annotated frame to researcher preview
+            # Send detection status to preview clients (rendered as HTML overlay)
+            # Use ensure_future to avoid blocking the processor on preview writes.
             if _preview_clients:
-                annotated = _annotate_frame(frame, engine.last_frame_info)
-                ok, buf = cv2.imencode('.jpg', annotated,
-                                       [cv2.IMWRITE_JPEG_QUALITY, 70])
-                if ok:
-                    asyncio.ensure_future(_broadcast_frame(buf.tobytes()))
+                try:
+                    info = engine.last_frame_info
+                    overlay = json.dumps({"type": "overlay", **info}, default=_json_default)
+                    for pws in list(_preview_clients):
+                        asyncio.ensure_future(pws.send(overlay))
+                except (TypeError, ValueError) as exc:
+                    print(f"[Preview] JSON serialization failed: {exc}")
 
-            # Forward posture events to bridge server
-            for msg in messages:
-                ws = await ensure_bridge()
-                if ws is not None:
-                    try:
-                        await ws.send(json.dumps(msg))
-                        print(f"[BrowserBridge] Sent to bridge: {json.dumps(msg, ensure_ascii=False)}")
-                    except websockets.ConnectionClosed:
-                        bridge_ws = None
-                        print("[BrowserBridge] Bridge disconnected during send")
+            # Forward posture events to bridge server (non-blocking).
+            # Resolve bridge connection once per frame to avoid repeated
+            # 5-second timeouts when the server is unreachable.
+            if messages:
+                bridge_ws_snapshot = await ensure_bridge()
+                for msg in messages:
+                    if bridge_ws_snapshot is not None:
+                        _payload = json.dumps(msg)
+                        _ws_ref = bridge_ws_snapshot
+
+                        async def _send_bridge(_ws=_ws_ref, _data=_payload) -> None:
+                            try:
+                                await asyncio.wait_for(_ws.send(_data), timeout=3.0)
+                                print(f"[BrowserBridge] Sent to bridge: {_data}")
+                            except asyncio.TimeoutError:
+                                print("[BrowserBridge] Bridge send timeout (3s)")
+                            except websockets.ConnectionClosed:
+                                nonlocal bridge_ws
+                                if bridge_ws is _ws:
+                                    bridge_ws = None
+                                print("[BrowserBridge] Bridge disconnected during send")
+                            except Exception as exc:
+                                print(f"[BrowserBridge] Bridge send error: {exc}")
+
+                        asyncio.ensure_future(_send_bridge())
 
             # Send status to extension
             try:
@@ -1343,11 +2027,53 @@ async def handle_extension(ext_ws: websockets.WebSocketServerProtocol) -> None:
             if stats:
                 print(f"[BrowserBridge] {stats}")
 
+    async def _preview_broadcaster() -> None:
+        """Dedicated task: send only the latest JPEG frame to preview clients.
+
+        Uses an Event + shared variable pattern so that at most ONE send
+        is in-flight at a time.  If the send takes longer than one frame
+        interval, intermediate frames are silently dropped — the browser
+        always receives the freshest available frame.
+        """
+        while not stop_flag.is_set():
+            await preview_ready.wait()
+            if stop_flag.is_set():
+                break
+            preview_ready.clear()
+            data = latest_preview_data
+            if data is not None and _preview_clients:
+                await _broadcast_frame(data)
+
+    async def _bridge_reader() -> None:
+        """Drain incoming messages from bridge_ws so the internal buffer
+        does not fill up and cause backpressure on sends."""
+        while not stop_flag.is_set():
+            # Wait until a bridge connection exists
+            if bridge_ws is None or bridge_ws.state != _WsState.OPEN:
+                await asyncio.sleep(1)
+                continue
+            try:
+                async for _msg in bridge_ws:
+                    if stop_flag.is_set():
+                        break
+            except websockets.ConnectionClosed:
+                pass
+            except Exception:
+                pass
+
     try:
-        await asyncio.gather(_receiver(), _processor())
+        await asyncio.gather(
+            _receiver(), _processor(),
+            _preview_broadcaster(), _bridge_reader(),
+        )
     except websockets.ConnectionClosed:
         print("[BrowserBridge] Client disconnected")
     finally:
+        # Drain pending recording writes before stopping
+        _rec_executor.shutdown(wait=True)
+        # Stop recording if still active (e.g. client disconnect)
+        if _rec_active:
+            _do_stop_recording()
         with _participant_lock:
             _participant_ws = None
             _camera_status = "disconnected"

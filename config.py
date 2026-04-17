@@ -59,7 +59,7 @@ class Config:
     redirect_nod_action_name: str = "head-down-up-nod"
     redirect_nod_action_wait_s: float = 1.2
     redirect_action_timeout_s: float = 10.0
-    redirect_screen_focus_pause_s: float = 1.0
+    redirect_screen_focus_pause_s: float = 1.5
     redirect_left_arm_pause_s: float = 0.3
     redirect_settle_s: float = 1.5
     redirect_confirmation_wait_s: float = 60.0
@@ -67,8 +67,8 @@ class Config:
     distraction_both_arms_repetitions: int = 2  # vestigial — kept for config compat
     distraction_both_arms_mid_deg: int = 0
     distraction_both_arms_velocity: int = 110
-    distraction_both_arms_up_hold_s: float = 0.5
-    distraction_both_arms_mid_hold_s: float = 0.3
+    distraction_both_arms_up_hold_s: float = 2.0
+    distraction_both_arms_mid_hold_s: float = 2.0
     cache_screen_pos: bool = True
     escalation_prompts: tuple[str, ...] = (
         "Hey, are you still with me? Don't forget to focus!",

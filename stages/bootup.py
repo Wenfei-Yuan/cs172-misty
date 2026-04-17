@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from utils.audio import speak_text
 from utils.expressions import BOOT_FACE, SPEAKING_FACE, show_image
-from utils.head_control import look_at_screen
+from utils.head_control import look_at_screen, reset_arms_down
 from stages.screen_watch import default_screen_position, find_screen_position_with_vlm
 
 
 def run_bootup(misty, cfg, log):
     show_image(misty, BOOT_FACE)
+    reset_arms_down(misty, cfg)
     speak_text(misty, cfg, "Hello! I'm Misty. Let's focus today!", log=log, stage="bootup_intro")
     speak_text(misty, cfg, "I'm looking for your screen now.", log=log, stage="bootup_screen_search_start")
     log.record("screen_search_started")

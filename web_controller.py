@@ -16,10 +16,11 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib import error, request
 
-HOST = "127.0.0.1"
+HOST = "0.0.0.0"
 PORT = int(os.getenv("WEB_PORT", "8080"))
 TRIGGER_HOST = os.getenv("TRIGGER_HOST", "127.0.0.1")
 TRIGGER_PORT = int(os.getenv("TRIGGER_PORT", "5050"))
+BRIDGE_HTTP_PORT = int(os.getenv("BRIDGE_HTTP_PORT", "9877"))
 
 _pipeline_proc: subprocess.Popen | None = None
 _pipeline_lock = threading.Lock()
@@ -34,6 +35,24 @@ def _send_shutdown() -> tuple[bool, str]:
             return True, resp.read().decode()
     except error.URLError as exc:
         return False, str(exc)
+
+
+def _notify_bridge_recording(action: str, username: str = "") -> None:
+    """Tell the webcam bridge to start/stop video recording."""
+    if action == "start":
+        url = f"http://127.0.0.1:{BRIDGE_HTTP_PORT}/api/recording/start"
+        data = json.dumps({"username": username}).encode()
+    else:
+        url = f"http://127.0.0.1:{BRIDGE_HTTP_PORT}/api/recording/stop"
+        data = b"{}"
+    req = request.Request(url, data=data, method="POST")
+    req.add_header("Content-Type", "application/json")
+    try:
+        with request.urlopen(req, timeout=5) as resp:
+            result = json.loads(resp.read().decode())
+            print(f"[web] Recording {action}: {result}")
+    except Exception as exc:
+        print(f"[web] Recording {action} failed (bridge may not be running): {exc}")
 
 
 def _find_python() -> str:
@@ -56,7 +75,8 @@ def _start_pipeline(username: str) -> tuple[bool, str]:
             [python, script, "--username", username],
             cwd=os.path.dirname(os.path.abspath(__file__)),
         )
-        return True, f"Pipeline started (PID {_pipeline_proc.pid})"
+    _notify_bridge_recording("start", username)
+    return True, f"Pipeline started (PID {_pipeline_proc.pid})"
 
 
 def _stop_pipeline() -> tuple[bool, str]:
@@ -79,6 +99,7 @@ def _stop_pipeline() -> tuple[bool, str]:
                     _pipeline_proc.kill()
                     _pipeline_proc.wait(timeout=2)
             _pipeline_proc = None
+    _notify_bridge_recording("stop")
     return ok, detail
 
 
@@ -179,6 +200,14 @@ HTML_PAGE = """\
   .status-ok   { background: #e6ffed; color: #27ae60; display: block !important; }
   .status-err  { background: #ffeaea; color: #e74c3c; display: block !important; }
   .status-info { background: #eef2ff; color: #667eea; display: block !important; }
+  .divider { border: none; border-top: 2px solid #eee; margin: 28px 0 20px; }
+  #camStatus {
+    margin-top: 0; padding: 10px; border-radius: 10px;
+    font-size: 13px; display: block; background: #f0f0f0; color: #888;
+  }
+  .cam-ok   { background: #e6ffed !important; color: #27ae60 !important; }
+  .cam-info { background: #eef2ff !important; color: #667eea !important; }
+  .cam-err  { background: #ffeaea !important; color: #e74c3c !important; }
 </style>
 </head>
 <body>
@@ -198,13 +227,101 @@ HTML_PAGE = """\
   </button>
 
   <div id="status"></div>
+
+  <!-- Camera connection status -->
+  <hr class="divider">
+  <div id="camStatus">📷 Connecting to camera server...</div>
 </div>
 
+<!-- Hidden camera elements -->
+<video id="camVideo" style="display:none" autoplay muted playsinline></video>
+<canvas id="camCanvas" style="display:none"></canvas>
+
 <script>
+var CAM_WS_PORT = 9876;
+var camWs = null, camStream = null, camTimer = null, camStreaming = false;
+var camVideo = document.getElementById('camVideo');
+var camCanvas = document.getElementById('camCanvas');
+var camCtx = camCanvas.getContext('2d');
+
 function setStatus(msg, type) {
   const el = document.getElementById('status');
   el.textContent = msg;
   el.className = 'status-' + type;
+}
+
+function setCamStatus(msg, type) {
+  var el = document.getElementById('camStatus');
+  el.textContent = msg;
+  el.className = type ? ('cam-' + type) : '';
+}
+
+function connectBridge() {
+  var wsUrl = 'ws://' + location.hostname + ':' + CAM_WS_PORT;
+  setCamStatus('📷 Connecting to ' + wsUrl + '...', 'info');
+  camWs = new WebSocket(wsUrl);
+  camWs.binaryType = 'arraybuffer';
+  camWs.onopen = function() {
+    camWs.send(JSON.stringify({type: 'hello', role: 'participant'}));
+    setCamStatus('📷 Connected — camera ready, controlled by researcher', 'ok');
+  };
+  camWs.onmessage = function(e) {
+    try {
+      var msg = JSON.parse(e.data);
+      if (msg.type === 'start_camera') startCamera();
+      else if (msg.type === 'stop_camera') stopCamera();
+    } catch(_) {}
+  };
+  camWs.onclose = function(ev) {
+    stopCamera();
+    setCamStatus('📷 Disconnected (code ' + ev.code + ') — reconnecting in 3s...', 'err');
+    setTimeout(connectBridge, 3000);
+  };
+  camWs.onerror = function(ev) {
+    setCamStatus('📷 Connection error to ' + wsUrl, 'err');
+  };
+}
+
+async function startCamera() {
+  if (camStreaming) return;
+  setCamStatus('📷 Opening camera...', 'info');
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: {ideal: 320}, height: {ideal: 240} },
+      audio: false
+    });
+    camVideo.srcObject = camStream;
+    await camVideo.play();
+    camCanvas.width = camVideo.videoWidth;
+    camCanvas.height = camVideo.videoHeight;
+    camStreaming = true;
+    setCamStatus('📷 Camera active — streaming to researcher (' + camVideo.videoWidth + 'x' + camVideo.videoHeight + ')', 'ok');
+    sendCamFrames();
+  } catch(err) {
+    setCamStatus('📷 Camera error: ' + err.name + ' — ' + err.message, 'err');
+  }
+}
+
+function stopCamera() {
+  camStreaming = false;
+  if (camTimer) { clearTimeout(camTimer); camTimer = null; }
+  if (camStream) {
+    camStream.getTracks().forEach(function(t) { t.stop(); });
+    camStream = null;
+  }
+  camVideo.srcObject = null;
+  if (camWs && camWs.readyState === WebSocket.OPEN)
+    setCamStatus('📷 Connected — camera ready, controlled by researcher', 'ok');
+}
+
+function sendCamFrames() {
+  if (!camStreaming) return;
+  camCtx.drawImage(camVideo, 0, 0);
+  camCanvas.toBlob(function(blob) {
+    if (blob && camWs && camWs.readyState === WebSocket.OPEN)
+      blob.arrayBuffer().then(function(buf) { camWs.send(new Uint8Array(buf)); });
+    camTimer = setTimeout(sendCamFrames, 33);
+  }, 'image/jpeg', 0.6);
 }
 
 async function startSession() {
@@ -261,6 +378,9 @@ async function stopSession() {
     document.getElementById('username').disabled = false;
   }, 2000);
 }
+
+// Auto-connect to camera bridge server on page load
+connectBridge();
 </script>
 </body>
 </html>

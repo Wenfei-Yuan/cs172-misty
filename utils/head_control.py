@@ -41,6 +41,12 @@ def _arms_move(misty, timeout_s: float | None = None, **payload) -> bool:
     return _perform_action_with_timeout(misty, "arms_move", payload, timeout_s=timeout_s)
 
 
+def reset_arms_down(misty, cfg) -> None:
+    arm_down_deg = int(getattr(cfg, "distraction_both_arms_down_deg", 80))
+    _arms_move(misty, LeftArmPosition=arm_down_deg, RightArmPosition=arm_down_deg,
+               LeftArmVelocity=60, RightArmVelocity=60)
+
+
 def _estimate_motion_duration_s(start_deg: float, target_deg: float, velocity_deg_per_s: float) -> float:
     safe_velocity = max(1.0, float(velocity_deg_per_s))
     return abs(float(target_deg) - float(start_deg)) / safe_velocity

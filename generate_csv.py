@@ -73,6 +73,7 @@ def _find_first_event_after(events: list[dict], name: str, after_ts: str | None)
 
 def load_sessions() -> list[dict]:
     files = sorted(SESSIONS_DIR.glob("session_*.json"))
+    files += sorted(SESSIONS_DIR.glob("baseline_*.json"))
     sessions = []
     for f in files:
         with open(f, encoding="utf-8") as fh:
@@ -232,10 +233,50 @@ def build_intervention_events(sessions: list[dict]) -> list[dict]:
         pid = sess.get("participant_id", "")
         events = sess.get("events", [])
         distractions = sess.get("distraction_events", [])
-        condition = "with_system"
+        condition = sess.get("condition", "with_system")
 
         for i, de in enumerate(distractions):
             global_event_id += 1
+
+            # ── Baseline (no_system) — simplified row ──
+            if condition == "no_system":
+                start_ts = de.get("distraction_start_time")
+                end_ts = de.get("distraction_end_time")
+                duration_s = de.get("distraction_duration_s")
+                resume_latency_ms = round(duration_s * 1000, 1) if duration_s is not None else ""
+                resumed_at_all = de.get("distraction_end_signal_received", False)
+                _RESUME_WINDOW_MS = 90_000
+                within_window = (resumed_at_all
+                                 and resume_latency_ms != ""
+                                 and float(resume_latency_ms) <= _RESUME_WINDOW_MS)
+                resumed = 1 if within_window else 0
+                resume_stage = "self_recovered" if within_window else "not_resumed"
+                trigger_source = de.get("trigger_source", "unknown")
+
+                rows.append({
+                    "event_id": global_event_id,
+                    "participant_id": pid,
+                    "session_id": sid,
+                    "condition": condition,
+                    "disengagement_onset_ts": start_ts or "",
+                    "trigger_source": trigger_source,
+                    "robot_nonverbal_start_ts": "",
+                    "robot_nonverbal_type": "",
+                    "robot_nonverbal_end_ts": "",
+                    "distraction_end_ts": end_ts or "",
+                    "escalated_to_voice": 0,
+                    "voice_start_ts": "",
+                    "voice_prompt_type": "",
+                    "voice_prompt_text_length": "",
+                    "highlight_shown": 0,
+                    "highlight_shown_ts": "",
+                    "resumed_within_window": resumed,
+                    "resume_latency_ms": resume_latency_ms,
+                    "resume_stage": resume_stage,
+                })
+                continue
+
+            # ── with_system — full intervention row ──
 
             # Time window for this distraction
             next_start_ts = distractions[i + 1]["distraction_start_time"] if i + 1 < len(distractions) else sess.get("end_time")
@@ -325,7 +366,7 @@ def build_session_summary(sessions: list[dict], intervention_rows: list[dict]) -
     for sess in sessions:
         sid = sess.get("session_id", "")
         pid = sess.get("participant_id", "")
-        condition = "with_system"
+        condition = sess.get("condition", "with_system")
 
         total_ms = _ms_between(sess.get("start_time"), sess.get("end_time"))
 

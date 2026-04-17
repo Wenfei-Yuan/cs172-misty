@@ -12,6 +12,7 @@ WS_HOST = os.getenv("WS_HOST", "0.0.0.0")
 WS_PORT = int(os.getenv("WS_PORT", "8765"))
 TRIGGER_HOST = os.getenv("TRIGGER_HOST", "127.0.0.1")
 TRIGGER_PORT = int(os.getenv("TRIGGER_PORT", "5050"))
+BRIDGE_HTTP_PORT = int(os.getenv("BRIDGE_HTTP_PORT", "9877"))
 
 # ── Control-group mode ────────────────────────────────────────────────
 # Set CONTROL_MODE=1 to run webcam-only monitoring without robot or
@@ -25,7 +26,7 @@ EVENT_TO_PATH = {
     "shutdown": "/shutdown",
 }
 CURRENT_TEXT_PATH = "/current_text"
-CLIENT_ROLES = {"webcam", "extension"}
+CLIENT_ROLES = {"webcam", "extension", "baseline"}
 REENGAGEMENT_ALIASES = {
     "re-engagement",
     "re_engagement",
@@ -152,18 +153,42 @@ def parse_client_registration(message: str) -> str | None:
     return None
 
 
+def _notify_bridge_recording(action: str, username: str = "control") -> None:
+    """Tell the webcam bridge to start/stop video recording."""
+    if action == "start":
+        url = f"http://127.0.0.1:{BRIDGE_HTTP_PORT}/api/recording/start"
+        data = json.dumps({"username": username}).encode()
+    else:
+        url = f"http://127.0.0.1:{BRIDGE_HTTP_PORT}/api/recording/stop"
+        data = b"{}"
+    req = request.Request(url, data=data, method="POST")
+    req.add_header("Content-Type", "application/json")
+    try:
+        with request.urlopen(req, timeout=5) as resp:
+            result = json.loads(resp.read().decode())
+            _log("server", "console", f"[对照组] Recording {action}: {result}")
+    except Exception as exc:
+        _log("server", "console", f"[对照组] Recording {action} failed (bridge may not be running): {exc}")
+
+
 def register_client(websocket, role: str) -> None:
     previous_socket = role_clients.get(role)
     if previous_socket and previous_socket is not websocket:
         client_roles.pop(previous_socket, None)
     role_clients[role] = websocket
     client_roles[websocket] = role
+    if CONTROL_MODE and role == "webcam":
+        _log("server", "console", "[对照组] webcam 已注册，启动录制")
+        _notify_bridge_recording("start", "control")
 
 
 def unregister_client(websocket) -> None:
     role = client_roles.pop(websocket, None)
     if role and role_clients.get(role) is websocket:
         role_clients.pop(role, None)
+    if CONTROL_MODE and role == "webcam":
+        _log("server", "console", "[对照组] webcam 已断开，停止录制")
+        _notify_bridge_recording("stop")
 
 
 def parse_message_signal(message: str) -> str | None:
@@ -328,6 +353,24 @@ async def forward_current_text(text: str) -> tuple[bool, str]:
     return await asyncio.to_thread(post_current_text, text)
 
 
+async def notify_baseline_event(event: str, reason: str | None = None) -> None:
+    """Send disengagement event to the baseline observer client."""
+    baseline_socket = role_clients.get("baseline")
+    if baseline_socket is None:
+        return
+    msg = json.dumps({
+        "type": "baseline_event",
+        "event": event,
+        "reason": reason,
+        "ts": datetime.now().astimezone().isoformat(),
+    })
+    try:
+        await baseline_socket.send(msg)
+        _log("server", "baseline", f"baseline 事件通知: {event} (reason={reason})")
+    except websockets.ConnectionClosed:
+        _log("server", "console", "baseline WebSocket 已关闭，通知未送达")
+
+
 async def notify_extension_posture_disengagement(source_role: str | None, signal: str | None, event: str | None, forwarded: bool) -> None:
     if signal != "disengaged_true" or event != "start":
         return
@@ -410,6 +453,7 @@ async def handler(websocket):
                 _log("server", receiver_role, f"WebSocket 定向发送 -> {receiver_role}: {json.dumps(response, ensure_ascii=False)}")
                 await websocket.send(json.dumps(response))
                 await notify_extension_posture_disengagement(receiver_role, signal, event, False)
+                await notify_baseline_event(event, disengage_reason)
                 continue
 
             ok, detail = await forward_event(event, reason=disengage_reason)

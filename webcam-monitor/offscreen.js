@@ -6,7 +6,7 @@
  */
 
 const LOCAL_WS_URL = "ws://127.0.0.1:9876";
-const FRAME_INTERVAL_MS = 66; // ~15 fps
+const FRAME_INTERVAL_MS = 33; // ~30 fps
 const JPEG_QUALITY = 0.85;
 
 const video = document.getElementById("video");

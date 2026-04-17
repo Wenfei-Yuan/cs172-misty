@@ -1,0 +1,133 @@
+{
+  "session_id": "baseline_20260417_hang3_d3454e",
+  "participant_id": "hang3",
+  "condition": "no_system",
+  "start_time": "2026-04-17T17:36:46.949497-04:00",
+  "end_time": "2026-04-17T17:38:16.225050-04:00",
+  "events": [
+    {
+      "timestamp": "2026-04-17T17:37:02.024332-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-17T17:37:32.588913-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-17T17:37:36.471420-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-17T17:37:39.161515-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-17T17:37:42.658255-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-17T17:37:46.686312-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-17T17:37:49.621301-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-17T17:37:53.448126-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-17T17:38:14.924022-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-04-17T17:37:02.024332-04:00",
+      "distraction_end_time": "2026-04-17T17:37:32.588913-04:00",
+      "distraction_duration_s": 30.56,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 30.56
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-04-17T17:37:36.471420-04:00",
+      "distraction_end_time": "2026-04-17T17:37:39.161515-04:00",
+      "distraction_duration_s": 2.69,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 2.69
+    },
+    {
+      "event_index": 3,
+      "distraction_start_time": "2026-04-17T17:37:42.658255-04:00",
+      "distraction_end_time": "2026-04-17T17:37:46.686312-04:00",
+      "distraction_duration_s": 4.03,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 4.03
+    },
+    {
+      "event_index": 4,
+      "distraction_start_time": "2026-04-17T17:37:49.621301-04:00",
+      "distraction_end_time": "2026-04-17T17:37:53.448126-04:00",
+      "distraction_duration_s": 3.83,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 3.83
+    },
+    {
+      "event_index": 5,
+      "distraction_start_time": "2026-04-17T17:38:14.924022-04:00",
+      "distraction_end_time": "2026-04-17T17:38:16.225050-04:00",
+      "distraction_duration_s": 1.3,
+      "distraction_end_signal_received": false,
+      "exit_reason": "session_ended",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": false,
+      "gaze_latency_s": null
+    }
+  ],
+  "total_distraction_count": 5,
+  "total_voice_prompts": 0
+}

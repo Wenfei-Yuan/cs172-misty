@@ -1,0 +1,47 @@
+{
+  "mode": "control",
+  "start_time": "2026-04-17T17:37:02.023098",
+  "events": [
+    {
+      "ts": "2026-04-17T17:37:02.023570",
+      "event": "start",
+      "reason": "gaze_mind_wandering"
+    },
+    {
+      "ts": "2026-04-17T17:37:32.585983",
+      "event": "stop"
+    },
+    {
+      "ts": "2026-04-17T17:37:36.470746",
+      "event": "start",
+      "reason": "gaze_mind_wandering"
+    },
+    {
+      "ts": "2026-04-17T17:37:39.160943",
+      "event": "stop"
+    },
+    {
+      "ts": "2026-04-17T17:37:42.657563",
+      "event": "start",
+      "reason": "gaze_mind_wandering"
+    },
+    {
+      "ts": "2026-04-17T17:37:46.685008",
+      "event": "stop"
+    },
+    {
+      "ts": "2026-04-17T17:37:49.620273",
+      "event": "start",
+      "reason": "gaze_mind_wandering"
+    },
+    {
+      "ts": "2026-04-17T17:37:53.447351",
+      "event": "stop"
+    },
+    {
+      "ts": "2026-04-17T17:38:14.893166",
+      "event": "start",
+      "reason": "gaze_mind_wandering"
+    }
+  ]
+}
