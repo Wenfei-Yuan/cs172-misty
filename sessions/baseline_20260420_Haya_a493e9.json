@@ -1,0 +1,208 @@
+{
+  "session_id": "baseline_20260420_Haya_a493e9",
+  "participant_id": "Haya",
+  "condition": "no_system",
+  "start_time": "2026-04-20T23:02:56.171320-04:00",
+  "end_time": "2026-04-20T23:08:53.437651-04:00",
+  "events": [
+    {
+      "timestamp": "2026-04-20T23:03:04.208382-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-20T23:03:06.440717-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-20T23:03:12.585243-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-20T23:03:17.702421-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-20T23:03:22.350185-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-20T23:04:37.390173-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-20T23:04:43.615796-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-20T23:05:31.333229-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-20T23:05:44.746648-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-20T23:07:16.786629-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-20T23:07:31.546343-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-20T23:07:38.480554-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-20T23:07:48.134574-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-20T23:07:50.629934-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-20T23:07:55.663989-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-04-20T23:03:04.208382-04:00",
+      "distraction_end_time": "2026-04-20T23:03:06.440717-04:00",
+      "distraction_duration_s": 2.23,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 2.23
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-04-20T23:03:12.585243-04:00",
+      "distraction_end_time": "2026-04-20T23:03:17.702421-04:00",
+      "distraction_duration_s": 5.12,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 5.12
+    },
+    {
+      "event_index": 3,
+      "distraction_start_time": "2026-04-20T23:03:22.350185-04:00",
+      "distraction_end_time": "2026-04-20T23:04:37.390173-04:00",
+      "distraction_duration_s": 75.04,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 75.04
+    },
+    {
+      "event_index": 4,
+      "distraction_start_time": "2026-04-20T23:04:43.615796-04:00",
+      "distraction_end_time": "2026-04-20T23:05:31.333229-04:00",
+      "distraction_duration_s": 47.72,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 47.72
+    },
+    {
+      "event_index": 5,
+      "distraction_start_time": "2026-04-20T23:05:44.746648-04:00",
+      "distraction_end_time": "2026-04-20T23:07:16.786629-04:00",
+      "distraction_duration_s": 92.04,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 92.04
+    },
+    {
+      "event_index": 6,
+      "distraction_start_time": "2026-04-20T23:07:31.546343-04:00",
+      "distraction_end_time": "2026-04-20T23:07:38.480554-04:00",
+      "distraction_duration_s": 6.93,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 6.93
+    },
+    {
+      "event_index": 7,
+      "distraction_start_time": "2026-04-20T23:07:48.134574-04:00",
+      "distraction_end_time": "2026-04-20T23:07:50.629934-04:00",
+      "distraction_duration_s": 2.5,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 2.5
+    },
+    {
+      "event_index": 8,
+      "distraction_start_time": "2026-04-20T23:07:55.663989-04:00",
+      "distraction_end_time": "2026-04-20T23:08:53.437651-04:00",
+      "distraction_duration_s": 57.77,
+      "distraction_end_signal_received": false,
+      "exit_reason": "session_ended",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": false,
+      "gaze_latency_s": null
+    }
+  ],
+  "total_distraction_count": 8,
+  "total_voice_prompts": 0
+}
