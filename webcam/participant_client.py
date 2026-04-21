@@ -17,7 +17,7 @@ WS_URL = f"ws://{SERVER_IP}:{SERVER_PORT}"
 RECONNECT_DELAY = 3.0
 
 DISENGAGE_THRESHOLD = 2.0     # 更严格：偏离持续超过2.0秒 -> disengaged
-REENGAGE_THRESHOLD = 1.5  # 恢复朝向屏幕后持续1.5秒 -> re-engaged
+REENGAGE_THRESHOLD = 1.0  # 恢复朝向屏幕后持续1.5秒 -> re-engaged
 GAZE_REENGAGE_THRESHOLD = REENGAGE_THRESHOLD  # 与普通恢复保持一致，差异只留在恢复判据而不是等待时长
 
 EVENT_CALIBRATION_COMPLETE = "calibration_complete"
@@ -44,7 +44,7 @@ GAZE_YAW_DEVIATION_THRESHOLD = 0.07           # 更严格：更小偏移就判�
 GAZE_PITCH_DEVIATION_THRESHOLD = 0.04         # 更严格：更小偏移就判为纵向分心
 GAZE_YAW_HYSTERESIS = 0.025                   # Slightly tighter horizontal hysteresis
 GAZE_PITCH_HYSTERESIS = 0.015                 # Slightly tighter vertical hysteresis
-GAZE_MIND_WANDERING_DURATION = 1.8         # 更严格：持续1.8秒眼动偏离就触发
+GAZE_MIND_WANDERING_DURATION = 1.5        # 持续1.5秒眼动偏离就触发
 GAZE_MW_BREAK_TOLERANCE = 0.6                 # 更严格：短暂回正不轻易清空 MW 计时器
 GAZE_HEAD_YAW_LIMIT = 50                    # Only evaluate gaze when head yaw_dev < this (parallax guard)
 
@@ -374,24 +374,37 @@ async def calibrate_reference_pose(cap):
 
 
 async def run_client():
-    cap = cv2.VideoCapture(0)
+    cap = None
+    camera_active = asyncio.Event()
+    stop_camera_event = asyncio.Event()
+    shutdown_event = asyncio.Event()
 
-    if not cap.isOpened():
-        print("无法打开摄像头")
-        return
+    async def _recv_commands(websocket):
+        """Listen for remote commands from server (e.g. start_camera, stop_camera)."""
+        try:
+            async for raw in websocket:
+                try:
+                    msg = json.loads(raw)
+                except (json.JSONDecodeError, TypeError):
+                    continue
+                cmd_type = msg.get("type")
+                if cmd_type == "start_camera":
+                    print("[远程] 收到 start_camera 指令")
+                    stop_camera_event.clear()
+                    camera_active.set()
+                elif cmd_type == "stop_camera":
+                    print("[远程] 收到 stop_camera 指令")
+                    camera_active.clear()
+                    stop_camera_event.set()
+                elif cmd_type == "shutdown":
+                    print("[远程] 收到 shutdown 指令")
+                    shutdown_event.set()
+                    camera_active.set()  # unblock wait
+        except websockets.ConnectionClosed:
+            pass
 
     try:
-        calibration = await calibrate_reference_pose(cap)
-        if calibration is None:
-            print("程序结束：未完成校准")
-            return
-
-        reference_yaw = calibration["reference_yaw"]
-        reference_pitch = calibration["reference_pitch"]
-        reference_gaze_yaw = calibration["reference_gaze_yaw"]
-        reference_gaze_pitch = calibration["reference_gaze_pitch"]
-
-        while True:
+        while not shutdown_event.is_set():
             print(f"正在连接 server: {WS_URL}")
 
             try:
@@ -402,412 +415,469 @@ async def run_client():
                 ) as websocket:
                     print("已连接到 server")
 
-                    calibration_message = {
-                        "source": "webcam",
-                        "type": EVENT_CALIBRATION_COMPLETE,
-                        "reference_yaw": round(reference_yaw, 2),
-                        "reference_pitch": round(reference_pitch, 2),
-                        "enable_eye_gaze": ENABLE_EYE_GAZE,
-                        "reference_gaze_yaw": round(reference_gaze_yaw, 4) if ENABLE_EYE_GAZE else None,
-                        "reference_gaze_pitch": round(reference_gaze_pitch, 4) if ENABLE_EYE_GAZE else None,
-                        "timestamp": time.time()
-                    }
-                    await websocket.send(json.dumps(calibration_message))
-                    print("已发送:", calibration_message)
+                    # Register as webcam client
+                    await websocket.send(json.dumps({"client": "webcam"}))
 
-                    disengaged = False
-                    away_start_time = None
-                    away_break_start_time = None
-                    reengage_start_time = None
-                    reengage_break_start_time = None
-                    detection_armed = False
-                    valid_face_streak = 0
-                    disengage_reason_latched = None
-                    smoothed_yaw = None
-                    smoothed_pitch = None
-                    face_missing_start_time = None
-                    invalid_pose_start_time = None
-                    last_stable_screen_facing = None
-                    smoothed_gaze_yaw = None
-                    smoothed_gaze_pitch = None
-                    gaze_mw_start_time = None
-                    gaze_mw_break_start_time = None
-                    gaze_mind_wandering = False
+                    # Start command listener
+                    recv_task = asyncio.create_task(_recv_commands(websocket))
 
-                    while True:
-                        ret, frame = cap.read()
-                        if not ret:
-                            print("读取摄像头画面失败")
-                            await asyncio.sleep(0.1)
-                            continue
+                    try:
+                        while not shutdown_event.is_set():
+                            # ── Wait for start_camera command ──
+                            print("等待研究者发送 start_camera 指令...")
+                            await camera_active.wait()
+                            if shutdown_event.is_set():
+                                break
 
-                        now = time.time()
-                        result = analyze_frame(frame)
+                            # ── Open camera & calibrate ──
+                            print("正在打开摄像头...")
+                            cap = cv2.VideoCapture(0)
+                            if not cap.isOpened():
+                                print("无法打开摄像头，等待重试...")
+                                camera_active.clear()
+                                continue
 
-                        raw_face_present = result["face_present"]
-                        yaw = result["yaw"]
-                        pitch = result["pitch"]
-                        gaze = result["gaze"]
-                        has_valid_pose = raw_face_present and yaw is not None and pitch is not None
+                            calibration = await calibrate_reference_pose(cap)
+                            if calibration is None:
+                                print("校准失败，释放摄像头，等待下次指令...")
+                                cap.release()
+                                cap = None
+                                camera_active.clear()
+                                continue
 
-                        if raw_face_present:
-                            face_missing_start_time = None
-                        elif face_missing_start_time is None:
-                            face_missing_start_time = now
+                            reference_yaw = calibration["reference_yaw"]
+                            reference_pitch = calibration["reference_pitch"]
+                            reference_gaze_yaw = calibration["reference_gaze_yaw"]
+                            reference_gaze_pitch = calibration["reference_gaze_pitch"]
 
-                        if raw_face_present and yaw is None:
-                            if invalid_pose_start_time is None:
-                                invalid_pose_start_time = now
-                        else:
-                            invalid_pose_start_time = None
+                            calibration_message = {
+                                "source": "webcam",
+                                "type": EVENT_CALIBRATION_COMPLETE,
+                                "reference_yaw": round(reference_yaw, 2),
+                                "reference_pitch": round(reference_pitch, 2),
+                                "enable_eye_gaze": ENABLE_EYE_GAZE,
+                                "reference_gaze_yaw": round(reference_gaze_yaw, 4) if ENABLE_EYE_GAZE else None,
+                                "reference_gaze_pitch": round(reference_gaze_pitch, 4) if ENABLE_EYE_GAZE else None,
+                                "timestamp": time.time()
+                            }
+                            await websocket.send(json.dumps(calibration_message))
+                            print("已发送校准消息:", calibration_message)
 
-                        face_missing_duration = 0.0 if face_missing_start_time is None else (now - face_missing_start_time)
-                        invalid_pose_duration = 0.0 if invalid_pose_start_time is None else (now - invalid_pose_start_time)
-
-                        if has_valid_pose:
-                            smoothed_yaw = smooth_angle(smoothed_yaw, yaw, POSE_SMOOTHING_ALPHA)
-                            smoothed_pitch = smooth_angle(smoothed_pitch, pitch, POSE_SMOOTHING_ALPHA)
-                        else:
-                            smoothed_yaw = None
-                            smoothed_pitch = None
-
-                        effective_yaw = smoothed_yaw if smoothed_yaw is not None else yaw
-                        effective_pitch = smoothed_pitch if smoothed_pitch is not None else pitch
-
-                        # ─── Eye Gaze Smoothing ───
-                        if ENABLE_EYE_GAZE and gaze is not None:
-                            smoothed_gaze_yaw = smooth_angle(smoothed_gaze_yaw, gaze["gaze_yaw_ratio"], GAZE_SMOOTHING_ALPHA)
-                            smoothed_gaze_pitch = smooth_angle(smoothed_gaze_pitch, gaze["gaze_pitch_ratio"], GAZE_SMOOTHING_ALPHA)
-                        else:
-                            smoothed_gaze_yaw = None
-                            smoothed_gaze_pitch = None
-
-                        if not raw_face_present:
-                            screen_facing = False
-                            yaw_deviation = None
-                            pitch_deviation = None
-                            yaw_threshold = YAW_DEVIATION_THRESHOLD
-                            pitch_threshold = PITCH_DEVIATION_THRESHOLD
-                            if detection_armed and face_missing_duration < FACE_MISSING_GRACE_PERIOD:
-                                reason = "face_missing_pending"
-                            else:
-                                reason = "face_missing"
-                        elif yaw is None or pitch is None:
-                            screen_facing = False
-                            yaw_deviation = None
-                            pitch_deviation = None
-                            yaw_threshold = YAW_DEVIATION_THRESHOLD
-                            pitch_threshold = PITCH_DEVIATION_THRESHOLD
-                            if detection_armed and invalid_pose_duration < POSE_INVALID_GRACE_PERIOD:
-                                reason = "pose_estimation_pending"
-                            else:
-                                reason = "pose_estimation_failed"
-                        else:
-                            yaw_deviation = abs(effective_yaw - reference_yaw)
-                            pitch_deviation = abs(effective_pitch - reference_pitch)
-
-                            screen_facing, yaw_threshold, pitch_threshold = compute_screen_facing(
-                                yaw_deviation=yaw_deviation,
-                                pitch_deviation=pitch_deviation,
-                                disengaged=disengaged,
-                                yaw_threshold=YAW_DEVIATION_THRESHOLD,
-                                pitch_threshold=PITCH_DEVIATION_THRESHOLD,
-                                reengage_yaw_threshold=REENGAGE_YAW_DEVIATION_THRESHOLD,
-                                reengage_pitch_threshold=REENGAGE_PITCH_DEVIATION_THRESHOLD,
-                                yaw_hysteresis_margin=YAW_HYSTERESIS_MARGIN,
-                                pitch_hysteresis_margin=PITCH_HYSTERESIS_MARGIN,
-                            )
-
-                            reason = "screen_facing" if screen_facing else "looking_away"
-                            last_stable_screen_facing = screen_facing
-
-                        face_present = raw_face_present
-                        reported_screen_facing = screen_facing
-
-                        if detection_armed and (not raw_face_present) and face_missing_duration < FACE_MISSING_GRACE_PERIOD:
-                            face_present = True
-                            if last_stable_screen_facing is not None:
-                                reported_screen_facing = last_stable_screen_facing
-                        elif detection_armed and raw_face_present and (yaw is None or pitch is None) and invalid_pose_duration < POSE_INVALID_GRACE_PERIOD:
-                            if last_stable_screen_facing is not None:
-                                reported_screen_facing = last_stable_screen_facing
-
-                        face_missing_confirmed = (
-                            detection_armed and
-                            (not raw_face_present) and
-                            face_missing_duration >= FACE_MISSING_GRACE_PERIOD
-                        )
-                        invalid_pose_confirmed = (
-                            detection_armed and
-                            raw_face_present and
-                            (yaw is None or pitch is None) and
-                            invalid_pose_duration >= POSE_INVALID_GRACE_PERIOD
-                        )
-                        looking_away_confirmed = raw_face_present and yaw is not None and pitch is not None and (not screen_facing)
-                        state_changed = False
-                        active_error_reason = None
-                        reengage_threshold_s = REENGAGE_THRESHOLD
-
-                        # Compute current-frame gaze deviation before recovery logic uses it.
-                        gaze_yaw_dev = None
-                        gaze_pitch_dev = None
-                        gaze_looking_away = False
-                        gaze_error_confirmed = False
-
-                        if ENABLE_EYE_GAZE and smoothed_gaze_yaw is not None:
-                            gaze_yaw_dev = abs(smoothed_gaze_yaw - reference_gaze_yaw)
-                            gaze_pitch_dev = abs(smoothed_gaze_pitch - reference_gaze_pitch)
-
-                            # Parallax guard: only evaluate gaze when head is roughly forward
-                            if yaw_deviation is not None and yaw_deviation < GAZE_HEAD_YAW_LIMIT:
-                                if gaze_mind_wandering:
-                                    gy_thresh = GAZE_YAW_DEVIATION_THRESHOLD - GAZE_YAW_HYSTERESIS
-                                    gp_thresh = GAZE_PITCH_DEVIATION_THRESHOLD - GAZE_PITCH_HYSTERESIS
-                                else:
-                                    gy_thresh = GAZE_YAW_DEVIATION_THRESHOLD + GAZE_YAW_HYSTERESIS
-                                    gp_thresh = GAZE_PITCH_DEVIATION_THRESHOLD + GAZE_PITCH_HYSTERESIS
-                                gaze_looking_away = gaze_yaw_dev > gy_thresh or gaze_pitch_dev > gp_thresh
-
-                        if not detection_armed:
-                            if has_valid_pose:
-                                valid_face_streak += 1
-                            else:
-                                valid_face_streak = 0
-
+                            disengaged = False
                             away_start_time = None
                             away_break_start_time = None
                             reengage_start_time = None
                             reengage_break_start_time = None
-                            away_duration = 0.0
-                            reengage_duration = 0.0
+                            detection_armed = False
+                            valid_face_streak = 0
+                            disengage_reason_latched = None
+                            smoothed_yaw = None
+                            smoothed_pitch = None
+                            face_missing_start_time = None
+                            invalid_pose_start_time = None
+                            last_stable_screen_facing = None
+                            smoothed_gaze_yaw = None
+                            smoothed_gaze_pitch = None
+                            gaze_mw_start_time = None
+                            gaze_mw_break_start_time = None
+                            gaze_mind_wandering = False
 
-                            if valid_face_streak >= MIN_VALID_FACE_FRAMES:
-                                detection_armed = True
-                        else:
-                            if ENABLE_EYE_GAZE:
-                                if gaze_looking_away:
-                                    if gaze_mw_start_time is None:
-                                        gaze_mw_start_time = now
-                                    gaze_mw_break_start_time = None
-                                elif gaze_mw_start_time is not None:
-                                    if gaze_mw_break_start_time is None:
-                                        gaze_mw_break_start_time = now
-                                    elif now - gaze_mw_break_start_time >= GAZE_MW_BREAK_TOLERANCE:
+                            # ── Detection loop ──
+                            while camera_active.is_set() and not shutdown_event.is_set():
+                                ret, frame = cap.read()
+                                if not ret:
+                                    print("读取摄像头画面失败")
+                                    await asyncio.sleep(0.1)
+                                    continue
+
+                                now = time.time()
+                                result = analyze_frame(frame)
+        
+                                raw_face_present = result["face_present"]
+                                yaw = result["yaw"]
+                                pitch = result["pitch"]
+                                gaze = result["gaze"]
+                                has_valid_pose = raw_face_present and yaw is not None and pitch is not None
+        
+                                if raw_face_present:
+                                    face_missing_start_time = None
+                                elif face_missing_start_time is None:
+                                    face_missing_start_time = now
+        
+                                if raw_face_present and yaw is None:
+                                    if invalid_pose_start_time is None:
+                                        invalid_pose_start_time = now
+                                else:
+                                    invalid_pose_start_time = None
+        
+                                face_missing_duration = 0.0 if face_missing_start_time is None else (now - face_missing_start_time)
+                                invalid_pose_duration = 0.0 if invalid_pose_start_time is None else (now - invalid_pose_start_time)
+        
+                                if has_valid_pose:
+                                    smoothed_yaw = smooth_angle(smoothed_yaw, yaw, POSE_SMOOTHING_ALPHA)
+                                    smoothed_pitch = smooth_angle(smoothed_pitch, pitch, POSE_SMOOTHING_ALPHA)
+                                else:
+                                    smoothed_yaw = None
+                                    smoothed_pitch = None
+        
+                                effective_yaw = smoothed_yaw if smoothed_yaw is not None else yaw
+                                effective_pitch = smoothed_pitch if smoothed_pitch is not None else pitch
+        
+                                # ─── Eye Gaze Smoothing ───
+                                if ENABLE_EYE_GAZE and gaze is not None:
+                                    smoothed_gaze_yaw = smooth_angle(smoothed_gaze_yaw, gaze["gaze_yaw_ratio"], GAZE_SMOOTHING_ALPHA)
+                                    smoothed_gaze_pitch = smooth_angle(smoothed_gaze_pitch, gaze["gaze_pitch_ratio"], GAZE_SMOOTHING_ALPHA)
+                                else:
+                                    smoothed_gaze_yaw = None
+                                    smoothed_gaze_pitch = None
+        
+                                if not raw_face_present:
+                                    screen_facing = False
+                                    yaw_deviation = None
+                                    pitch_deviation = None
+                                    yaw_threshold = YAW_DEVIATION_THRESHOLD
+                                    pitch_threshold = PITCH_DEVIATION_THRESHOLD
+                                    if detection_armed and face_missing_duration < FACE_MISSING_GRACE_PERIOD:
+                                        reason = "face_missing_pending"
+                                    else:
+                                        reason = "face_missing"
+                                elif yaw is None or pitch is None:
+                                    screen_facing = False
+                                    yaw_deviation = None
+                                    pitch_deviation = None
+                                    yaw_threshold = YAW_DEVIATION_THRESHOLD
+                                    pitch_threshold = PITCH_DEVIATION_THRESHOLD
+                                    if detection_armed and invalid_pose_duration < POSE_INVALID_GRACE_PERIOD:
+                                        reason = "pose_estimation_pending"
+                                    else:
+                                        reason = "pose_estimation_failed"
+                                else:
+                                    yaw_deviation = abs(effective_yaw - reference_yaw)
+                                    pitch_deviation = abs(effective_pitch - reference_pitch)
+        
+                                    screen_facing, yaw_threshold, pitch_threshold = compute_screen_facing(
+                                        yaw_deviation=yaw_deviation,
+                                        pitch_deviation=pitch_deviation,
+                                        disengaged=disengaged,
+                                        yaw_threshold=YAW_DEVIATION_THRESHOLD,
+                                        pitch_threshold=PITCH_DEVIATION_THRESHOLD,
+                                        reengage_yaw_threshold=REENGAGE_YAW_DEVIATION_THRESHOLD,
+                                        reengage_pitch_threshold=REENGAGE_PITCH_DEVIATION_THRESHOLD,
+                                        yaw_hysteresis_margin=YAW_HYSTERESIS_MARGIN,
+                                        pitch_hysteresis_margin=PITCH_HYSTERESIS_MARGIN,
+                                    )
+        
+                                    reason = "screen_facing" if screen_facing else "looking_away"
+                                    last_stable_screen_facing = screen_facing
+        
+                                face_present = raw_face_present
+                                reported_screen_facing = screen_facing
+        
+                                if detection_armed and (not raw_face_present) and face_missing_duration < FACE_MISSING_GRACE_PERIOD:
+                                    face_present = True
+                                    if last_stable_screen_facing is not None:
+                                        reported_screen_facing = last_stable_screen_facing
+                                elif detection_armed and raw_face_present and (yaw is None or pitch is None) and invalid_pose_duration < POSE_INVALID_GRACE_PERIOD:
+                                    if last_stable_screen_facing is not None:
+                                        reported_screen_facing = last_stable_screen_facing
+        
+                                face_missing_confirmed = (
+                                    detection_armed and
+                                    (not raw_face_present) and
+                                    face_missing_duration >= FACE_MISSING_GRACE_PERIOD
+                                )
+                                invalid_pose_confirmed = (
+                                    detection_armed and
+                                    raw_face_present and
+                                    (yaw is None or pitch is None) and
+                                    invalid_pose_duration >= POSE_INVALID_GRACE_PERIOD
+                                )
+                                looking_away_confirmed = raw_face_present and yaw is not None and pitch is not None and (not screen_facing)
+                                state_changed = False
+                                active_error_reason = None
+                                reengage_threshold_s = REENGAGE_THRESHOLD
+        
+                                # Compute current-frame gaze deviation before recovery logic uses it.
+                                gaze_yaw_dev = None
+                                gaze_pitch_dev = None
+                                gaze_looking_away = False
+                                gaze_error_confirmed = False
+        
+                                if ENABLE_EYE_GAZE and smoothed_gaze_yaw is not None:
+                                    gaze_yaw_dev = abs(smoothed_gaze_yaw - reference_gaze_yaw)
+                                    gaze_pitch_dev = abs(smoothed_gaze_pitch - reference_gaze_pitch)
+        
+                                    # Parallax guard: only evaluate gaze when head is roughly forward
+                                    if yaw_deviation is not None and yaw_deviation < GAZE_HEAD_YAW_LIMIT:
+                                        if gaze_mind_wandering:
+                                            gy_thresh = GAZE_YAW_DEVIATION_THRESHOLD - GAZE_YAW_HYSTERESIS
+                                            gp_thresh = GAZE_PITCH_DEVIATION_THRESHOLD - GAZE_PITCH_HYSTERESIS
+                                        else:
+                                            gy_thresh = GAZE_YAW_DEVIATION_THRESHOLD + GAZE_YAW_HYSTERESIS
+                                            gp_thresh = GAZE_PITCH_DEVIATION_THRESHOLD + GAZE_PITCH_HYSTERESIS
+                                        gaze_looking_away = gaze_yaw_dev > gy_thresh or gaze_pitch_dev > gp_thresh
+        
+                                if not detection_armed:
+                                    if has_valid_pose:
+                                        valid_face_streak += 1
+                                    else:
+                                        valid_face_streak = 0
+        
+                                    away_start_time = None
+                                    away_break_start_time = None
+                                    reengage_start_time = None
+                                    reengage_break_start_time = None
+                                    away_duration = 0.0
+                                    reengage_duration = 0.0
+        
+                                    if valid_face_streak >= MIN_VALID_FACE_FRAMES:
+                                        detection_armed = True
+                                else:
+                                    if ENABLE_EYE_GAZE:
+                                        if gaze_looking_away:
+                                            if gaze_mw_start_time is None:
+                                                gaze_mw_start_time = now
+                                            gaze_mw_break_start_time = None
+                                        elif gaze_mw_start_time is not None:
+                                            if gaze_mw_break_start_time is None:
+                                                gaze_mw_break_start_time = now
+                                            elif now - gaze_mw_break_start_time >= GAZE_MW_BREAK_TOLERANCE:
+                                                gaze_mw_start_time = None
+                                                gaze_mw_break_start_time = None
+        
+                                        gaze_error_confirmed = (
+                                            gaze_mw_start_time is not None and
+                                            (now - gaze_mw_start_time) >= GAZE_MIND_WANDERING_DURATION
+                                        )
+                                    else:
                                         gaze_mw_start_time = None
                                         gaze_mw_break_start_time = None
-
-                                gaze_error_confirmed = (
-                                    gaze_mw_start_time is not None and
-                                    (now - gaze_mw_start_time) >= GAZE_MIND_WANDERING_DURATION
+        
+                                    gaze_mind_wandering = gaze_error_confirmed
+        
+                                    active_error_reason = None
+                                    if face_missing_confirmed:
+                                        active_error_reason = "face_missing"
+                                    elif invalid_pose_confirmed:
+                                        active_error_reason = "pose_estimation_failed"
+                                    elif looking_away_confirmed:
+                                        active_error_reason = "looking_away"
+                                    elif gaze_error_confirmed:
+                                        active_error_reason = "gaze_mind_wandering"
+        
+                                    fully_recovered = compute_full_recovery(
+                                        enable_eye_gaze=ENABLE_EYE_GAZE,
+                                        disengage_reason=disengage_reason_latched,
+                                        raw_face_present=raw_face_present,
+                                        yaw=yaw,
+                                        pitch=pitch,
+                                        screen_facing=screen_facing,
+                                        smoothed_gaze_yaw=smoothed_gaze_yaw,
+                                        smoothed_gaze_pitch=smoothed_gaze_pitch,
+                                        gaze_looking_away=gaze_looking_away,
+                                        gaze_error_confirmed=gaze_error_confirmed,
+                                    )
+        
+                                    reengage_threshold_s = compute_reengage_threshold(
+                                        disengage_reason=disengage_reason_latched,
+                                        default_threshold_s=REENGAGE_THRESHOLD,
+                                        gaze_threshold_s=GAZE_REENGAGE_THRESHOLD,
+                                    )
+        
+                                    if active_error_reason is not None:
+                                        reason = disengage_reason_latched or active_error_reason
+        
+                                        if away_start_time is None:
+                                            away_start_time = now
+                                        away_break_start_time = None
+                                        away_duration = now - away_start_time
+        
+                                        if reengage_start_time is not None:
+                                            if reengage_break_start_time is None:
+                                                reengage_break_start_time = now
+                                            elif now - reengage_break_start_time >= REENGAGE_BREAK_TOLERANCE:
+                                                reengage_start_time = None
+                                                reengage_duration = 0.0
+                                        else:
+                                            reengage_duration = 0.0
+        
+                                        if not disengaged:
+                                            # gaze_mind_wandering已通过GAZE_MIND_WANDERING_DURATION积累了2秒
+                                            # 头姿/人脸类误差需要持续 DISENGAGE_THRESHOLD 才触发 start
+                                            if active_error_reason == "gaze_mind_wandering" or away_duration >= DISENGAGE_THRESHOLD:
+                                                disengaged = True
+                                                disengage_reason_latched = active_error_reason
+                                                reason = disengage_reason_latched
+                                                state_changed = True
+                                    elif fully_recovered:
+                                        reason = "gaze_recovered" if ENABLE_EYE_GAZE else "screen_facing"
+                                        reengage_break_start_time = None
+        
+                                        if away_start_time is not None:
+                                            if away_break_start_time is None:
+                                                away_break_start_time = now
+                                            elif now - away_break_start_time >= AWAY_BREAK_TOLERANCE:
+                                                away_start_time = None
+                                                away_duration = 0.0
+                                        else:
+                                            away_duration = 0.0
+        
+                                        if reengage_start_time is None:
+                                            reengage_start_time = now
+                                        reengage_duration = now - reengage_start_time
+        
+                                        if disengaged and reengage_duration >= reengage_threshold_s:
+                                            disengaged = False
+                                            disengage_reason_latched = None
+                                            state_changed = True
+                                    else:
+                                        reason = disengage_reason_latched or "waiting_full_recovery"
+                                        away_break_start_time = None
+                                        away_duration = 0.0 if away_start_time is None else (now - away_start_time)
+        
+                                        if disengaged and reengage_start_time is not None:
+                                            if reengage_break_start_time is None:
+                                                reengage_break_start_time = now
+                                            elif now - reengage_break_start_time >= REENGAGE_BREAK_TOLERANCE:
+                                                reengage_start_time = None
+                                                reengage_duration = 0.0
+                                        else:
+                                            reengage_duration = 0.0
+        
+                                gaze_mw_duration = (now - gaze_mw_start_time) if gaze_mw_start_time is not None else 0.0
+        
+                                line1 = f"face={face_present}"
+                                if yaw is not None:
+                                    line1 += f" | yaw={yaw:.1f}"
+                                else:
+                                    line1 += " | yaw=None"
+        
+                                if pitch is not None:
+                                    line1 += f" | pitch={pitch:.1f}"
+                                else:
+                                    line1 += " | pitch=None"
+        
+                                if effective_yaw is not None and effective_pitch is not None:
+                                    line1 += f" | smooth=({effective_yaw:.1f},{effective_pitch:.1f})"
+        
+                                line2 = f"ref_yaw={reference_yaw:.1f} | ref_pitch={reference_pitch:.1f}"
+        
+                                line3 = "yaw_dev=None"
+                                if yaw_deviation is not None:
+                                    line3 = f"yaw_dev={yaw_deviation:.1f}"
+        
+                                if pitch_deviation is not None:
+                                    line3 += f" | pitch_dev={pitch_deviation:.1f}"
+                                else:
+                                    line3 += " | pitch_dev=None"
+        
+                                if yaw is not None and pitch is not None:
+                                    line3 += f" | th=({yaw_threshold:.1f},{pitch_threshold:.1f})"
+        
+                                line4 = (
+                                    f"reason={reason} | facing={reported_screen_facing} | away={away_duration:.1f}s"
+                                    f" | back={reengage_duration:.1f}s | disengaged={disengaged}"
                                 )
-                            else:
-                                gaze_mw_start_time = None
-                                gaze_mw_break_start_time = None
+        
+                                if not detection_armed:
+                                    line4 += f" | arming={valid_face_streak}/{MIN_VALID_FACE_FRAMES}"
+        
+                                color = (0, 255, 0) if not disengaged else (0, 0, 255)
+        
+                                cv2.putText(frame, line1, (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+                                cv2.putText(frame, line2, (20, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 0), 2)
+                                cv2.putText(frame, line3, (20, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 0), 2)
+                                cv2.putText(frame, line4, (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+        
+                                if ENABLE_EYE_GAZE:
+                                    if smoothed_gaze_yaw is not None and smoothed_gaze_pitch is not None:
+                                        gaze_dev_str = ""
+                                        if gaze_yaw_dev is not None:
+                                            gaze_dev_str = f" | dev=({gaze_yaw_dev:.2f},{gaze_pitch_dev:.2f})"
+                                        line5 = f"gaze=({smoothed_gaze_yaw:.2f},{smoothed_gaze_pitch:.2f}){gaze_dev_str} | mw={gaze_mw_duration:.1f}s"
+                                        gaze_color = (0, 165, 255) if gaze_looking_away else (0, 255, 0)
+                                        cv2.putText(frame, line5, (20, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.55, gaze_color, 2)
+                                    else:
+                                        cv2.putText(frame, "gaze=N/A", (20, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (128, 128, 128), 2)
+        
+                                # Line 6: pending-start / pending-stop countdown
+                                if detection_armed:
+                                    if not disengaged and active_error_reason is not None and active_error_reason != "gaze_mind_wandering":
+                                        remaining = max(0.0, DISENGAGE_THRESHOLD - away_duration)
+                                        line6 = f"PENDING start: {active_error_reason} | away={away_duration:.1f}s/{DISENGAGE_THRESHOLD:.1f}s (still {remaining:.1f}s)"
+                                        cv2.putText(frame, line6, (20, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (0, 165, 255), 2)
+                                    elif disengaged and reengage_duration > 0:
+                                        remaining = max(0.0, reengage_threshold_s - reengage_duration)
+                                        line6 = f"PENDING stop | back={reengage_duration:.1f}s/{reengage_threshold_s:.1f}s (still {remaining:.1f}s)"
+                                        cv2.putText(frame, line6, (20, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (255, 128, 0), 2)
+        
+                                cv2.imshow("Participant Webcam Client", frame)
+        
+                                if state_changed:
+                                    message = {
+                                        "client": "webcam",
+                                        "source": "webcam",
+                                        "type": EVENT_POSTURE,
+                                        "disengage": disengaged,
+                                        "face_present": face_present,
+                                        "screen_facing": reported_screen_facing,
+                                        "reason": reason,
+                                        "yaw": None if yaw is None else round(yaw, 2),
+                                        "pitch": None if pitch is None else round(pitch, 2),
+                                        "reference_yaw": round(reference_yaw, 2),
+                                        "reference_pitch": round(reference_pitch, 2),
+                                        "yaw_deviation": None if yaw_deviation is None else round(yaw_deviation, 2),
+                                        "pitch_deviation": None if pitch_deviation is None else round(pitch_deviation, 2),
+                                        "away_duration": round(away_duration, 2),
+                                        "reengage_duration": round(reengage_duration, 2),
+                                        "gaze_yaw_ratio": round(smoothed_gaze_yaw, 4) if smoothed_gaze_yaw is not None else None,
+                                        "gaze_pitch_ratio": round(smoothed_gaze_pitch, 4) if smoothed_gaze_pitch is not None else None,
+                                        "gaze_yaw_deviation": round(gaze_yaw_dev, 4) if gaze_yaw_dev is not None else None,
+                                        "gaze_pitch_deviation": round(gaze_pitch_dev, 4) if gaze_pitch_dev is not None else None,
+                                        "gaze_mind_wandering": gaze_mind_wandering if ENABLE_EYE_GAZE else None,
+                                        "timestamp": now
+                                    }
+        
+                                    await websocket.send(json.dumps(message))
+                                    print("已发送:", message)
+        
+                                key = cv2.waitKey(1) & 0xFF
+                                if key == ord("q"):
+                                    print("用户主动退出")
+                                    shutdown_event.set()
+                                    break
+        
+                                await asyncio.sleep(0.01)
 
-                            gaze_mind_wandering = gaze_error_confirmed
+                            # ── Detection loop ended (stop_camera or shutdown) ──
+                            print("检测循环结束，释放摄像头")
+                            if cap is not None:
+                                cap.release()
+                                cap = None
+                            cv2.destroyAllWindows()
 
-                            active_error_reason = None
-                            if face_missing_confirmed:
-                                active_error_reason = "face_missing"
-                            elif invalid_pose_confirmed:
-                                active_error_reason = "pose_estimation_failed"
-                            elif looking_away_confirmed:
-                                active_error_reason = "looking_away"
-                            elif gaze_error_confirmed:
-                                active_error_reason = "gaze_mind_wandering"
+                    finally:
+                        recv_task.cancel()
+                        try:
+                            await recv_task
+                        except asyncio.CancelledError:
+                            pass
 
-                            fully_recovered = compute_full_recovery(
-                                enable_eye_gaze=ENABLE_EYE_GAZE,
-                                disengage_reason=disengage_reason_latched,
-                                raw_face_present=raw_face_present,
-                                yaw=yaw,
-                                pitch=pitch,
-                                screen_facing=screen_facing,
-                                smoothed_gaze_yaw=smoothed_gaze_yaw,
-                                smoothed_gaze_pitch=smoothed_gaze_pitch,
-                                gaze_looking_away=gaze_looking_away,
-                                gaze_error_confirmed=gaze_error_confirmed,
-                            )
-
-                            reengage_threshold_s = compute_reengage_threshold(
-                                disengage_reason=disengage_reason_latched,
-                                default_threshold_s=REENGAGE_THRESHOLD,
-                                gaze_threshold_s=GAZE_REENGAGE_THRESHOLD,
-                            )
-
-                            if active_error_reason is not None:
-                                reason = disengage_reason_latched or active_error_reason
-
-                                if away_start_time is None:
-                                    away_start_time = now
-                                away_break_start_time = None
-                                away_duration = now - away_start_time
-
-                                if reengage_start_time is not None:
-                                    if reengage_break_start_time is None:
-                                        reengage_break_start_time = now
-                                    elif now - reengage_break_start_time >= REENGAGE_BREAK_TOLERANCE:
-                                        reengage_start_time = None
-                                        reengage_duration = 0.0
-                                else:
-                                    reengage_duration = 0.0
-
-                                if not disengaged:
-                                    # gaze_mind_wandering已通过GAZE_MIND_WANDERING_DURATION积累了2秒
-                                    # 头姿/人脸类误差需要持续 DISENGAGE_THRESHOLD 才触发 start
-                                    if active_error_reason == "gaze_mind_wandering" or away_duration >= DISENGAGE_THRESHOLD:
-                                        disengaged = True
-                                        disengage_reason_latched = active_error_reason
-                                        reason = disengage_reason_latched
-                                        state_changed = True
-                            elif fully_recovered:
-                                reason = "gaze_recovered" if ENABLE_EYE_GAZE else "screen_facing"
-                                reengage_break_start_time = None
-
-                                if away_start_time is not None:
-                                    if away_break_start_time is None:
-                                        away_break_start_time = now
-                                    elif now - away_break_start_time >= AWAY_BREAK_TOLERANCE:
-                                        away_start_time = None
-                                        away_duration = 0.0
-                                else:
-                                    away_duration = 0.0
-
-                                if reengage_start_time is None:
-                                    reengage_start_time = now
-                                reengage_duration = now - reengage_start_time
-
-                                if disengaged and reengage_duration >= reengage_threshold_s:
-                                    disengaged = False
-                                    disengage_reason_latched = None
-                                    state_changed = True
-                            else:
-                                reason = disengage_reason_latched or "waiting_full_recovery"
-                                away_break_start_time = None
-                                away_duration = 0.0 if away_start_time is None else (now - away_start_time)
-
-                                if disengaged and reengage_start_time is not None:
-                                    if reengage_break_start_time is None:
-                                        reengage_break_start_time = now
-                                    elif now - reengage_break_start_time >= REENGAGE_BREAK_TOLERANCE:
-                                        reengage_start_time = None
-                                        reengage_duration = 0.0
-                                else:
-                                    reengage_duration = 0.0
-
-                        gaze_mw_duration = (now - gaze_mw_start_time) if gaze_mw_start_time is not None else 0.0
-
-                        line1 = f"face={face_present}"
-                        if yaw is not None:
-                            line1 += f" | yaw={yaw:.1f}"
-                        else:
-                            line1 += " | yaw=None"
-
-                        if pitch is not None:
-                            line1 += f" | pitch={pitch:.1f}"
-                        else:
-                            line1 += " | pitch=None"
-
-                        if effective_yaw is not None and effective_pitch is not None:
-                            line1 += f" | smooth=({effective_yaw:.1f},{effective_pitch:.1f})"
-
-                        line2 = f"ref_yaw={reference_yaw:.1f} | ref_pitch={reference_pitch:.1f}"
-
-                        line3 = "yaw_dev=None"
-                        if yaw_deviation is not None:
-                            line3 = f"yaw_dev={yaw_deviation:.1f}"
-
-                        if pitch_deviation is not None:
-                            line3 += f" | pitch_dev={pitch_deviation:.1f}"
-                        else:
-                            line3 += " | pitch_dev=None"
-
-                        if yaw is not None and pitch is not None:
-                            line3 += f" | th=({yaw_threshold:.1f},{pitch_threshold:.1f})"
-
-                        line4 = (
-                            f"reason={reason} | facing={reported_screen_facing} | away={away_duration:.1f}s"
-                            f" | back={reengage_duration:.1f}s | disengaged={disengaged}"
-                        )
-
-                        if not detection_armed:
-                            line4 += f" | arming={valid_face_streak}/{MIN_VALID_FACE_FRAMES}"
-
-                        color = (0, 255, 0) if not disengaged else (0, 0, 255)
-
-                        cv2.putText(frame, line1, (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
-                        cv2.putText(frame, line2, (20, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 0), 2)
-                        cv2.putText(frame, line3, (20, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 0), 2)
-                        cv2.putText(frame, line4, (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
-
-                        if ENABLE_EYE_GAZE:
-                            if smoothed_gaze_yaw is not None and smoothed_gaze_pitch is not None:
-                                gaze_dev_str = ""
-                                if gaze_yaw_dev is not None:
-                                    gaze_dev_str = f" | dev=({gaze_yaw_dev:.2f},{gaze_pitch_dev:.2f})"
-                                line5 = f"gaze=({smoothed_gaze_yaw:.2f},{smoothed_gaze_pitch:.2f}){gaze_dev_str} | mw={gaze_mw_duration:.1f}s"
-                                gaze_color = (0, 165, 255) if gaze_looking_away else (0, 255, 0)
-                                cv2.putText(frame, line5, (20, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.55, gaze_color, 2)
-                            else:
-                                cv2.putText(frame, "gaze=N/A", (20, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (128, 128, 128), 2)
-
-                        # Line 6: pending-start / pending-stop countdown
-                        if detection_armed:
-                            if not disengaged and active_error_reason is not None and active_error_reason != "gaze_mind_wandering":
-                                remaining = max(0.0, DISENGAGE_THRESHOLD - away_duration)
-                                line6 = f"PENDING start: {active_error_reason} | away={away_duration:.1f}s/{DISENGAGE_THRESHOLD:.1f}s (still {remaining:.1f}s)"
-                                cv2.putText(frame, line6, (20, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (0, 165, 255), 2)
-                            elif disengaged and reengage_duration > 0:
-                                remaining = max(0.0, reengage_threshold_s - reengage_duration)
-                                line6 = f"PENDING stop | back={reengage_duration:.1f}s/{reengage_threshold_s:.1f}s (still {remaining:.1f}s)"
-                                cv2.putText(frame, line6, (20, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (255, 128, 0), 2)
-
-                        cv2.imshow("Participant Webcam Client", frame)
-
-                        if state_changed:
-                            message = {
-                                "client": "webcam",
-                                "source": "webcam",
-                                "type": EVENT_POSTURE,
-                                "disengage": disengaged,
-                                "face_present": face_present,
-                                "screen_facing": reported_screen_facing,
-                                "reason": reason,
-                                "yaw": None if yaw is None else round(yaw, 2),
-                                "pitch": None if pitch is None else round(pitch, 2),
-                                "reference_yaw": round(reference_yaw, 2),
-                                "reference_pitch": round(reference_pitch, 2),
-                                "yaw_deviation": None if yaw_deviation is None else round(yaw_deviation, 2),
-                                "pitch_deviation": None if pitch_deviation is None else round(pitch_deviation, 2),
-                                "away_duration": round(away_duration, 2),
-                                "reengage_duration": round(reengage_duration, 2),
-                                "gaze_yaw_ratio": round(smoothed_gaze_yaw, 4) if smoothed_gaze_yaw is not None else None,
-                                "gaze_pitch_ratio": round(smoothed_gaze_pitch, 4) if smoothed_gaze_pitch is not None else None,
-                                "gaze_yaw_deviation": round(gaze_yaw_dev, 4) if gaze_yaw_dev is not None else None,
-                                "gaze_pitch_deviation": round(gaze_pitch_dev, 4) if gaze_pitch_dev is not None else None,
-                                "gaze_mind_wandering": gaze_mind_wandering if ENABLE_EYE_GAZE else None,
-                                "timestamp": now
-                            }
-
-                            await websocket.send(json.dumps(message))
-                            print("已发送:", message)
-
-                        key = cv2.waitKey(1) & 0xFF
-                        if key == ord("q"):
-                            print("用户主动退出")
-                            return
-
-                        await asyncio.sleep(0.01)
-            except Exception as e:
+            except (websockets.ConnectionClosed, OSError) as e:
                 print("连接中断:", e)
                 print(f"{RECONNECT_DELAY:.1f} 秒后自动重连...")
+                if cap is not None:
+                    cap.release()
+                    cap = None
+                camera_active.clear()
                 await asyncio.sleep(RECONNECT_DELAY)
 
     except Exception as e:
         print("运行出错:", e)
 
     finally:
-        cap.release()
+        if cap is not None:
+            cap.release()
         cv2.destroyAllWindows()
         face_mesh.close()
 

@@ -121,5 +121,8 @@ wenfei,session_20260416_wenfei_dd12b1,with_system,764625.7,4,2,0.5,17025.0,17025
 wenfei,session_20260416_wenfei_eb3a29,with_system,53090.7,0,0,,,,53090.7,1.0,0,0,0,0
 hang4,session_20260417_hang4_2b2a81,with_system,370322.0,1,1,1.0,8150.0,8150.0,362172.0,0.978,1,0,0,0
 hang5,session_20260417_hang5_8e5d43,with_system,84428.7,1,0,0.0,,,40528.7,0.48,0,0,0,0
+hang6,session_20260417_hang6_67922b,with_system,186894.8,0,0,,,,186894.8,1.0,0,0,0,0
+hang7,session_20260417_hang7_d20d7f,with_system,439846.3,0,0,,,,439846.3,1.0,0,0,0,0
 hang,session_20260417_hang_4716d5,with_system,152359.2,1,0,0.0,,,77279.2,0.5072,0,1,0,1
+wenfei1,session_20260417_wenfei1_c2526a,with_system,293192.6,0,0,,,,293192.6,1.0,0,0,0,0
 hang3,baseline_20260417_hang3_d3454e,no_system,89275.6,5,4,0.8,3930.0,10277.5,46865.6,0.525,0,0,0,0

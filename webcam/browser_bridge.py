@@ -382,6 +382,20 @@ def _send_to_participant(cmd: dict) -> bool:
         return False
 
 
+def _send_camera_via_server(cmd_type: str) -> bool:
+    """Relay camera command through server.py when no local participant WS."""
+    try:
+        from websockets.sync.client import connect as ws_sync_connect
+        with ws_sync_connect(BRIDGE_WS_URL, open_timeout=3) as ws:
+            ws.send(json.dumps({"type": cmd_type}))
+            resp = ws.recv(timeout=3)
+            result = json.loads(resp)
+            return result.get("ok", False)
+    except Exception as e:
+        print(f"[CameraHTTP] Failed to relay {cmd_type} via server: {e}")
+        return False
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  Participant HTML page — camera is HIDDEN, controlled by researcher
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1061,11 +1075,15 @@ class _BridgeHTTPHandler(BaseHTTPRequestHandler):
         global _camera_status
         if self.path == "/api/camera/start":
             ok = _send_to_participant({"type": "start_camera"})
+            if not ok:
+                ok = _send_camera_via_server("start_camera")
             if ok:
                 _camera_status = "streaming"
             self._json(200 if ok else 503, {"ok": ok})
         elif self.path == "/api/camera/stop":
             ok = _send_to_participant({"type": "stop_camera"})
+            if not ok:
+                ok = _send_camera_via_server("stop_camera")
             if ok:
                 _camera_status = "connected"
             self._json(200 if ok else 503, {"ok": ok})
