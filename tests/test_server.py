@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import tempfile
 import unittest
+from pathlib import Path
 
 import server
 
@@ -150,7 +152,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(json.loads(websocket.sent_messages[0]), {"ok": True, "type": "registered", "client": "extension"})
 
     def test_stop_event_does_not_send_reengagement_message_to_extension(self) -> None:
-        async def fake_forward_event(event: str) -> tuple[bool, str]:
+        async def fake_forward_event(event: str, reason: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
         server.forward_event = fake_forward_event
@@ -170,7 +172,7 @@ class ServerHandlerTests(unittest.TestCase):
         )
 
     def test_posture_disengaged_true_sends_posture_disengaged_message_to_extension(self) -> None:
-        async def fake_forward_event(event: str) -> tuple[bool, str]:
+        async def fake_forward_event(event: str, reason: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
         server.forward_event = fake_forward_event
@@ -185,7 +187,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(extension_socket.sent_messages, [server.POSTURE_DISENGAGED_MESSAGE])
 
     def test_repeated_disengaged_true_only_notifies_extension_once(self) -> None:
-        async def fake_forward_event(event: str) -> tuple[bool, str]:
+        async def fake_forward_event(event: str, reason: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
         server.forward_event = fake_forward_event
@@ -201,7 +203,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(extension_socket.sent_messages, [server.POSTURE_DISENGAGED_MESSAGE])
 
     def test_extension_covert_disengagement_message_is_rejected(self) -> None:
-        async def fake_forward_event(event: str) -> tuple[bool, str]:
+        async def fake_forward_event(event: str, reason: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
         server.forward_event = fake_forward_event
@@ -214,7 +216,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(json.loads(extension_socket.sent_messages[0]), {"ok": False, "reason": "unrecognized_message"})
 
     def test_extension_reengagement_message_is_rejected(self) -> None:
-        async def fake_forward_event(event: str) -> tuple[bool, str]:
+        async def fake_forward_event(event: str, reason: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
         server.forward_event = fake_forward_event
@@ -228,7 +230,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(json.loads(extension_socket.sent_messages[0]), {"ok": False, "reason": "unrecognized_message"})
 
     def test_extension_notifications_are_skipped_when_no_extension_registered(self) -> None:
-        async def fake_forward_event(event: str) -> tuple[bool, str]:
+        async def fake_forward_event(event: str, reason: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
         server.forward_event = fake_forward_event
@@ -256,7 +258,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(payload["type"], "current_text")
 
     def test_extension_reading_state_does_not_restart_distraction_after_stop(self) -> None:
-        async def fake_forward_event(event: str) -> tuple[bool, str]:
+        async def fake_forward_event(event: str, reason: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
         async def fake_forward_current_text(text: str) -> tuple[bool, str]:
@@ -316,7 +318,7 @@ class ServerHandlerTests(unittest.TestCase):
     def test_stale_extension_reading_state_after_webcam_stop_does_not_restart_distraction(self) -> None:
         forwarded_events: list[str] = []
 
-        async def fake_forward_event(event: str) -> tuple[bool, str]:
+        async def fake_forward_event(event: str, reason: str | None = None) -> tuple[bool, str]:
             forwarded_events.append(event)
             return True, json.dumps({"event": event})
 
@@ -357,6 +359,76 @@ class ServerHandlerTests(unittest.TestCase):
         payload = json.loads(extension_socket.sent_messages[-1])
         self.assertEqual(payload["ok"], True)
         self.assertEqual(payload["type"], "current_text")
+
+
+class ControlSessionCommandTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.original_control_mode = server.CONTROL_MODE
+        self.original_manager = server.control_session_manager
+        self.original_tracker = server.tracker
+        self.temp_dir = tempfile.TemporaryDirectory()
+
+        server.CONTROL_MODE = True
+        server.tracker = server.DisengagementTracker()
+        server.control_session_manager = server.ControlSessionManager(Path(self.temp_dir.name), lambda: None)
+        server.client_roles.clear()
+        server.role_clients.clear()
+
+    def tearDown(self) -> None:
+        server.CONTROL_MODE = self.original_control_mode
+        server.control_session_manager = self.original_manager
+        server.tracker = self.original_tracker
+        server.client_roles.clear()
+        server.role_clients.clear()
+        self.temp_dir.cleanup()
+
+    def test_control_session_start_stop_saves_baseline_session(self) -> None:
+        webcam_socket = FakeWebSocket([])
+        server.register_client(webcam_socket, "webcam")
+
+        start_result = asyncio.run(
+            server.handle_control_session_command(
+                {"type": "control_session_start", "participant_id": "hang3"}
+            )
+        )
+
+        self.assertTrue(start_result["ok"])
+        self.assertTrue(start_result["active"])
+        self.assertEqual(start_result["participant_id"], "hang3")
+        self.assertEqual(
+            [json.loads(msg)["type"] for msg in webcam_socket.sent_messages],
+            ["start_camera", "recording_start"],
+        )
+
+        self.assertTrue(server.control_session_manager.log_event("start", reason="gaze_mind_wandering"))
+        self.assertTrue(server.control_session_manager.log_event("stop"))
+
+        stop_result = asyncio.run(
+            server.handle_control_session_command({"type": "control_session_stop"})
+        )
+
+        self.assertTrue(stop_result["ok"])
+        self.assertFalse(stop_result["active"])
+        self.assertEqual(stop_result["participant_id"], "hang3")
+
+        sent_types = [json.loads(msg)["type"] for msg in webcam_socket.sent_messages]
+        self.assertEqual(sent_types, ["start_camera", "recording_start", "recording_stop", "stop_camera"])
+
+        saved_files = list(Path(self.temp_dir.name).glob("baseline_*_hang3_*.json"))
+        self.assertEqual(len(saved_files), 1)
+        payload = json.loads(saved_files[0].read_text(encoding="utf-8"))
+        self.assertEqual(payload["condition"], "no_system")
+        self.assertEqual(payload["participant_id"], "hang3")
+        self.assertEqual(payload["events"][0]["name"], "disengagement_start")
+        self.assertEqual(payload["distraction_events"][0]["exit_reason"], "self_recovered")
+
+    def test_control_session_status_reports_disabled_mode(self) -> None:
+        server.CONTROL_MODE = False
+
+        result = asyncio.run(server.handle_control_session_command({"type": "control_session_status"}))
+
+        self.assertFalse(result["ok"])
+        self.assertFalse(result["control_mode"])
 
 if __name__ == "__main__":
     unittest.main()

@@ -419,6 +419,27 @@ def _send_recording_via_server(action: str, username: str = "participant") -> di
         return {"ok": False, "detail": str(e)}
 
 
+def _send_control_session_via_server(action: str, username: str = "") -> dict:
+    """Proxy control-group session start/stop/status to server.py."""
+    try:
+        from websockets.sync.client import connect as ws_sync_connect
+
+        payload = {"type": f"control_session_{action}"}
+        if username:
+            payload["participant_id"] = username
+
+        with ws_sync_connect(BRIDGE_WS_URL, open_timeout=3) as ws:
+            ws.send(json.dumps(payload))
+            resp = ws.recv(timeout=5)
+            result = json.loads(resp)
+            if not isinstance(result, dict):
+                return {"ok": False, "detail": "invalid response from server"}
+            return result
+    except Exception as e:
+        print(f"[ControlSessionHTTP] Failed to relay control_session_{action} via server: {e}")
+        return {"ok": False, "detail": str(e), "control_mode": False, "active": False}
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  Participant HTML page — camera is HIDDEN, controlled by researcher
 # ═══════════════════════════════════════════════════════════════════════════
@@ -889,10 +910,42 @@ RESEARCHER_PAGE = r"""
   .btn-stop {
     background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff;
   }
+    .field {
+        margin-bottom: 14px;
+        text-align: left;
+    }
+    .field label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+        color: #bfc7cb;
+    }
+    .field input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.16);
+        background: rgba(255,255,255,0.06);
+        color: #fff;
+        font-size: 15px;
+    }
+    .field input::placeholder {
+        color: #91a0a8;
+    }
   #status {
     margin-top: 16px; padding: 10px; border-radius: 8px;
     font-size: 14px; background: rgba(255,255,255,0.05);
   }
+    #sessionMeta {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        background: rgba(255,255,255,0.05);
+        color: #bfc7cb;
+        white-space: pre-line;
+        display: none;
+    }
   .dot {
     display: inline-block; width: 10px; height: 10px;
     border-radius: 50%; margin-right: 6px; vertical-align: middle;
@@ -917,10 +970,16 @@ RESEARCHER_PAGE = r"""
   <h1>&#x1F3A5; Camera Control</h1>
   <p class="sub">Control the participant's webcam remotely</p>
 
+    <div class="field" id="participantField" style="display:none;">
+        <label for="participantId">Participant ID</label>
+        <input id="participantId" type="text" placeholder="e.g. hang3 or wenfei11" autocomplete="off">
+    </div>
+
   <button class="btn btn-start" id="btnStart" onclick="camStart()">&#x25B6; Start Camera</button>
   <button class="btn btn-stop" id="btnStop" onclick="camStop()" disabled>&#x23F9; Stop Camera</button>
 
   <div id="status"><span class="dot dot-gray"></span>Checking connection...</div>
+    <div id="sessionMeta"></div>
   <div id="previewContainer" style="position:relative; display:none; margin-top:16px;">
     <canvas id="previewCanvas" width="640" height="480" style="width:100%; border-radius:12px; border:2px solid rgba(255,255,255,0.15); background:#000; display:block;"></canvas>
     <div id="overlay" style="position:absolute; top:0; left:0; right:0; padding:8px 10px; font-family:monospace; font-size:11px; color:#0f0; background:rgba(0,0,0,0.45); border-radius:12px 12px 0 0; pointer-events:none; white-space:pre-line; line-height:1.5;"></div>
@@ -933,6 +992,38 @@ var CAM_API = location.origin;
 var PREVIEW_WS = 'ws://' + location.hostname + ':' + __PREVIEW_PORT__;
 var previewWs = null;
 var statusTimer = null;
+var controlMode = false;
+
+function sessionMetaEl() {
+    return document.getElementById('sessionMeta');
+}
+
+function setSessionMeta(text) {
+    var el = sessionMetaEl();
+    if (!text) {
+        el.style.display = 'none';
+        el.textContent = '';
+        return;
+    }
+    el.style.display = 'block';
+    el.textContent = text;
+}
+
+function applyControlModeUi(enabled) {
+    controlMode = !!enabled;
+    document.getElementById('participantField').style.display = controlMode ? 'block' : 'none';
+    document.getElementById('btnStart').innerHTML = controlMode ? '&#x25B6; Start Session' : '&#x25B6; Start Camera';
+    document.getElementById('btnStop').innerHTML = controlMode ? '&#x23F9; End Session' : '&#x23F9; Stop Camera';
+}
+
+async function fetchControlSessionStatus() {
+    try {
+        var res = await fetch(CAM_API + '/api/control/session/status');
+        return await res.json();
+    } catch (e) {
+        return {ok:false, control_mode:false, active:false, detail:e.message};
+    }
+}
 
 function setStatus(dot, text) {
   document.getElementById('status').innerHTML =
@@ -941,14 +1032,35 @@ function setStatus(dot, text) {
 
 async function pollStatus() {
   try {
-    var res = await fetch(CAM_API + '/api/camera/status');
-    var d = await res.json();
+        var responses = await Promise.all([
+            fetch(CAM_API + '/api/camera/status'),
+            fetchControlSessionStatus()
+        ]);
+        var res = responses[0];
+        var d = await res.json();
+        var control = responses[1];
+        applyControlModeUi(control.control_mode);
+
+        if (control.control_mode) {
+            if (control.active) {
+                setSessionMeta('session_id: ' + control.session_id + '\nparticipant_id: ' + control.participant_id + '\nlogged events: ' + control.num_events);
+            } else {
+                setSessionMeta('control-mode session is idle');
+            }
+        } else {
+            setSessionMeta('');
+        }
+
     if (!d.connected) {
       setStatus('red', 'Participant not connected');
     } else if (d.status === 'streaming') {
-      setStatus('green', 'Camera streaming');
+            setStatus('green', control.control_mode && control.active ? 'Session active — camera streaming' : 'Camera streaming');
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('btnStop').disabled = false;
     } else {
-      setStatus('yellow', 'Participant connected &mdash; camera idle');
+            setStatus('yellow', control.control_mode ? 'Participant connected — session idle' : 'Participant connected &mdash; camera idle');
+            document.getElementById('btnStart').disabled = !!(control.control_mode && control.active);
+            document.getElementById('btnStop').disabled = !control.control_mode || !control.active;
     }
   } catch(e) {
     setStatus('red', 'Cannot reach bridge server');
@@ -956,29 +1068,79 @@ async function pollStatus() {
 }
 
 async function camStart() {
-  setStatus('yellow', 'Starting camera...');
-  try {
-    var res = await fetch(CAM_API + '/api/camera/start', {method:'POST'});
-    var d = await res.json();
-    if (d.ok) {
-      setStatus('green', 'Camera streaming');
-      document.getElementById('btnStart').disabled = true;
-      document.getElementById('btnStop').disabled = false;
-      startPreview();
-    } else {
-      setStatus('red', 'Failed &mdash; is participant page open?');
+    if (controlMode) {
+        var participantId = document.getElementById('participantId').value.trim();
+        if (!participantId) {
+            setStatus('red', 'Participant ID is required in control mode');
+            return;
+        }
+        setStatus('yellow', 'Starting no-system session...');
+        try {
+            var startRes = await fetch(CAM_API + '/api/control/session/start', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({participant_id: participantId})
+            });
+            var startData = await startRes.json();
+            if (startData.ok) {
+                setStatus('green', 'Session active — camera streaming');
+                setSessionMeta('session_id: ' + startData.session_id + '\nparticipant_id: ' + startData.participant_id + '\nlogged events: ' + startData.num_events);
+                document.getElementById('btnStart').disabled = true;
+                document.getElementById('btnStop').disabled = false;
+                document.getElementById('participantId').disabled = true;
+                startPreview();
+            } else {
+                setStatus('red', 'Failed — ' + (startData.detail || 'cannot start session'));
+            }
+        } catch(e) {
+            setStatus('red', 'Error: ' + e.message);
+        }
+        return;
     }
-  } catch(e) {
-    setStatus('red', 'Error: ' + e.message);
+
+    setStatus('yellow', 'Starting camera...');
+    try {
+        var res = await fetch(CAM_API + '/api/camera/start', {method:'POST'});
+        var d = await res.json();
+        if (d.ok) {
+            setStatus('green', 'Camera streaming');
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('btnStop').disabled = false;
+            startPreview();
+        } else {
+            setStatus('red', 'Failed &mdash; is participant page open?');
+        }
+    } catch(e) {
+        setStatus('red', 'Error: ' + e.message);
   }
 }
 
 async function camStop() {
-  try { await fetch(CAM_API + '/api/camera/stop', {method:'POST'}); } catch(e) {}
-  setStatus('yellow', 'Camera stopped');
-  document.getElementById('btnStart').disabled = false;
-  document.getElementById('btnStop').disabled = true;
-  stopPreview();
+    if (controlMode) {
+        try {
+            var stopRes = await fetch(CAM_API + '/api/control/session/stop', {method:'POST'});
+            var stopData = await stopRes.json();
+            if (stopData.ok) {
+                setStatus('yellow', 'Session ended — CSV updated');
+                setSessionMeta('last session_id: ' + stopData.session_id + '\nparticipant_id: ' + stopData.participant_id + '\ndistractions: ' + stopData.num_distractions);
+            } else {
+                setStatus('red', 'Failed — ' + (stopData.detail || 'cannot stop session'));
+            }
+        } catch(e) {
+            setStatus('red', 'Error: ' + e.message);
+        }
+        document.getElementById('btnStart').disabled = false;
+        document.getElementById('btnStop').disabled = true;
+        document.getElementById('participantId').disabled = false;
+        stopPreview();
+        return;
+    }
+
+    try { await fetch(CAM_API + '/api/camera/stop', {method:'POST'}); } catch(e) {}
+    setStatus('yellow', 'Camera stopped');
+    document.getElementById('btnStart').disabled = false;
+    document.getElementById('btnStop').disabled = true;
+    stopPreview();
 }
 
 function startPreview() {
@@ -1090,6 +1252,8 @@ class _BridgeHTTPHandler(BaseHTTPRequestHandler):
                 data = {"active": _rec_active, "filename": _rec_filename,
                         "frames": _rec_frame_count}
             self._json(200, data)
+        elif self.path == "/api/control/session/status":
+            self._json(200, _send_control_session_via_server("status"))
         else:
             self.send_response(404)
             self.end_headers()
@@ -1147,6 +1311,17 @@ class _BridgeHTTPHandler(BaseHTTPRequestHandler):
                 payload = {}
             code, data = _handle_baseline_stop(payload)
             self._json(code, data)
+        elif self.path == "/api/control/session/start":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length) if length else b""
+            try:
+                payload = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                payload = {}
+            participant_id = str(payload.get("participant_id") or payload.get("username") or "").strip()
+            self._json(200, _send_control_session_via_server("start", participant_id))
+        elif self.path == "/api/control/session/stop":
+            self._json(200, _send_control_session_via_server("stop"))
         else:
             self._json(404, {"ok": False})
 

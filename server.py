@@ -4,6 +4,8 @@ from datetime import datetime
 import asyncio
 import json
 import os
+import uuid
+from pathlib import Path
 from urllib import error, request
 
 import websockets
@@ -48,54 +50,192 @@ client_roles = {}
 role_clients = {}
 POSTURE_DISENGAGED_MESSAGE = "ROBOT_REDIRECT"
 
-# ── Control-group session logger ──────────────────────────────────────
+# ── Control-group session management ──────────────────────────────────
 
-class ControlSessionLog:
-    """Append-only JSON log for control-group distraction events."""
+_ROOT_DIR = Path(__file__).resolve().parent
+_SESSIONS_DIR = _ROOT_DIR / "sessions"
 
-    def __init__(self) -> None:
-        self._path: str | None = None
-        self._events: list[dict] = []
-        self._start_time: str | None = None
-        self._session_id: str | None = None
 
-    def ensure_started(self) -> None:
-        if self._path is not None:
-            return
-        ts = datetime.now()
-        self._start_time = ts.isoformat()
-        self._session_id = f"control_{ts.strftime('%Y%m%d_%H%M%S')}"
-        fname = f"{self._session_id}.json"
-        sessions_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sessions")
-        os.makedirs(sessions_dir, exist_ok=True)
-        self._path = os.path.join(sessions_dir, fname)
-        self._flush()
+def _local_iso() -> str:
+    return datetime.now().astimezone().isoformat()
 
-    def log_event(self, event_type: str, reason: str | None = None) -> None:
-        self.ensure_started()
-        entry = {"ts": datetime.now().isoformat(), "event": event_type}
+
+def _gen_baseline_id(participant_id: str) -> str:
+    date_str = datetime.now().strftime("%Y%m%d")
+    return f"baseline_{date_str}_{participant_id}_{uuid.uuid4().hex[:6]}"
+
+
+def _process_baseline_events(raw_events: list[dict], session_end_time: str) -> list[dict]:
+    distraction_events: list[dict] = []
+    current_start: str | None = None
+    current_reason: str | None = None
+    idx = 0
+
+    for event in raw_events:
+        event_type = event.get("event")
+        if event_type == "start":
+            current_start = event.get("ts")
+            current_reason = event.get("reason")
+            continue
+
+        if event_type == "stop" and current_start:
+            idx += 1
+            start_dt = datetime.fromisoformat(current_start)
+            end_dt = datetime.fromisoformat(event["ts"])
+            duration_s = round((end_dt - start_dt).total_seconds(), 2)
+            distraction_events.append({
+                "event_index": idx,
+                "distraction_start_time": current_start,
+                "distraction_end_time": event["ts"],
+                "distraction_duration_s": duration_s,
+                "distraction_end_signal_received": True,
+                "exit_reason": "self_recovered",
+                "trigger_source": current_reason or "unknown",
+                "voice_prompt_used": False,
+                "voice_prompt_count": 0,
+                "gaze_detected": True,
+                "gaze_latency_s": duration_s,
+            })
+            current_start = None
+            current_reason = None
+
+    if current_start:
+        idx += 1
+        start_dt = datetime.fromisoformat(current_start)
+        end_dt = datetime.fromisoformat(session_end_time)
+        duration_s = round((end_dt - start_dt).total_seconds(), 2)
+        distraction_events.append({
+            "event_index": idx,
+            "distraction_start_time": current_start,
+            "distraction_end_time": session_end_time,
+            "distraction_duration_s": duration_s,
+            "distraction_end_signal_received": False,
+            "exit_reason": "session_ended",
+            "trigger_source": current_reason or "unknown",
+            "voice_prompt_used": False,
+            "voice_prompt_count": 0,
+            "gaze_detected": False,
+            "gaze_latency_s": None,
+        })
+
+    return distraction_events
+
+
+def _refresh_analysis_csvs() -> None:
+    from generate_csv import (
+        INTERVENTION_HEADER,
+        SESSION_HEADER,
+        build_intervention_events,
+        build_session_summary,
+        load_sessions,
+        write_csv,
+    )
+
+    sessions = load_sessions()
+    intervention_rows = build_intervention_events(sessions)
+    summary_rows = build_session_summary(sessions, intervention_rows)
+    write_csv(_ROOT_DIR / "intervention_events.csv", INTERVENTION_HEADER, intervention_rows)
+    write_csv(_ROOT_DIR / "session_summary.csv", SESSION_HEADER, summary_rows)
+
+
+class ControlSessionManager:
+    """Create baseline-format no_system session logs and refresh summary CSVs."""
+
+    def __init__(self, sessions_dir: Path, csv_refresher=None) -> None:
+        self._sessions_dir = sessions_dir
+        self._csv_refresher = csv_refresher or (lambda: None)
+        self._active_session: dict | None = None
+
+    def has_active_session(self) -> bool:
+        return self._active_session is not None
+
+    def status(self) -> dict:
+        session = self._active_session
+        if session is None:
+            return {
+                "control_mode": CONTROL_MODE,
+                "active": False,
+                "session_id": None,
+                "participant_id": None,
+                "num_events": 0,
+            }
+        return {
+            "control_mode": CONTROL_MODE,
+            "active": True,
+            "session_id": session["session_id"],
+            "participant_id": session["participant_id"],
+            "num_events": len(session["raw_events"]),
+        }
+
+    def start_session(self, participant_id: str) -> dict:
+        normalized = participant_id.strip()
+        if not normalized:
+            raise ValueError("participant_id required")
+        if self._active_session is not None:
+            raise RuntimeError("session already active")
+
+        session_id = _gen_baseline_id(normalized)
+        self._active_session = {
+            "session_id": session_id,
+            "participant_id": normalized,
+            "start_time": _local_iso(),
+            "raw_events": [],
+        }
+        return {"session_id": session_id, "participant_id": normalized}
+
+    def log_event(self, event_type: str, reason: str | None = None) -> bool:
+        if self._active_session is None:
+            return False
+        entry = {"ts": _local_iso(), "event": event_type}
         if reason:
             entry["reason"] = reason
-        self._events.append(entry)
-        self._flush()
+        self._active_session["raw_events"].append(entry)
+        return True
 
-    def _flush(self) -> None:
-        if self._path is None:
-            return
-        data = {
-            "mode": "control",
-            "session_id": self._session_id,
-            "participant_id": CONTROL_PARTICIPANT_ID,
+    def stop_session(self) -> dict:
+        if self._active_session is None:
+            raise RuntimeError("no active session")
+
+        session = self._active_session
+        self._active_session = None
+        end_time = _local_iso()
+        raw_events = session["raw_events"]
+        events = []
+        for event in raw_events:
+            name = "disengagement_start" if event.get("event") == "start" else "disengagement_end"
+            entry = {"timestamp": event.get("ts", ""), "name": name, "payload": {}}
+            if event.get("reason"):
+                entry["payload"]["reason"] = event["reason"]
+            events.append(entry)
+
+        distraction_events = _process_baseline_events(raw_events, end_time)
+        session_data = {
+            "session_id": session["session_id"],
+            "participant_id": session["participant_id"],
             "condition": "no_system",
-            "start_time": self._start_time,
-            "end_time": datetime.now().isoformat(),
-            "events": self._events,
+            "start_time": session["start_time"],
+            "end_time": end_time,
+            "events": events,
+            "distraction_events": distraction_events,
+            "total_distraction_count": len(distraction_events),
+            "total_voice_prompts": 0,
         }
-        with open(self._path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+
+        self._sessions_dir.mkdir(parents=True, exist_ok=True)
+        output_path = self._sessions_dir / f"{session['session_id']}.json"
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(session_data, f, indent=2, ensure_ascii=False)
+
+        self._csv_refresher()
+        return {
+            "session_id": session["session_id"],
+            "participant_id": session["participant_id"],
+            "num_distractions": len(distraction_events),
+            "session_path": str(output_path),
+        }
 
 
-control_log = ControlSessionLog()
+control_session_manager = ControlSessionManager(_SESSIONS_DIR, _refresh_analysis_csvs)
 
 
 def _log(sender: str, receiver: str, message: str) -> None:
@@ -185,8 +325,7 @@ def register_client(websocket, role: str) -> None:
     role_clients[role] = websocket
     client_roles[websocket] = role
     if CONTROL_MODE and role == "webcam":
-        _log("server", "console", "[对照组] webcam 已注册，启动录制")
-        _notify_bridge_recording("start", CONTROL_PARTICIPANT_ID)
+        _log("server", "console", "[对照组] webcam 已注册，等待研究者开始 session")
 
 
 def unregister_client(websocket) -> None:
@@ -194,8 +333,67 @@ def unregister_client(websocket) -> None:
     if role and role_clients.get(role) is websocket:
         role_clients.pop(role, None)
     if CONTROL_MODE and role == "webcam":
-        _log("server", "console", "[对照组] webcam 已断开，停止录制")
-        _notify_bridge_recording("stop")
+        _log("server", "console", "[对照组] webcam 已断开")
+
+
+async def send_role_command(role: str, payload: dict) -> tuple[bool, str]:
+    target = role_clients.get(role)
+    if target is None:
+        return False, f"{role}_not_connected"
+    try:
+        await target.send(json.dumps(payload))
+        return True, "ok"
+    except websockets.ConnectionClosed:
+        unregister_client(target)
+        return False, f"{role}_connection_closed"
+
+
+async def handle_control_session_command(payload: dict) -> dict:
+    action = payload.get("type")
+    if not CONTROL_MODE:
+        return {"ok": False, "detail": "control_mode_disabled", "control_mode": False}
+
+    if action == "control_session_status":
+        return {"ok": True, **control_session_manager.status()}
+
+    if action == "control_session_start":
+        participant_id = str(
+            payload.get("participant_id")
+            or payload.get("username")
+            or CONTROL_PARTICIPANT_ID
+        ).strip()
+        if not participant_id:
+            return {"ok": False, "detail": "participant_id required", **control_session_manager.status()}
+
+        if control_session_manager.has_active_session():
+            return {"ok": False, "detail": "session already active", **control_session_manager.status()}
+
+        ok, reason = await send_role_command("webcam", {"type": "start_camera"})
+        if not ok:
+            return {"ok": False, "detail": reason, **control_session_manager.status()}
+
+        ok, reason = await send_role_command("webcam", {"type": "recording_start", "username": participant_id})
+        if not ok:
+            await send_role_command("webcam", {"type": "stop_camera"})
+            return {"ok": False, "detail": reason, **control_session_manager.status()}
+
+        tracker.distraction_active = False
+        started = control_session_manager.start_session(participant_id)
+        _log("server", "console", f"[对照组] Session started: {started['session_id']} (participant={participant_id})")
+        return {"ok": True, **control_session_manager.status()}
+
+    if action == "control_session_stop":
+        if not control_session_manager.has_active_session():
+            return {"ok": False, "detail": "no active session", **control_session_manager.status()}
+
+        await send_role_command("webcam", {"type": "recording_stop"})
+        await send_role_command("webcam", {"type": "stop_camera"})
+        tracker.distraction_active = False
+        result = control_session_manager.stop_session()
+        _log("server", "console", f"[对照组] Session saved: {result['session_path']} ({result['num_distractions']} distractions)")
+        return {"ok": True, **control_session_manager.status(), **result}
+
+    return {"ok": False, "detail": f"unknown control action: {action}", **control_session_manager.status()}
 
 
 def parse_message_signal(message: str) -> str | None:
@@ -421,6 +619,11 @@ async def handler(websocket):
             try:
                 _payload = json.loads(message.strip())
                 _msg_type = _payload.get("type")
+                if isinstance(_msg_type, str) and _msg_type.startswith("control_session_"):
+                    result = await handle_control_session_command(_payload)
+                    _log("server", source_role, f"WebSocket 定向发送 -> {source_role}: {json.dumps(result, ensure_ascii=False)}")
+                    await websocket.send(json.dumps(result))
+                    continue
                 if isinstance(_msg_type, str) and _msg_type in ("start_camera", "stop_camera", "recording_start", "recording_stop"):
                     webcam_ws = role_clients.get("webcam")
                     if webcam_ws is not None and webcam_ws is not websocket:
@@ -470,14 +673,17 @@ async def handler(websocket):
             disengage_reason = _extract_disengage_reason(message) if event == "start" else None
 
             if CONTROL_MODE:
-                # 对照组: 只记录，不转发到 pipeline，不触发机器人
-                control_log.log_event(event, reason=disengage_reason)
-                _log("server", "console", f"[对照组] 记录事件: {event} (reason={disengage_reason})")
-                response = {"ok": True, "event": event, "mode": "control"}
+                # 对照组: 只记录到当前 baseline session，不转发到 pipeline，不触发机器人
+                recorded = control_session_manager.log_event(event, reason=disengage_reason)
+                if recorded:
+                    _log("server", "console", f"[对照组] 记录事件: {event} (reason={disengage_reason})")
+                else:
+                    _log("server", "console", f"[对照组] 忽略事件（当前无 active session）: {event}")
+                response = {"ok": True, "event": event, "mode": "control", "session_active": recorded}
                 _log("server", receiver_role, f"WebSocket 定向发送 -> {receiver_role}: {json.dumps(response, ensure_ascii=False)}")
                 await websocket.send(json.dumps(response))
-                await notify_extension_posture_disengagement(receiver_role, signal, event, False)
-                await notify_baseline_event(event, disengage_reason)
+                if recorded:
+                    await notify_baseline_event(event, disengage_reason)
                 continue
 
             ok, detail = await forward_event(event, reason=disengage_reason)
@@ -509,7 +715,8 @@ async def main():
         _log("server", "console", "══════ 对照组模式 ══════")
         _log("server", "console", "  • 不转发事件到 pipeline（无机器人干预）")
         _log("server", "console", "  • 不发送 ROBOT_REDIRECT 到扩展（无页面高亮）")
-        _log("server", "console", "  • 走神事件记录到 sessions/control_*.json")
+        _log("server", "console", "  • 研究者通过 control_session_start/stop 管理 no_system session")
+        _log("server", "console", "  • 会话保存为 sessions/baseline_*.json，并自动刷新 CSV")
     else:
         _log("server", "console", f"触发器目标: http://{TRIGGER_HOST}:{TRIGGER_PORT}")
     _log("server", "console", f"监听地址: ws://{WS_HOST}:{WS_PORT}")

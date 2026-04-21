@@ -1,0 +1,38 @@
+{
+  "session_id": "baseline_20260420_wenfei12_414569",
+  "participant_id": "wenfei12",
+  "condition": "no_system",
+  "start_time": "2026-04-20T21:34:16.696239-04:00",
+  "end_time": "2026-04-20T21:35:33.133210-04:00",
+  "events": [
+    {
+      "timestamp": "2026-04-20T21:35:23.325888-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "looking_away"
+      }
+    },
+    {
+      "timestamp": "2026-04-20T21:35:27.041828-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-04-20T21:35:23.325888-04:00",
+      "distraction_end_time": "2026-04-20T21:35:27.041828-04:00",
+      "distraction_duration_s": 3.72,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "looking_away",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 3.72
+    }
+  ],
+  "total_distraction_count": 1,
+  "total_voice_prompts": 0
+}

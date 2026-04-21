@@ -7,6 +7,9 @@ python server.py
 # 终端 2：摄像头桥接（提供研究者控制台页面，禁用老的浏览器视频传输路径）
 cd webcam && PARTICIPANT_CLIENT_MODE=1 python browser_bridge.py
 
+# 终端 3：参与者控制页面的 HTTP 服务
+python web_controller.py
+
 然后在研究者电脑的浏览器打开：
 http://localhost:9877/researcher
 这是研究者控制台——点 Start Camera / Stop Camera 远程控制参与者摄像头。
@@ -32,7 +35,13 @@ cd webcam && PARTICIPANT_CLIENT_MODE=1 python browser_bridge.py
 
 然后在研究者电脑的浏览器打开：
 http://localhost:9877/researcher
-点 Start Camera / Stop Camera 远程控制参与者摄像头。
+在控制台输入 participant ID，然后点 Start Session / End Session。
+
+这会自动：
+1. 远程启动/停止参与者本地的 `participant_client.py` 摄像头检测
+2. 在参与者本地 `recordings/` 下保存 OpenCV 录像
+3. 在根目录 `sessions/` 下保存 `baseline_*.json`
+4. 自动刷新根目录 `intervention_events.csv` 和 `session_summary.csv`
 
 参与者电脑
 cd webcam && python participant_client.py

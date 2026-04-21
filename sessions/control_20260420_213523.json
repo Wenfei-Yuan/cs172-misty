@@ -1,0 +1,19 @@
+{
+  "mode": "control",
+  "session_id": "control_20260420_213523",
+  "participant_id": "control",
+  "condition": "no_system",
+  "start_time": "2026-04-20T21:35:23.322695",
+  "end_time": "2026-04-20T21:35:27.041079",
+  "events": [
+    {
+      "ts": "2026-04-20T21:35:23.324172",
+      "event": "start",
+      "reason": "looking_away"
+    },
+    {
+      "ts": "2026-04-20T21:35:27.041070",
+      "event": "stop"
+    }
+  ]
+}
