@@ -157,6 +157,7 @@ class ControlSessionManager:
                 "active": False,
                 "session_id": None,
                 "participant_id": None,
+                "start_time": None,
                 "num_events": 0,
             }
         return {
@@ -164,6 +165,7 @@ class ControlSessionManager:
             "active": True,
             "session_id": session["session_id"],
             "participant_id": session["participant_id"],
+            "start_time": session["start_time"],
             "num_events": len(session["raw_events"]),
         }
 

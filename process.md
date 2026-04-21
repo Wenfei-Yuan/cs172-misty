@@ -35,7 +35,7 @@ cd webcam && PARTICIPANT_CLIENT_MODE=1 python browser_bridge.py
 
 然后在研究者电脑的浏览器打开：
 http://localhost:9877/researcher
-在控制台输入 participant ID，然后点 Start Session / End Session。
+研究者只需点 Start Session / End Session。
 
 这会自动：
 1. 远程启动/停止参与者本地的 `participant_client.py` 摄像头检测
@@ -44,6 +44,11 @@ http://localhost:9877/researcher
 4. 自动刷新根目录 `intervention_events.csv` 和 `session_summary.csv`
 
 参与者电脑
+在浏览器打开：
+http://10.5.15.160:9877/baseline
+
+先在页面里输入用户名并保存，然后保持页面打开。
+
 cd webcam && python participant_client.py
 
 
