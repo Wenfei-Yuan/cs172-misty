@@ -85,6 +85,8 @@
   let isPaused      = false;
   let redirectHighlightStartTimer   = null;
   let redirectHighlightCleanupTimer = null;
+  let redirectHighlightTarget       = null;
+  let redirectHighlightOriginals    = null;
   let scrollSamples = [];
   let currentMode   = "full"; // tracked so we know which logic to apply
   let dwellStart    = null;   // when the user landed on current para/sentence
@@ -269,6 +271,23 @@
   // ── Receive messages from background (robot signals + bridge status) ────────
   chrome.runtime.onMessage.addListener((msg) => {
 
+    function clearRedirectHighlight() {
+      clearTimeout(redirectHighlightStartTimer);
+      redirectHighlightStartTimer = null;
+      clearTimeout(redirectHighlightCleanupTimer);
+      redirectHighlightCleanupTimer = null;
+
+      if (!redirectHighlightTarget || !redirectHighlightOriginals) return;
+
+      redirectHighlightTarget.style.background   = redirectHighlightOriginals.background;
+      redirectHighlightTarget.style.boxShadow    = redirectHighlightOriginals.boxShadow;
+      redirectHighlightTarget.style.borderRadius = redirectHighlightOriginals.borderRadius;
+      redirectHighlightTarget.style.transition   = redirectHighlightOriginals.transition;
+
+      redirectHighlightTarget    = null;
+      redirectHighlightOriginals = null;
+    }
+
     if (msg.type === "BRIDGE_CONNECTED") {
       const s = shadow.getElementById("robot-status");
       if (s) {
@@ -293,23 +312,25 @@
 
     if (msg.type === "ROBOT_REDIRECT") {
       const idx    = getVisibleParagraphIndex();
-      const DELAY_MS = 10500; // wait for user to notice robot + turn back
-      const HOLD_MS  = 5000;  // solid highlight duration
-      const FADE_MS  = 1500;  // gentle fade-out so it doesn't hard-cut
+      const DELAY_MS = 0; // start highlight immediately on redirect
+      const HOLD_MS  = 5000;  // highlight duration before clearing
 
-      clearTimeout(redirectHighlightStartTimer);
-      clearTimeout(redirectHighlightCleanupTimer);
+      clearRedirectHighlight();
 
       redirectHighlightStartTimer = setTimeout(() => {
+        redirectHighlightStartTimer = null;
         const paras  = shadow.querySelectorAll(".article-paragraph");
         const target = paras[getVisibleParagraphIndex()];
         if (!target) return;
 
         // Save only the specific properties we'll touch (no setAttribute clobber)
-        const origBackground   = target.style.background;
-        const origBoxShadow    = target.style.boxShadow;
-        const origBorderRadius = target.style.borderRadius;
-        const origTransition   = target.style.transition;
+        redirectHighlightTarget = target;
+        redirectHighlightOriginals = {
+          background: target.style.background,
+          boxShadow: target.style.boxShadow,
+          borderRadius: target.style.borderRadius,
+          transition: target.style.transition,
+        };
 
         // Apply highlight instantly — inset left-bar accent + soft tint (Notion callout style).
         // Uses box-shadow only so there's zero layout shift.
@@ -325,15 +346,15 @@
           target.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
 
-        // After hold period, fade out then clean up
+        // Clear the highlight after 5 seconds total.
         redirectHighlightCleanupTimer = setTimeout(() => {
-          target.style.transition = `background ${FADE_MS}ms ease-out, box-shadow ${FADE_MS}ms ease-out`;
-          target.style.background = origBackground || "";
-          target.style.boxShadow  = origBoxShadow  || "none";
-          setTimeout(() => {
-            target.style.borderRadius = origBorderRadius;
-            target.style.transition   = origTransition;
-          }, FADE_MS);
+          if (redirectHighlightTarget !== target || !redirectHighlightOriginals) return;
+          target.style.background = redirectHighlightOriginals.background;
+          target.style.boxShadow  = redirectHighlightOriginals.boxShadow;
+          target.style.borderRadius = redirectHighlightOriginals.borderRadius;
+          target.style.transition   = redirectHighlightOriginals.transition;
+          redirectHighlightTarget    = null;
+          redirectHighlightOriginals = null;
         }, HOLD_MS);
       }, DELAY_MS);
 
@@ -366,6 +387,12 @@
       send("session_end");
       clearTimeout(redirectHighlightStartTimer);
       clearTimeout(redirectHighlightCleanupTimer);
+      if (redirectHighlightTarget && redirectHighlightOriginals) {
+        redirectHighlightTarget.style.background   = redirectHighlightOriginals.background;
+        redirectHighlightTarget.style.boxShadow    = redirectHighlightOriginals.boxShadow;
+        redirectHighlightTarget.style.borderRadius = redirectHighlightOriginals.borderRadius;
+        redirectHighlightTarget.style.transition   = redirectHighlightOriginals.transition;
+      }
       clearTimeout(pauseTimer);
       clearInterval(readingStateInterval);
     });

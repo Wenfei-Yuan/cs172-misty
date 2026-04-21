@@ -1,6 +1,8 @@
 import asyncio
 import json
+import os
 import time
+from datetime import datetime, timezone
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -15,6 +17,92 @@ SERVER_IP = "10.5.15.160"   # 改成你的电脑IP
 SERVER_PORT = 8765
 WS_URL = f"ws://{SERVER_IP}:{SERVER_PORT}"
 RECONNECT_DELAY = 3.0
+
+# ── Video recording ───────────────────────────────────────────────────
+_dir = os.path.dirname(os.path.abspath(__file__))
+RECORDINGS_DIR = os.path.normpath(os.path.join(_dir, "..", "recordings"))
+REC_NOMINAL_FPS = 15
+
+_rec_active = False
+_rec_writer: cv2.VideoWriter | None = None
+_rec_start_ts: str = ""
+_rec_frame_count: int = 0
+_rec_filename: str = ""
+_rec_username: str = ""
+_rec_resolution: tuple = (0, 0)
+_rec_pending_start: dict | None = None  # set to {"username": ...} to start on next frame
+_rec_pending_stop: bool = False
+
+
+def _do_start_recording(username: str, frame: np.ndarray) -> None:
+    global _rec_writer, _rec_active, _rec_start_ts, _rec_frame_count
+    global _rec_filename, _rec_username, _rec_resolution
+
+    os.makedirs(RECORDINGS_DIR, exist_ok=True)
+    now = datetime.now(timezone.utc).astimezone()
+    _rec_start_ts = now.isoformat()
+    ts_str = now.strftime("%Y%m%d_%H%M%S")
+    _rec_filename = f"recording_{ts_str}_{username}.avi"
+    _rec_username = username
+    _rec_frame_count = 0
+
+    h, w = frame.shape[:2]
+    _rec_resolution = (w, h)
+    path = os.path.join(RECORDINGS_DIR, _rec_filename)
+    fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+    _rec_writer = cv2.VideoWriter(path, fourcc, REC_NOMINAL_FPS, (w, h))
+    if _rec_writer.isOpened():
+        _rec_active = True
+        print(f"[Recording] Started: {_rec_filename} ({w}x{h} @ {REC_NOMINAL_FPS}fps)")
+    else:
+        print(f"[Recording] ERROR: failed to open VideoWriter for {path}")
+        _rec_writer = None
+
+
+def _do_stop_recording() -> None:
+    global _rec_writer, _rec_active
+    if _rec_writer is None:
+        _rec_active = False
+        return
+    _rec_writer.release()
+    _rec_writer = None
+    _rec_active = False
+
+    end_ts = datetime.now(timezone.utc).astimezone().isoformat()
+    meta = {
+        "video_file": _rec_filename,
+        "username": _rec_username,
+        "video_start_ts": _rec_start_ts,
+        "video_end_ts": end_ts,
+        "total_frames": _rec_frame_count,
+        "nominal_fps": REC_NOMINAL_FPS,
+        "resolution": list(_rec_resolution),
+    }
+    meta_path = os.path.join(RECORDINGS_DIR, _rec_filename.replace(".avi", ".json"))
+    with open(meta_path, "w") as f:
+        json.dump(meta, f, indent=2)
+    print(f"[Recording] Stopped: {_rec_filename} ({_rec_frame_count} frames)")
+    print(f"[Recording] Metadata: {meta_path}")
+
+
+def _handle_recording_frame(frame: np.ndarray) -> None:
+    """Call every captured frame to handle pending start/stop and write."""
+    global _rec_pending_start, _rec_pending_stop, _rec_frame_count
+
+    start_cmd = _rec_pending_start
+    stop_cmd = _rec_pending_stop
+    _rec_pending_start = None
+    _rec_pending_stop = False
+
+    if stop_cmd and _rec_active:
+        _do_stop_recording()
+
+    if start_cmd is not None and not _rec_active:
+        _do_start_recording(start_cmd["username"], frame)
+
+    if _rec_active and _rec_writer is not None:
+        _rec_writer.write(frame)
+        _rec_frame_count += 1
 
 DISENGAGE_THRESHOLD = 2.0     # 更严格：偏离持续超过2.0秒 -> disengaged
 REENGAGE_THRESHOLD = 1.0  # 恢复朝向屏幕后持续1.5秒 -> re-engaged
@@ -347,6 +435,15 @@ async def run_client():
                     print("[远程] 收到 shutdown 指令")
                     shutdown_event.set()
                     camera_active.set()  # unblock wait
+                elif cmd_type == "recording_start":
+                    username = msg.get("username", "participant")
+                    global _rec_pending_start
+                    _rec_pending_start = {"username": username}
+                    print(f"[远程] 收到 recording_start 指令 (username={username})")
+                elif cmd_type == "recording_stop":
+                    global _rec_pending_stop
+                    _rec_pending_stop = True
+                    print("[远程] 收到 recording_stop 指令")
         except websockets.ConnectionClosed:
             pass
 
@@ -436,6 +533,8 @@ async def run_client():
                                     print("读取摄像头画面失败")
                                     await asyncio.sleep(0.1)
                                     continue
+
+                                _handle_recording_frame(frame)
 
                                 now = time.time()
                                 result = analyze_frame(frame)
@@ -724,6 +823,8 @@ async def run_client():
                                 await asyncio.sleep(0.01)
 
                             # ── Detection loop ended (stop_camera or shutdown) ──
+                            if _rec_active:
+                                _do_stop_recording()
                             print("检测循环结束，释放摄像头")
                             if cap is not None:
                                 cap.release()

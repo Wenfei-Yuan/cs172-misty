@@ -313,8 +313,7 @@
     if (msg.type === "ROBOT_REDIRECT") {
       const idx    = getVisibleParagraphIndex();
       const DELAY_MS = 0; // start highlight immediately on redirect
-      const HOLD_MS  = 5000;  // solid highlight duration
-      const FADE_MS  = 1500;  // gentle fade-out so it doesn't hard-cut
+      const HOLD_MS  = 5000;  // highlight duration before clearing
 
       clearRedirectHighlight();
 
@@ -347,19 +346,15 @@
           target.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
 
-        // After hold period, fade out then clean up
+        // Clear the highlight after 5 seconds total.
         redirectHighlightCleanupTimer = setTimeout(() => {
           if (redirectHighlightTarget !== target || !redirectHighlightOriginals) return;
-          target.style.transition = `background ${FADE_MS}ms ease-out, box-shadow ${FADE_MS}ms ease-out`;
           target.style.background = redirectHighlightOriginals.background;
           target.style.boxShadow  = redirectHighlightOriginals.boxShadow;
-          setTimeout(() => {
-            if (redirectHighlightTarget !== target || !redirectHighlightOriginals) return;
-            target.style.borderRadius = redirectHighlightOriginals.borderRadius;
-            target.style.transition   = redirectHighlightOriginals.transition;
-            redirectHighlightTarget    = null;
-            redirectHighlightOriginals = null;
-          }, FADE_MS);
+          target.style.borderRadius = redirectHighlightOriginals.borderRadius;
+          target.style.transition   = redirectHighlightOriginals.transition;
+          redirectHighlightTarget    = null;
+          redirectHighlightOriginals = null;
         }, HOLD_MS);
       }, DELAY_MS);
 

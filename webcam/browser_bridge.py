@@ -400,6 +400,25 @@ def _send_camera_via_server(cmd_type: str) -> bool:
         return False
 
 
+def _send_recording_via_server(action: str, username: str = "participant") -> dict:
+    """Relay recording start/stop to participant_client via server.py WebSocket."""
+    try:
+        from websockets.sync.client import connect as ws_sync_connect
+        if action == "start":
+            msg = json.dumps({"type": "recording_start", "username": username})
+        else:
+            msg = json.dumps({"type": "recording_stop"})
+        with ws_sync_connect(BRIDGE_WS_URL, open_timeout=3) as ws:
+            ws.send(msg)
+            resp = ws.recv(timeout=3)
+            result = json.loads(resp)
+            ok = result.get("ok", False)
+            return {"ok": ok, "detail": f"Recording {action} relayed via server" if ok else result.get("reason", "relay failed")}
+    except Exception as e:
+        print(f"[RecordingHTTP] Failed to relay recording_{action} via server: {e}")
+        return {"ok": False, "detail": str(e)}
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  Participant HTML page — camera is HIDDEN, controlled by researcher
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1099,10 +1118,16 @@ class _BridgeHTTPHandler(BaseHTTPRequestHandler):
             except json.JSONDecodeError:
                 payload = {}
             username = payload.get("username", "participant")
-            result = _request_recording_start(username)
+            if PARTICIPANT_CLIENT_MODE:
+                result = _send_recording_via_server("start", username)
+            else:
+                result = _request_recording_start(username)
             self._json(200, result)
         elif self.path == "/api/recording/stop":
-            result = _request_recording_stop()
+            if PARTICIPANT_CLIENT_MODE:
+                result = _send_recording_via_server("stop")
+            else:
+                result = _request_recording_stop()
             self._json(200, result)
         elif self.path == "/api/baseline/start":
             length = int(self.headers.get("Content-Length", "0"))

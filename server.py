@@ -414,14 +414,14 @@ async def handler(websocket):
             try:
                 _payload = json.loads(message.strip())
                 _msg_type = _payload.get("type")
-                if isinstance(_msg_type, str) and _msg_type in ("start_camera", "stop_camera"):
+                if isinstance(_msg_type, str) and _msg_type in ("start_camera", "stop_camera", "recording_start", "recording_stop"):
                     webcam_ws = role_clients.get("webcam")
                     if webcam_ws is not None and webcam_ws is not websocket:
                         await webcam_ws.send(message)
-                        _log("server", "webcam", f"已转发摄像头指令: {_msg_type}")
+                        _log("server", "webcam", f"已转发指令: {_msg_type}")
                         await websocket.send(json.dumps({"ok": True, "type": _msg_type, "relayed": True}))
                     else:
-                        _log("server", "console", f"摄像头指令 {_msg_type} 无法转发: webcam 客户端未连接")
+                        _log("server", "console", f"指令 {_msg_type} 无法转发: webcam 客户端未连接")
                         await websocket.send(json.dumps({"ok": False, "type": _msg_type, "reason": "webcam_not_connected"}))
                     continue
             except (json.JSONDecodeError, ValueError):

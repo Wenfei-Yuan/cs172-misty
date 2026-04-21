@@ -572,8 +572,10 @@ event_id,participant_id,session_id,condition,disengagement_onset_ts,trigger_sour
 571,wenfei8,session_20260420_wenfei8_7f8f47,with_system,2026-04-20T20:47:46.117433-04:00,gaze_off_screen,2026-04-20T20:47:46.117433-04:00,head_turn_plus_wave,2026-04-20T20:47:54.821335-04:00,2026-04-20T20:47:55.029199-04:00,0,,,,0,,1,8910.0,resumed_after_nonverbal
 572,wenfei8,session_20260420_wenfei8_7f8f47,with_system,2026-04-20T20:48:02.052955-04:00,gaze_off_screen,2026-04-20T20:48:02.052955-04:00,head_turn_plus_wave,2026-04-20T20:48:04.325767-04:00,2026-04-20T20:48:04.364104-04:00,0,,,,0,,1,2310.0,resumed_after_nonverbal
 573,wenfei8,session_20260420_wenfei8_7f8f47,with_system,2026-04-20T20:48:12.429177-04:00,gaze_off_screen,2026-04-20T20:48:12.429177-04:00,head_turn_plus_wave,2026-04-20T20:48:21.033865-04:00,2026-04-20T20:48:24.338513-04:00,0,,,,0,,1,11910.0,resumed_after_nonverbal
-574,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:37:02.024332-04:00,gaze_mind_wandering,,,,2026-04-17T17:37:32.588913-04:00,0,,,,0,,1,30560.0,self_recovered
-575,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:37:36.471420-04:00,gaze_mind_wandering,,,,2026-04-17T17:37:39.161515-04:00,0,,,,0,,1,2690.0,self_recovered
-576,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:37:42.658255-04:00,gaze_mind_wandering,,,,2026-04-17T17:37:46.686312-04:00,0,,,,0,,1,4030.0,self_recovered
-577,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:37:49.621301-04:00,gaze_mind_wandering,,,,2026-04-17T17:37:53.448126-04:00,0,,,,0,,1,3830.0,self_recovered
-578,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:38:14.924022-04:00,gaze_mind_wandering,,,,2026-04-17T17:38:16.225050-04:00,0,,,,0,,0,1300.0,not_resumed
+574,wenfei9,session_20260420_wenfei9_a71440,with_system,2026-04-20T20:55:32.612800-04:00,gaze_off_screen,2026-04-20T20:55:32.612800-04:00,head_turn_plus_wave,2026-04-20T20:55:39.546302-04:00,2026-04-20T20:55:39.745473-04:00,0,,,,0,,1,7130.0,resumed_after_nonverbal
+575,wenfei9,session_20260420_wenfei9_a71440,with_system,2026-04-20T20:55:47.158359-04:00,gaze_off_screen,2026-04-20T20:55:47.158359-04:00,head_turn_plus_wave,2026-04-20T20:55:51.164635-04:00,2026-04-20T20:55:51.227882-04:00,0,,,,0,,1,4070.0,resumed_after_nonverbal
+576,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:37:02.024332-04:00,gaze_mind_wandering,,,,2026-04-17T17:37:32.588913-04:00,0,,,,0,,1,30560.0,self_recovered
+577,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:37:36.471420-04:00,gaze_mind_wandering,,,,2026-04-17T17:37:39.161515-04:00,0,,,,0,,1,2690.0,self_recovered
+578,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:37:42.658255-04:00,gaze_mind_wandering,,,,2026-04-17T17:37:46.686312-04:00,0,,,,0,,1,4030.0,self_recovered
+579,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:37:49.621301-04:00,gaze_mind_wandering,,,,2026-04-17T17:37:53.448126-04:00,0,,,,0,,1,3830.0,self_recovered
+580,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:38:14.924022-04:00,gaze_mind_wandering,,,,2026-04-17T17:38:16.225050-04:00,0,,,,0,,0,1300.0,not_resumed
