@@ -34,14 +34,21 @@ _session_lock = threading.Lock()
 _active_session: dict | None = None
 
 
-def _notify_bridge_recording(action: str, username: str = "") -> None:
+def _notify_bridge_recording(action: str, username: str = "", session_ts: str = "") -> None:
     """Tell the webcam bridge to start/stop video recording."""
     if action == "start":
         url = f"http://127.0.0.1:{BRIDGE_HTTP_PORT}/api/recording/start"
-        data = json.dumps({"username": username}).encode()
+        payload = {"username": username}
+        if session_ts:
+            payload["session_start_ts"] = session_ts
+        data = json.dumps(payload).encode()
     else:
         url = f"http://127.0.0.1:{BRIDGE_HTTP_PORT}/api/recording/stop"
-        data = b"{}"
+        payload = {}
+        if session_ts:
+            payload["session_end_ts"] = session_ts
+        data = json.dumps(payload).encode()
+
     req = request.Request(url, data=data, method="POST")
     req.add_header("Content-Type", "application/json")
     try:
@@ -511,14 +518,15 @@ class Handler(BaseHTTPRequestHandler):
                 self._json_response(409, {"ok": False, "detail": "Session already active"})
                 return
             session_id = _gen_session_id(username)
+            start_time = datetime.now().astimezone().isoformat()
             _active_session = {
                 "session_id": session_id,
                 "participant_id": username,
-                "start_time": datetime.now().astimezone().isoformat(),
+                "start_time": start_time,
             }
 
         print(f"[baseline] Session started: {session_id} (participant={username})")
-        _notify_bridge_recording("start", username)
+        _notify_bridge_recording("start", username, start_time)
         self._json_response(200, {"ok": True, "session_id": session_id})
 
     # ── Stop session ──
@@ -570,7 +578,7 @@ class Handler(BaseHTTPRequestHandler):
             json.dump(session_data, f, indent=2, ensure_ascii=False)
 
         print(f"[baseline] Session saved: {fpath}  ({len(distraction_events)} distractions)")
-        _notify_bridge_recording("stop")
+        _notify_bridge_recording("stop", session_ts=end_time)
         self._json_response(200, {
             "ok": True,
             "session_id": session["session_id"],

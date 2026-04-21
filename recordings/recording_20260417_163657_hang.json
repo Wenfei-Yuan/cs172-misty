@@ -1,10 +1,10 @@
 {
   "video_file": "recording_20260417_163657_hang.avi",
   "username": "hang",
-  "video_start_ts": "2026-04-17T16:36:57.238910-04:00",
-  "video_end_ts": "2026-04-17T16:51:47.834350-04:00",
+  "video_start_ts": "2026-04-17T16:35:50.569794-04:00",
+  "video_end_ts": "2026-04-17T16:38:22.929010-04:00",
   "total_frames": 23,
-  "nominal_fps": 15,
+  "nominal_fps": 0.151,
   "resolution": [
     320,
     240

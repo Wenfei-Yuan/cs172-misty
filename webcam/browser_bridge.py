@@ -203,13 +203,14 @@ def _handle_baseline_start(payload: dict) -> tuple[int, dict]:
         if _baseline_session:
             return 409, {"ok": False, "detail": "Session already active"}
         sid = _gen_baseline_id(username)
+        start_time = datetime.now().astimezone().isoformat()
         _baseline_session = {
             "session_id": sid,
             "participant_id": username,
-            "start_time": datetime.now().astimezone().isoformat(),
+            "start_time": start_time,
         }
     print(f"[baseline] Session started: {sid} (participant={username})")
-    _request_recording_start(username)
+    _request_recording_start(username, session_start_ts=start_time)
     return 200, {"ok": True, "session_id": sid}
 
 
@@ -246,7 +247,7 @@ def _handle_baseline_stop(payload: dict) -> tuple[int, dict]:
     with open(fpath, "w", encoding="utf-8") as f:
         json.dump(session_data, f, indent=2, ensure_ascii=False)
     print(f"[baseline] Session saved: {fpath}  ({len(distraction_events)} distractions)")
-    _request_recording_stop()
+    _request_recording_stop(session_end_ts=end_time)
     return 200, {"ok": True, "session_id": session["session_id"], "num_distractions": len(distraction_events)}
 
 
@@ -285,7 +286,7 @@ _REC_NOMINAL_FPS = 15
 
 _rec_lock = threading.Lock()
 _rec_pending_start: dict | None = None
-_rec_pending_stop: bool = False
+_rec_pending_stop: dict | None = None
 _rec_writer: cv2.VideoWriter | None = None
 _rec_active: bool = False
 _rec_start_ts: str = ""
@@ -293,30 +294,37 @@ _rec_frame_count: int = 0
 _rec_filename: str = ""
 _rec_username: str = ""
 _rec_resolution: tuple[int, int] = (0, 0)
+_rec_first_frame_ts: str = ""
+_rec_last_frame_ts: str = ""
+_rec_forced_start_ts: str = ""
+_rec_forced_end_ts: str = ""
 
 
-def _request_recording_start(username: str) -> dict:
+def _request_recording_start(username: str, session_start_ts: str = "") -> dict:
     global _rec_pending_start
     with _rec_lock:
         if _rec_active:
             return {"ok": False, "detail": "Already recording"}
-        _rec_pending_start = {"username": username}
+        _rec_pending_start = {
+            "username": username,
+            "session_start_ts": str(session_start_ts or "").strip(),
+        }
     return {"ok": True, "detail": "Recording start requested"}
 
 
-def _request_recording_stop() -> dict:
+def _request_recording_stop(session_end_ts: str = "") -> dict:
     global _rec_pending_stop
     with _rec_lock:
         if not _rec_active:
             return {"ok": False, "detail": "Not recording"}
-        _rec_pending_stop = True
+        _rec_pending_stop = {"session_end_ts": str(session_end_ts or "").strip()}
     return {"ok": True, "detail": "Recording stop requested"}
 
 
 def _do_start_recording(username: str, frame: np.ndarray) -> None:
     """Create VideoWriter on first frame after start is requested."""
     global _rec_writer, _rec_active, _rec_start_ts, _rec_frame_count
-    global _rec_filename, _rec_username, _rec_resolution
+    global _rec_filename, _rec_username, _rec_resolution, _rec_first_frame_ts, _rec_last_frame_ts
 
     os.makedirs(_RECORDINGS_DIR, exist_ok=True)
 
@@ -326,6 +334,8 @@ def _do_start_recording(username: str, frame: np.ndarray) -> None:
     _rec_filename = f"recording_{ts_str}_{username}.avi"
     _rec_username = username
     _rec_frame_count = 0
+    _rec_first_frame_ts = ""
+    _rec_last_frame_ts = ""
 
     h, w = frame.shape[:2]
     _rec_resolution = (w, h)
@@ -354,15 +364,28 @@ def _do_stop_recording() -> None:
     _rec_writer = None
     _rec_active = False
 
-    end_ts = datetime.now(timezone.utc).astimezone().isoformat()
+    end_ts_now = datetime.now(timezone.utc).astimezone().isoformat()
+    start_ts = _rec_forced_start_ts or _rec_first_frame_ts or _rec_start_ts
+    end_ts = _rec_forced_end_ts or _rec_last_frame_ts or end_ts_now
+
+    actual_fps = 0.0
+    try:
+        start_dt = datetime.fromisoformat(start_ts)
+        end_dt = datetime.fromisoformat(end_ts)
+        duration_s = (end_dt - start_dt).total_seconds()
+        if duration_s > 0 and _rec_frame_count > 0:
+            actual_fps = _rec_frame_count / duration_s
+    except Exception:
+        actual_fps = 0.0
 
     meta = {
         "video_file": _rec_filename,
         "username": _rec_username,
-        "video_start_ts": _rec_start_ts,
+        "video_start_ts": start_ts,
         "video_end_ts": end_ts,
         "total_frames": _rec_frame_count,
-        "nominal_fps": _REC_NOMINAL_FPS,
+        "nominal_fps": round(actual_fps, 3) if actual_fps > 0 else 0,
+        "writer_fps": _REC_NOMINAL_FPS,
         "resolution": list(_rec_resolution),
     }
 
@@ -377,19 +400,23 @@ def _do_stop_recording() -> None:
 def _check_and_handle_recording_bytes(data: bytes) -> None:
     """Decode raw JPEG and write to video. Called for EVERY received frame."""
     global _rec_pending_start, _rec_pending_stop, _rec_frame_count
+    global _rec_forced_start_ts, _rec_forced_end_ts, _rec_first_frame_ts, _rec_last_frame_ts
 
     with _rec_lock:
         start_cmd = _rec_pending_start
         stop_cmd = _rec_pending_stop
         _rec_pending_start = None
-        _rec_pending_stop = False
+        _rec_pending_stop = None
 
     frame = None
 
     if stop_cmd and _rec_active:
+        _rec_forced_end_ts = str(stop_cmd.get("session_end_ts") or "").strip()
         _do_stop_recording()
 
     if start_cmd is not None and not _rec_active:
+        _rec_forced_start_ts = str(start_cmd.get("session_start_ts") or "").strip()
+        _rec_forced_end_ts = ""
         frame = decode_jpeg_frame(data)
         if frame is not None:
             _do_start_recording(start_cmd["username"], frame)
@@ -398,6 +425,10 @@ def _check_and_handle_recording_bytes(data: bytes) -> None:
         if frame is None:
             frame = decode_jpeg_frame(data)
         if frame is not None:
+            frame_ts = datetime.now(timezone.utc).astimezone().isoformat()
+            if not _rec_first_frame_ts:
+                _rec_first_frame_ts = frame_ts
+            _rec_last_frame_ts = frame_ts
             _rec_writer.write(frame)
             _rec_frame_count += 1
 
@@ -430,14 +461,20 @@ def _send_camera_via_server(cmd_type: str) -> bool:
         return False
 
 
-def _send_recording_via_server(action: str, username: str = "participant") -> dict:
+def _send_recording_via_server(action: str, username: str = "participant", session_ts: str = "") -> dict:
     """Relay recording start/stop to participant_client via server.py WebSocket."""
     try:
         from websockets.sync.client import connect as ws_sync_connect
         if action == "start":
-            msg = json.dumps({"type": "recording_start", "username": username})
+            payload = {"type": "recording_start", "username": username}
+            if session_ts:
+                payload["session_start_ts"] = session_ts
+            msg = json.dumps(payload)
         else:
-            msg = json.dumps({"type": "recording_stop"})
+            payload = {"type": "recording_stop"}
+            if session_ts:
+                payload["session_end_ts"] = session_ts
+            msg = json.dumps(payload)
         with ws_sync_connect(BRIDGE_WS_URL, open_timeout=3) as ws:
             ws.send(msg)
             resp = ws.recv(timeout=3)
@@ -1442,16 +1479,24 @@ class _BridgeHTTPHandler(BaseHTTPRequestHandler):
             except json.JSONDecodeError:
                 payload = {}
             username = payload.get("username", "participant")
+            session_start_ts = str(payload.get("session_start_ts") or "").strip()
             if PARTICIPANT_CLIENT_MODE:
-                result = _send_recording_via_server("start", username)
+                result = _send_recording_via_server("start", username, session_start_ts)
             else:
-                result = _request_recording_start(username)
+                result = _request_recording_start(username, session_start_ts)
             self._json(200, result)
         elif self.path == "/api/recording/stop":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length) if length else b""
+            try:
+                payload = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                payload = {}
+            session_end_ts = str(payload.get("session_end_ts") or "").strip()
             if PARTICIPANT_CLIENT_MODE:
-                result = _send_recording_via_server("stop")
+                result = _send_recording_via_server("stop", session_ts=session_end_ts)
             else:
-                result = _request_recording_stop()
+                result = _request_recording_stop(session_end_ts)
             self._json(200, result)
         elif self.path == "/api/baseline/start":
             length = int(self.headers.get("Content-Length", "0"))

@@ -30,13 +30,18 @@ _rec_frame_count: int = 0
 _rec_filename: str = ""
 _rec_username: str = ""
 _rec_resolution: tuple = (0, 0)
-_rec_pending_start: dict | None = None  # set to {"username": ...} to start on next frame
-_rec_pending_stop: bool = False
+_rec_first_frame_ts: str = ""
+_rec_last_frame_ts: str = ""
+_rec_forced_start_ts: str = ""
+_rec_forced_end_ts: str = ""
+_rec_pending_start: dict | None = None  # set to {"username": ..., "session_start_ts": ...}
+_rec_pending_stop: dict | None = None   # set to {"session_end_ts": ...}
 
 
 def _do_start_recording(username: str, frame: np.ndarray) -> None:
     global _rec_writer, _rec_active, _rec_start_ts, _rec_frame_count
     global _rec_filename, _rec_username, _rec_resolution
+    global _rec_first_frame_ts, _rec_last_frame_ts
 
     os.makedirs(RECORDINGS_DIR, exist_ok=True)
     now = datetime.now(timezone.utc).astimezone()
@@ -45,6 +50,8 @@ def _do_start_recording(username: str, frame: np.ndarray) -> None:
     _rec_filename = f"recording_{ts_str}_{username}.avi"
     _rec_username = username
     _rec_frame_count = 0
+    _rec_first_frame_ts = ""
+    _rec_last_frame_ts = ""
 
     h, w = frame.shape[:2]
     _rec_resolution = (w, h)
@@ -68,14 +75,28 @@ def _do_stop_recording() -> None:
     _rec_writer = None
     _rec_active = False
 
-    end_ts = datetime.now(timezone.utc).astimezone().isoformat()
+    end_ts_now = datetime.now(timezone.utc).astimezone().isoformat()
+    start_ts = _rec_forced_start_ts or _rec_first_frame_ts or _rec_start_ts
+    end_ts = _rec_forced_end_ts or _rec_last_frame_ts or end_ts_now
+
+    actual_fps = 0.0
+    try:
+        start_dt = datetime.fromisoformat(start_ts)
+        end_dt = datetime.fromisoformat(end_ts)
+        duration_s = (end_dt - start_dt).total_seconds()
+        if duration_s > 0 and _rec_frame_count > 0:
+            actual_fps = _rec_frame_count / duration_s
+    except Exception:
+        actual_fps = 0.0
+
     meta = {
         "video_file": _rec_filename,
         "username": _rec_username,
-        "video_start_ts": _rec_start_ts,
+        "video_start_ts": start_ts,
         "video_end_ts": end_ts,
         "total_frames": _rec_frame_count,
-        "nominal_fps": REC_NOMINAL_FPS,
+        "nominal_fps": round(actual_fps, 3) if actual_fps > 0 else 0,
+        "writer_fps": REC_NOMINAL_FPS,
         "resolution": list(_rec_resolution),
     }
     meta_path = os.path.join(RECORDINGS_DIR, _rec_filename.replace(".avi", ".json"))
@@ -88,19 +109,27 @@ def _do_stop_recording() -> None:
 def _handle_recording_frame(frame: np.ndarray) -> None:
     """Call every captured frame to handle pending start/stop and write."""
     global _rec_pending_start, _rec_pending_stop, _rec_frame_count
+    global _rec_forced_start_ts, _rec_forced_end_ts, _rec_first_frame_ts, _rec_last_frame_ts
 
     start_cmd = _rec_pending_start
     stop_cmd = _rec_pending_stop
     _rec_pending_start = None
-    _rec_pending_stop = False
+    _rec_pending_stop = None
 
     if stop_cmd and _rec_active:
+        _rec_forced_end_ts = str(stop_cmd.get("session_end_ts") or "").strip()
         _do_stop_recording()
 
     if start_cmd is not None and not _rec_active:
+        _rec_forced_start_ts = str(start_cmd.get("session_start_ts") or "").strip()
+        _rec_forced_end_ts = ""
         _do_start_recording(start_cmd["username"], frame)
 
     if _rec_active and _rec_writer is not None:
+        frame_ts = datetime.now(timezone.utc).astimezone().isoformat()
+        if not _rec_first_frame_ts:
+            _rec_first_frame_ts = frame_ts
+        _rec_last_frame_ts = frame_ts
         _rec_writer.write(frame)
         _rec_frame_count += 1
 
@@ -437,13 +466,18 @@ async def run_client():
                     camera_active.set()  # unblock wait
                 elif cmd_type == "recording_start":
                     username = msg.get("username", "participant")
+                    session_start_ts = str(msg.get("session_start_ts") or "").strip()
                     global _rec_pending_start
-                    _rec_pending_start = {"username": username}
-                    print(f"[远程] 收到 recording_start 指令 (username={username})")
+                    _rec_pending_start = {
+                        "username": username,
+                        "session_start_ts": session_start_ts,
+                    }
+                    print(f"[远程] 收到 recording_start 指令 (username={username}, session_start_ts={session_start_ts or 'N/A'})")
                 elif cmd_type == "recording_stop":
+                    session_end_ts = str(msg.get("session_end_ts") or "").strip()
                     global _rec_pending_stop
-                    _rec_pending_stop = True
-                    print("[远程] 收到 recording_stop 指令")
+                    _rec_pending_stop = {"session_end_ts": session_end_ts}
+                    print(f"[远程] 收到 recording_stop 指令 (session_end_ts={session_end_ts or 'N/A'})")
         except websockets.ConnectionClosed:
             pass
 

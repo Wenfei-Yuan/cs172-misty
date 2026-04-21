@@ -13,6 +13,7 @@ import os
 import subprocess
 import sys
 import threading
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib import error, request
 
@@ -37,14 +38,21 @@ def _send_shutdown() -> tuple[bool, str]:
         return False, str(exc)
 
 
-def _notify_bridge_recording(action: str, username: str = "") -> None:
+def _notify_bridge_recording(action: str, username: str = "", session_ts: str = "") -> None:
     """Tell the webcam bridge to start/stop video recording."""
     if action == "start":
         url = f"http://127.0.0.1:{BRIDGE_HTTP_PORT}/api/recording/start"
-        data = json.dumps({"username": username}).encode()
+        payload = {"username": username}
+        if session_ts:
+            payload["session_start_ts"] = session_ts
+        data = json.dumps(payload).encode()
     else:
         url = f"http://127.0.0.1:{BRIDGE_HTTP_PORT}/api/recording/stop"
-        data = b"{}"
+        payload = {}
+        if session_ts:
+            payload["session_end_ts"] = session_ts
+        data = json.dumps(payload).encode()
+
     req = request.Request(url, data=data, method="POST")
     req.add_header("Content-Type", "application/json")
     try:
@@ -75,7 +83,7 @@ def _start_pipeline(username: str) -> tuple[bool, str]:
             [python, script, "--username", username],
             cwd=os.path.dirname(os.path.abspath(__file__)),
         )
-    _notify_bridge_recording("start", username)
+    _notify_bridge_recording("start", username, datetime.now().astimezone().isoformat())
     return True, f"Pipeline started (PID {_pipeline_proc.pid})"
 
 
@@ -99,7 +107,7 @@ def _stop_pipeline() -> tuple[bool, str]:
                     _pipeline_proc.kill()
                     _pipeline_proc.wait(timeout=2)
             _pipeline_proc = None
-    _notify_bridge_recording("stop")
+    _notify_bridge_recording("stop", session_ts=datetime.now().astimezone().isoformat())
     return ok, detail
 
 

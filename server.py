@@ -169,7 +169,7 @@ class ControlSessionManager:
             "num_events": len(session["raw_events"]),
         }
 
-    def start_session(self, participant_id: str) -> dict:
+    def start_session(self, participant_id: str, start_time: str | None = None) -> dict:
         normalized = participant_id.strip()
         if not normalized:
             raise ValueError("participant_id required")
@@ -177,13 +177,14 @@ class ControlSessionManager:
             raise RuntimeError("session already active")
 
         session_id = _gen_baseline_id(normalized)
+        resolved_start_time = start_time or _local_iso()
         self._active_session = {
             "session_id": session_id,
             "participant_id": normalized,
-            "start_time": _local_iso(),
+            "start_time": resolved_start_time,
             "raw_events": [],
         }
-        return {"session_id": session_id, "participant_id": normalized}
+        return {"session_id": session_id, "participant_id": normalized, "start_time": resolved_start_time}
 
     def log_event(self, event_type: str, reason: str | None = None) -> bool:
         if self._active_session is None:
@@ -194,13 +195,13 @@ class ControlSessionManager:
         self._active_session["raw_events"].append(entry)
         return True
 
-    def stop_session(self) -> dict:
+    def stop_session(self, end_time: str | None = None) -> dict:
         if self._active_session is None:
             raise RuntimeError("no active session")
 
         session = self._active_session
         self._active_session = None
-        end_time = _local_iso()
+        resolved_end_time = end_time or _local_iso()
         raw_events = session["raw_events"]
         events = []
         for event in raw_events:
@@ -210,13 +211,13 @@ class ControlSessionManager:
                 entry["payload"]["reason"] = event["reason"]
             events.append(entry)
 
-        distraction_events = _process_baseline_events(raw_events, end_time)
+        distraction_events = _process_baseline_events(raw_events, resolved_end_time)
         session_data = {
             "session_id": session["session_id"],
             "participant_id": session["participant_id"],
             "condition": "no_system",
             "start_time": session["start_time"],
-            "end_time": end_time,
+            "end_time": resolved_end_time,
             "events": events,
             "distraction_events": distraction_events,
             "total_distraction_count": len(distraction_events),
@@ -232,6 +233,8 @@ class ControlSessionManager:
         return {
             "session_id": session["session_id"],
             "participant_id": session["participant_id"],
+            "start_time": session["start_time"],
+            "end_time": resolved_end_time,
             "num_distractions": len(distraction_events),
             "session_path": str(output_path),
         }
@@ -370,17 +373,26 @@ async def handle_control_session_command(payload: dict) -> dict:
         if control_session_manager.has_active_session():
             return {"ok": False, "detail": "session already active", **control_session_manager.status()}
 
+        session_start_ts = _local_iso()
+
         ok, reason = await send_role_command("webcam", {"type": "start_camera"})
         if not ok:
             return {"ok": False, "detail": reason, **control_session_manager.status()}
 
-        ok, reason = await send_role_command("webcam", {"type": "recording_start", "username": participant_id})
+        ok, reason = await send_role_command(
+            "webcam",
+            {
+                "type": "recording_start",
+                "username": participant_id,
+                "session_start_ts": session_start_ts,
+            },
+        )
         if not ok:
             await send_role_command("webcam", {"type": "stop_camera"})
             return {"ok": False, "detail": reason, **control_session_manager.status()}
 
         tracker.distraction_active = False
-        started = control_session_manager.start_session(participant_id)
+        started = control_session_manager.start_session(participant_id, start_time=session_start_ts)
         _log("server", "console", f"[对照组] Session started: {started['session_id']} (participant={participant_id})")
         return {"ok": True, **control_session_manager.status()}
 
@@ -388,10 +400,11 @@ async def handle_control_session_command(payload: dict) -> dict:
         if not control_session_manager.has_active_session():
             return {"ok": False, "detail": "no active session", **control_session_manager.status()}
 
-        await send_role_command("webcam", {"type": "recording_stop"})
+        session_end_ts = _local_iso()
+        await send_role_command("webcam", {"type": "recording_stop", "session_end_ts": session_end_ts})
         await send_role_command("webcam", {"type": "stop_camera"})
         tracker.distraction_active = False
-        result = control_session_manager.stop_session()
+        result = control_session_manager.stop_session(end_time=session_end_ts)
         _log("server", "console", f"[对照组] Session saved: {result['session_path']} ({result['num_distractions']} distractions)")
         return {"ok": True, **control_session_manager.status(), **result}
 
