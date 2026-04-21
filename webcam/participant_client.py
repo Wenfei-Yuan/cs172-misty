@@ -287,31 +287,6 @@ async def calibrate_reference_pose(cap):
             gaze_yaw_samples.append(result["gaze"]["gaze_yaw_ratio"])
             gaze_pitch_samples.append(result["gaze"]["gaze_pitch_ratio"])
 
-        cv2.putText(
-            frame,
-            "Calibration: look at the screen naturally",
-            (20, 35),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.7,
-            (255, 255, 0),
-            2
-        )
-        cv2.putText(
-            frame,
-            f"{status} | remaining={remaining:.1f}s",
-            (20, 70),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
-            color,
-            2
-        )
-
-        cv2.imshow("Participant Webcam Client", frame)
-
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord("q"):
-            return None
-
         if elapsed >= CALIBRATION_DURATION:
             break
 
@@ -336,34 +311,6 @@ async def calibrate_reference_pose(cap):
     print(f"reference_yaw={reference_yaw:.2f}, reference_pitch={reference_pitch:.2f}")
     if ENABLE_EYE_GAZE:
         print(f"reference_gaze_yaw={reference_gaze_yaw:.4f}, reference_gaze_pitch={reference_gaze_pitch:.4f}")
-
-    # 在窗口上短暂显示校准完成
-    display_start = time.time()
-    while time.time() - display_start < 1.5:
-        ret, frame = cap.read()
-        if not ret:
-            continue
-
-        cv2.putText(
-            frame,
-            "Calibration complete",
-            (50, 60),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1.0,
-            (0, 255, 0),
-            3
-        )
-        cv2.putText(
-            frame,
-            "You can start reading",
-            (50, 100),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.7,
-            (0, 255, 0),
-            2
-        )
-        cv2.imshow("Participant Webcam Client", frame)
-        cv2.waitKey(1)
 
     return {
         "reference_yaw": reference_yaw,
@@ -745,74 +692,7 @@ async def run_client():
                                             reengage_duration = 0.0
         
                                 gaze_mw_duration = (now - gaze_mw_start_time) if gaze_mw_start_time is not None else 0.0
-        
-                                line1 = f"face={face_present}"
-                                if yaw is not None:
-                                    line1 += f" | yaw={yaw:.1f}"
-                                else:
-                                    line1 += " | yaw=None"
-        
-                                if pitch is not None:
-                                    line1 += f" | pitch={pitch:.1f}"
-                                else:
-                                    line1 += " | pitch=None"
-        
-                                if effective_yaw is not None and effective_pitch is not None:
-                                    line1 += f" | smooth=({effective_yaw:.1f},{effective_pitch:.1f})"
-        
-                                line2 = f"ref_yaw={reference_yaw:.1f} | ref_pitch={reference_pitch:.1f}"
-        
-                                line3 = "yaw_dev=None"
-                                if yaw_deviation is not None:
-                                    line3 = f"yaw_dev={yaw_deviation:.1f}"
-        
-                                if pitch_deviation is not None:
-                                    line3 += f" | pitch_dev={pitch_deviation:.1f}"
-                                else:
-                                    line3 += " | pitch_dev=None"
-        
-                                if yaw is not None and pitch is not None:
-                                    line3 += f" | th=({yaw_threshold:.1f},{pitch_threshold:.1f})"
-        
-                                line4 = (
-                                    f"reason={reason} | facing={reported_screen_facing} | away={away_duration:.1f}s"
-                                    f" | back={reengage_duration:.1f}s | disengaged={disengaged}"
-                                )
-        
-                                if not detection_armed:
-                                    line4 += f" | arming={valid_face_streak}/{MIN_VALID_FACE_FRAMES}"
-        
-                                color = (0, 255, 0) if not disengaged else (0, 0, 255)
-        
-                                cv2.putText(frame, line1, (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
-                                cv2.putText(frame, line2, (20, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 0), 2)
-                                cv2.putText(frame, line3, (20, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 0), 2)
-                                cv2.putText(frame, line4, (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
-        
-                                if ENABLE_EYE_GAZE:
-                                    if smoothed_gaze_yaw is not None and smoothed_gaze_pitch is not None:
-                                        gaze_dev_str = ""
-                                        if gaze_yaw_dev is not None:
-                                            gaze_dev_str = f" | dev=({gaze_yaw_dev:.2f},{gaze_pitch_dev:.2f})"
-                                        line5 = f"gaze=({smoothed_gaze_yaw:.2f},{smoothed_gaze_pitch:.2f}){gaze_dev_str} | mw={gaze_mw_duration:.1f}s"
-                                        gaze_color = (0, 165, 255) if gaze_looking_away else (0, 255, 0)
-                                        cv2.putText(frame, line5, (20, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.55, gaze_color, 2)
-                                    else:
-                                        cv2.putText(frame, "gaze=N/A", (20, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (128, 128, 128), 2)
-        
-                                # Line 6: pending-start / pending-stop countdown
-                                if detection_armed:
-                                    if not disengaged and active_error_reason is not None and active_error_reason != "gaze_mind_wandering":
-                                        remaining = max(0.0, DISENGAGE_THRESHOLD - away_duration)
-                                        line6 = f"PENDING start: {active_error_reason} | away={away_duration:.1f}s/{DISENGAGE_THRESHOLD:.1f}s (still {remaining:.1f}s)"
-                                        cv2.putText(frame, line6, (20, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (0, 165, 255), 2)
-                                    elif disengaged and reengage_duration > 0:
-                                        remaining = max(0.0, reengage_threshold_s - reengage_duration)
-                                        line6 = f"PENDING stop | back={reengage_duration:.1f}s/{reengage_threshold_s:.1f}s (still {remaining:.1f}s)"
-                                        cv2.putText(frame, line6, (20, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (255, 128, 0), 2)
-        
-                                cv2.imshow("Participant Webcam Client", frame)
-        
+
                                 if state_changed:
                                     message = {
                                         "client": "webcam",
@@ -841,12 +721,6 @@ async def run_client():
                                     await websocket.send(json.dumps(message))
                                     print("已发送:", message)
         
-                                key = cv2.waitKey(1) & 0xFF
-                                if key == ord("q"):
-                                    print("用户主动退出")
-                                    shutdown_event.set()
-                                    break
-        
                                 await asyncio.sleep(0.01)
 
                             # ── Detection loop ended (stop_camera or shutdown) ──
@@ -854,7 +728,6 @@ async def run_client():
                             if cap is not None:
                                 cap.release()
                                 cap = None
-                            cv2.destroyAllWindows()
 
                     finally:
                         recv_task.cancel()
@@ -878,7 +751,6 @@ async def run_client():
     finally:
         if cap is not None:
             cap.release()
-        cv2.destroyAllWindows()
         face_mesh.close()
 
 
