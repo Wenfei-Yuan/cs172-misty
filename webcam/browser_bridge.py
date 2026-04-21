@@ -22,6 +22,7 @@ import asyncio
 import concurrent.futures
 import json
 import os
+import subprocess
 import sys
 import threading
 import time
@@ -393,8 +394,88 @@ def _do_stop_recording() -> None:
     with open(meta_path, "w") as f:
         json.dump(meta, f, indent=2)
 
+    # Correct playback speed: if actual fps differs from nominal, re-mux in background
+    if actual_fps > 0 and abs(actual_fps - _REC_NOMINAL_FPS) > 0.5:
+        orig_path = os.path.join(_RECORDINGS_DIR, _rec_filename)
+        threading.Thread(
+            target=_remux_video,
+            args=(orig_path, actual_fps, _REC_NOMINAL_FPS),
+            daemon=True,
+        ).start()
+
     print(f"[Recording] Stopped: {_rec_filename} ({_rec_frame_count} frames)")
     print(f"[Recording] Metadata saved: {meta_path}")
+
+
+def _remux_video(path: str, actual_fps: float, nominal_fps: float) -> None:
+    """Re-mux the AVI so it plays back at actual real-time speed.
+
+    First tries a lossless header fix via ffmpeg (-r override + -c copy).
+    Falls back to an OpenCV re-encode if ffmpeg is unavailable or fails.
+    """
+    tmp_path = path + ".remux.avi"
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg", "-y",
+                "-r", f"{actual_fps:.4f}",  # override declared input fps
+                "-i", path,
+                "-c", "copy",
+                tmp_path,
+            ],
+            capture_output=True,
+            timeout=300,
+        )
+        if result.returncode == 0:
+            os.replace(tmp_path, path)
+            print(
+                f"[Recording] Re-muxed {os.path.basename(path)}: "
+                f"{nominal_fps}fps → {actual_fps:.2f}fps (lossless)"
+            )
+            return
+        stderr_msg = result.stderr.decode(errors="replace")[:200]
+        print(f"[Recording] ffmpeg re-mux failed (rc={result.returncode}): {stderr_msg}")
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+    except FileNotFoundError:
+        print("[Recording] ffmpeg not found; falling back to OpenCV re-encode")
+    except Exception as e:
+        print(f"[Recording] ffmpeg error: {e}; falling back to OpenCV re-encode")
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+    # OpenCV fallback: re-read every frame and write a new AVI at the correct fps
+    try:
+        cap = cv2.VideoCapture(path)
+        if not cap.isOpened():
+            print(f"[Recording] Re-encode fallback: cannot open {path}")
+            return
+        w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+        writer = cv2.VideoWriter(tmp_path, fourcc, actual_fps, (w, h))
+        count = 0
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            writer.write(frame)
+            count += 1
+        cap.release()
+        writer.release()
+        if count > 0:
+            os.replace(tmp_path, path)
+            print(
+                f"[Recording] Re-encoded {os.path.basename(path)}: "
+                f"{nominal_fps}fps → {actual_fps:.2f}fps ({count} frames, OpenCV)"
+            )
+        else:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+    except Exception as e:
+        print(f"[Recording] OpenCV re-encode failed: {e}")
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
 
 
 def _check_and_handle_recording_bytes(data: bytes) -> None:
