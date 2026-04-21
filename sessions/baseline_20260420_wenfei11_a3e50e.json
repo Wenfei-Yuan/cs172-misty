@@ -1,0 +1,58 @@
+{
+  "session_id": "baseline_20260420_wenfei11_a3e50e",
+  "participant_id": "wenfei11",
+  "condition": "no_system",
+  "start_time": "2026-04-20T21:26:17.496800-04:00",
+  "end_time": "2026-04-20T21:26:56.758912-04:00",
+  "events": [
+    {
+      "timestamp": "2026-04-20T21:26:35.616965-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-20T21:26:47.634362-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-20T21:26:51.672194-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-04-20T21:26:35.616965-04:00",
+      "distraction_end_time": "2026-04-20T21:26:47.634362-04:00",
+      "distraction_duration_s": 12.02,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 12.02
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-04-20T21:26:51.672194-04:00",
+      "distraction_end_time": "2026-04-20T21:26:56.758912-04:00",
+      "distraction_duration_s": 5.09,
+      "distraction_end_signal_received": false,
+      "exit_reason": "session_ended",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": false,
+      "gaze_latency_s": null
+    }
+  ],
+  "total_distraction_count": 2,
+  "total_voice_prompts": 0
+}

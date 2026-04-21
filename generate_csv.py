@@ -69,15 +69,129 @@ def _find_first_event_after(events: list[dict], name: str, after_ts: str | None)
     return None
 
 
+def _control_reason_to_trigger(reason: str | None) -> str:
+    if not reason:
+        return "gaze_off_screen"
+    lowered = reason.strip().lower()
+    if "away" in lowered:
+        return "head_turned_away"
+    if "gaze" in lowered:
+        return "gaze_off_screen"
+    return "gaze_off_screen"
+
+
+def _normalize_control_session(raw: dict, src: Path) -> dict:
+    """Convert sessions/control_*.json to baseline-compatible session schema."""
+    session_id = raw.get("session_id") or src.stem
+    participant_id = raw.get("participant_id") or "control"
+    start_time = raw.get("start_time")
+
+    raw_events = raw.get("events", []) if isinstance(raw.get("events"), list) else []
+
+    normalized_raw_events = []
+    for e in raw_events:
+        if not isinstance(e, dict):
+            continue
+        event_type = e.get("event")
+        ts = e.get("ts")
+        if event_type not in ("start", "stop") or not ts:
+            continue
+        normalized_raw_events.append({
+            "ts": ts,
+            "event": event_type,
+            "reason": e.get("reason"),
+        })
+
+    normalized_raw_events.sort(key=lambda x: x["ts"])
+
+    end_time = raw.get("end_time")
+    if not end_time:
+        if normalized_raw_events:
+            end_time = normalized_raw_events[-1]["ts"]
+        else:
+            end_time = start_time
+
+    events = []
+    distraction_events = []
+    current_start = None
+    current_reason = None
+    idx = 0
+
+    for e in normalized_raw_events:
+        ev_name = "disengagement_start" if e["event"] == "start" else "disengagement_end"
+        payload = {}
+        if e.get("reason"):
+            payload["reason"] = e["reason"]
+        events.append({"timestamp": e["ts"], "name": ev_name, "payload": payload})
+
+        if e["event"] == "start":
+            current_start = e["ts"]
+            current_reason = e.get("reason")
+            continue
+
+        if e["event"] == "stop" and current_start:
+            idx += 1
+            duration_s = _s_between(current_start, e["ts"])
+            distraction_events.append({
+                "event_index": idx,
+                "distraction_start_time": current_start,
+                "distraction_end_time": e["ts"],
+                "distraction_duration_s": duration_s,
+                "distraction_end_signal_received": True,
+                "exit_reason": "self_recovered",
+                "trigger_source": _control_reason_to_trigger(current_reason),
+                "voice_prompt_used": False,
+                "voice_prompt_count": 0,
+                "gaze_detected": True,
+                "gaze_latency_s": duration_s,
+            })
+            current_start = None
+            current_reason = None
+
+    if current_start:
+        idx += 1
+        duration_s = _s_between(current_start, end_time)
+        distraction_events.append({
+            "event_index": idx,
+            "distraction_start_time": current_start,
+            "distraction_end_time": end_time,
+            "distraction_duration_s": duration_s,
+            "distraction_end_signal_received": False,
+            "exit_reason": "session_ended",
+            "trigger_source": _control_reason_to_trigger(current_reason),
+            "voice_prompt_used": False,
+            "voice_prompt_count": 0,
+            "gaze_detected": False,
+            "gaze_latency_s": None,
+        })
+
+    return {
+        "session_id": session_id,
+        "participant_id": participant_id,
+        "condition": "no_system",
+        "start_time": start_time,
+        "end_time": end_time,
+        "events": events,
+        "distraction_events": distraction_events,
+        "total_distraction_count": len(distraction_events),
+        "total_voice_prompts": 0,
+    }
+
+
 # ────────────────────────── load all sessions ──────────────────────────
 
 def load_sessions() -> list[dict]:
     files = sorted(SESSIONS_DIR.glob("session_*.json"))
     files += sorted(SESSIONS_DIR.glob("baseline_*.json"))
+    files += sorted(SESSIONS_DIR.glob("control_*.json"))
     sessions = []
     for f in files:
         with open(f, encoding="utf-8") as fh:
-            sessions.append(json.load(fh))
+            data = json.load(fh)
+        if isinstance(data, dict) and data.get("mode") == "control":
+            sessions.append(_normalize_control_session(data, f))
+        else:
+            sessions.append(data)
     return sessions
 
 

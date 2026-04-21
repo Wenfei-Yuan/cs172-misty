@@ -1,0 +1,20 @@
+{
+  "mode": "control",
+  "start_time": "2026-04-20T21:26:35.615609",
+  "events": [
+    {
+      "ts": "2026-04-20T21:26:35.616163",
+      "event": "start",
+      "reason": "gaze_mind_wandering"
+    },
+    {
+      "ts": "2026-04-20T21:26:47.633583",
+      "event": "stop"
+    },
+    {
+      "ts": "2026-04-20T21:26:51.671635",
+      "event": "start",
+      "reason": "gaze_mind_wandering"
+    }
+  ]
+}

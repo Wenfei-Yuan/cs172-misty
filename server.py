@@ -13,6 +13,7 @@ WS_PORT = int(os.getenv("WS_PORT", "8765"))
 TRIGGER_HOST = os.getenv("TRIGGER_HOST", "127.0.0.1")
 TRIGGER_PORT = int(os.getenv("TRIGGER_PORT", "5050"))
 BRIDGE_HTTP_PORT = int(os.getenv("BRIDGE_HTTP_PORT", "9877"))
+CONTROL_PARTICIPANT_ID = os.getenv("CONTROL_PARTICIPANT_ID", "control").strip() or "control"
 
 # ── Control-group mode ────────────────────────────────────────────────
 # Set CONTROL_MODE=1 to run webcam-only monitoring without robot or
@@ -56,13 +57,15 @@ class ControlSessionLog:
         self._path: str | None = None
         self._events: list[dict] = []
         self._start_time: str | None = None
+        self._session_id: str | None = None
 
     def ensure_started(self) -> None:
         if self._path is not None:
             return
         ts = datetime.now()
         self._start_time = ts.isoformat()
-        fname = f"control_{ts.strftime('%Y%m%d_%H%M%S')}.json"
+        self._session_id = f"control_{ts.strftime('%Y%m%d_%H%M%S')}"
+        fname = f"{self._session_id}.json"
         sessions_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sessions")
         os.makedirs(sessions_dir, exist_ok=True)
         self._path = os.path.join(sessions_dir, fname)
@@ -81,7 +84,11 @@ class ControlSessionLog:
             return
         data = {
             "mode": "control",
+            "session_id": self._session_id,
+            "participant_id": CONTROL_PARTICIPANT_ID,
+            "condition": "no_system",
             "start_time": self._start_time,
+            "end_time": datetime.now().isoformat(),
             "events": self._events,
         }
         with open(self._path, "w", encoding="utf-8") as f:
@@ -179,7 +186,7 @@ def register_client(websocket, role: str) -> None:
     client_roles[websocket] = role
     if CONTROL_MODE and role == "webcam":
         _log("server", "console", "[对照组] webcam 已注册，启动录制")
-        _notify_bridge_recording("start", "control")
+        _notify_bridge_recording("start", CONTROL_PARTICIPANT_ID)
 
 
 def unregister_client(websocket) -> None:

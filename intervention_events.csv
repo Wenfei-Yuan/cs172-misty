@@ -582,3 +582,15 @@ event_id,participant_id,session_id,condition,disengagement_onset_ts,trigger_sour
 581,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:37:42.658255-04:00,gaze_mind_wandering,,,,2026-04-17T17:37:46.686312-04:00,0,,,,0,,1,4030.0,self_recovered
 582,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:37:49.621301-04:00,gaze_mind_wandering,,,,2026-04-17T17:37:53.448126-04:00,0,,,,0,,1,3830.0,self_recovered
 583,hang3,baseline_20260417_hang3_d3454e,no_system,2026-04-17T17:38:14.924022-04:00,gaze_mind_wandering,,,,2026-04-17T17:38:16.225050-04:00,0,,,,0,,0,1300.0,not_resumed
+584,wenfei11,baseline_20260420_wenfei11_a3e50e,no_system,2026-04-20T21:26:35.616965-04:00,gaze_mind_wandering,,,,2026-04-20T21:26:47.634362-04:00,0,,,,0,,1,12020.0,self_recovered
+585,wenfei11,baseline_20260420_wenfei11_a3e50e,no_system,2026-04-20T21:26:51.672194-04:00,gaze_mind_wandering,,,,2026-04-20T21:26:56.758912-04:00,0,,,,0,,0,5090.0,not_resumed
+586,control,control_20260417_173131,no_system,2026-04-17T17:31:31.822906,gaze_off_screen,,,,2026-04-17T17:31:35.986584,0,,,,0,,1,4160.0,self_recovered
+587,control,control_20260417_173131,no_system,2026-04-17T17:31:43.799471,head_turned_away,,,,2026-04-17T17:31:58.243641,0,,,,0,,1,14440.0,self_recovered
+588,control,control_20260417_173131,no_system,2026-04-17T17:32:09.966496,gaze_off_screen,,,,2026-04-17T17:32:09.966496,0,,,,0,,0,0.0,not_resumed
+589,control,control_20260417_173702,no_system,2026-04-17T17:37:02.023570,gaze_off_screen,,,,2026-04-17T17:37:32.585983,0,,,,0,,1,30560.0,self_recovered
+590,control,control_20260417_173702,no_system,2026-04-17T17:37:36.470746,gaze_off_screen,,,,2026-04-17T17:37:39.160943,0,,,,0,,1,2690.0,self_recovered
+591,control,control_20260417_173702,no_system,2026-04-17T17:37:42.657563,gaze_off_screen,,,,2026-04-17T17:37:46.685008,0,,,,0,,1,4030.0,self_recovered
+592,control,control_20260417_173702,no_system,2026-04-17T17:37:49.620273,gaze_off_screen,,,,2026-04-17T17:37:53.447351,0,,,,0,,1,3830.0,self_recovered
+593,control,control_20260417_173702,no_system,2026-04-17T17:38:14.893166,gaze_off_screen,,,,2026-04-17T17:38:14.893166,0,,,,0,,0,0.0,not_resumed
+594,control,control_20260420_212635,no_system,2026-04-20T21:26:35.616163,gaze_off_screen,,,,2026-04-20T21:26:47.633583,0,,,,0,,1,12020.0,self_recovered
+595,control,control_20260420_212635,no_system,2026-04-20T21:26:51.671635,gaze_off_screen,,,,2026-04-20T21:26:51.671635,0,,,,0,,0,0.0,not_resumed
