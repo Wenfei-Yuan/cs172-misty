@@ -4,8 +4,8 @@
 # 终端 1：WebSocket 中继服务器
 python server.py
 
-# 终端 2：摄像头桥接（提供研究者控制台页面）
-cd webcam && python browser_bridge.py
+# 终端 2：摄像头桥接（提供研究者控制台页面，禁用老的浏览器视频传输路径）
+cd webcam && PARTICIPANT_CLIENT_MODE=1 python browser_bridge.py
 
 然后在研究者电脑的浏览器打开：
 http://localhost:9877/researcher
@@ -28,7 +28,7 @@ cd webcam && python participant_client.py
 CONTROL_MODE=1 python server.py
 
 # 终端 2 — 摄像头桥接服务
-cd webcam && python browser_bridge.py
+cd webcam && PARTICIPANT_CLIENT_MODE=1 python browser_bridge.py
 
 然后在研究者电脑的浏览器打开：
 http://localhost:9877/researcher

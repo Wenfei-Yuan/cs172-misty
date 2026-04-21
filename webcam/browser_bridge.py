@@ -87,6 +87,10 @@ LOCAL_PORT = int(os.getenv("BRIDGE_LOCAL_PORT", "9876"))
 HTTP_PORT  = int(os.getenv("BRIDGE_HTTP_PORT", "9877"))     # participant page + control API
 PREVIEW_PORT = int(os.getenv("BRIDGE_PREVIEW_PORT", "9878"))  # researcher live preview WS
 
+# When PARTICIPANT_CLIENT_MODE=1, disable the port-9876 participant browser WS.
+# Participant detection runs locally via participant_client.py instead.
+PARTICIPANT_CLIENT_MODE = os.getenv("PARTICIPANT_CLIENT_MODE", "0").strip().lower() in ("1", "true", "yes")
+
 _BRIDGE_CALIBRATION_DURATION = 12.0
 _BRIDGE_MIN_CALIBRATION_SAMPLES = 5
 
@@ -2113,19 +2117,31 @@ async def main() -> None:
     print("=" * 60)
     print("  Webcam Monitor — Browser Bridge Server")
     print("=" * 60)
-    print(f"  Participant WS  : ws://0.0.0.0:{LOCAL_PORT}")
-    print(f"  Participant page: http://0.0.0.0:{HTTP_PORT}")
+    if PARTICIPANT_CLIENT_MODE:
+        print(f"  Mode            : PARTICIPANT_CLIENT (port {LOCAL_PORT} WS disabled)")
+    else:
+        print(f"  Participant WS  : ws://0.0.0.0:{LOCAL_PORT}")
+        print(f"  Participant page: http://0.0.0.0:{HTTP_PORT}")
     print(f"  Preview WS      : ws://0.0.0.0:{PREVIEW_PORT}")
     print(f"  Control API     : http://0.0.0.0:{HTTP_PORT}/api/camera/{{start|stop|status}}")
     print(f"  Bridge target   : {BRIDGE_WS_URL}")
     print(f"  Eye gaze        : {'ENABLED' if ENABLE_EYE_GAZE else 'DISABLED'}")
     print("=" * 60)
-    print(f"Participant: open http://<this-ip>:{HTTP_PORT}  (standalone camera page)")
+    if PARTICIPANT_CLIENT_MODE:
+        print(f"Participant: run  python participant_client.py  (local detection mode)")
+    else:
+        print(f"Participant: open http://<this-ip>:{HTTP_PORT}  (standalone camera page)")
     print(f"Researcher:  open http://localhost:{HTTP_PORT}/researcher  (camera control + preview)\n")
 
-    async with websockets.serve(handle_extension, LOCAL_HOST, LOCAL_PORT):
+    if PARTICIPANT_CLIENT_MODE:
+        # Researcher-console-only mode: no participant browser WS (port 9876).
+        # Camera commands relay through server.py to participant_client.py.
         async with websockets.serve(_handle_preview_client, "0.0.0.0", PREVIEW_PORT):
             await asyncio.Future()
+    else:
+        async with websockets.serve(handle_extension, LOCAL_HOST, LOCAL_PORT):
+            async with websockets.serve(_handle_preview_client, "0.0.0.0", PREVIEW_PORT):
+                await asyncio.Future()
 
 
 if __name__ == "__main__":

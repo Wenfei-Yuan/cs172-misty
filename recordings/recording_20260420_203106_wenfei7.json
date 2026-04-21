@@ -1,0 +1,12 @@
+{
+  "video_file": "recording_20260420_203106_wenfei7.avi",
+  "username": "wenfei7",
+  "video_start_ts": "2026-04-20T20:31:06.403836-04:00",
+  "video_end_ts": "2026-04-20T20:32:25.284224-04:00",
+  "total_frames": 67,
+  "nominal_fps": 15,
+  "resolution": [
+    320,
+    240
+  ]
+}
