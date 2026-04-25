@@ -39,6 +39,15 @@ _rec_forced_end_ts: str = ""
 _rec_pending_start: dict | None = None  # set to {"username": ..., "session_start_ts": ...}
 _rec_pending_stop: dict | None = None   # set to {"session_end_ts": ...}
 
+# ── Distraction Logging ───────────────────────────────────────────────
+DISTRACTION_LOGS_DIR = os.path.normpath(os.path.join(_dir, "..", "distraction_logs"))
+_dlog_events: list = []
+_dlog_session_start_ts: str = ""
+_dlog_session_end_ts: str = ""
+_dlog_username: str = ""
+_dlog_calibration: dict | None = None
+_dlog_current_disengage_ts: float | None = None  # wall-clock time when current disengagement began
+
 
 def _do_start_recording(username: str, frame: np.ndarray) -> None:
     global _rec_writer, _rec_active, _rec_start_ts, _rec_frame_count
@@ -186,6 +195,90 @@ def _remux_video(path: str, actual_fps: float, nominal_fps: float) -> None:
         print(f"[Recording] OpenCV re-encode failed: {e}")
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
+
+
+def _dlog_start_session(username: str, calibration: dict) -> None:
+    """Initialise a fresh distraction log for a new camera session."""
+    global _dlog_events, _dlog_session_start_ts, _dlog_session_end_ts
+    global _dlog_username, _dlog_calibration, _dlog_current_disengage_ts
+    _dlog_events = []
+    _dlog_session_start_ts = datetime.now(timezone.utc).astimezone().isoformat()
+    _dlog_session_end_ts = ""
+    _dlog_username = username
+    _dlog_calibration = calibration
+    _dlog_current_disengage_ts = None
+    print(f"[DistractionLog] 开始记录走神日志 (用户: {username})")
+
+
+def _dlog_record_event(event_type: str, now: float, reason: str, msg: dict) -> None:
+    """Append one disengage/reengage event to the in-memory log."""
+    global _dlog_current_disengage_ts
+    ts = datetime.fromtimestamp(now, tz=timezone.utc).astimezone().isoformat()
+    event: dict = {
+        "event_time": ts,
+        "event_type": event_type,   # "disengage" | "reengage"
+        "reason": reason,
+        "yaw": msg.get("yaw"),
+        "pitch": msg.get("pitch"),
+        "yaw_deviation": msg.get("yaw_deviation"),
+        "pitch_deviation": msg.get("pitch_deviation"),
+        "gaze_yaw_ratio": msg.get("gaze_yaw_ratio"),
+        "gaze_pitch_ratio": msg.get("gaze_pitch_ratio"),
+        "gaze_yaw_deviation": msg.get("gaze_yaw_deviation"),
+        "gaze_pitch_deviation": msg.get("gaze_pitch_deviation"),
+        "gaze_mind_wandering": msg.get("gaze_mind_wandering"),
+    }
+    if event_type == "disengage":
+        _dlog_current_disengage_ts = now
+        event["distraction_duration_s"] = None   # filled when reengage arrives
+    else:  # reengage
+        if _dlog_current_disengage_ts is not None:
+            event["distraction_duration_s"] = round(now - _dlog_current_disengage_ts, 2)
+            _dlog_current_disengage_ts = None
+        else:
+            event["distraction_duration_s"] = None
+    _dlog_events.append(event)
+
+
+def _dlog_save() -> None:
+    """Write the accumulated distraction log to a JSON file and print a summary."""
+    global _dlog_session_end_ts
+    _dlog_session_end_ts = datetime.now(timezone.utc).astimezone().isoformat()
+
+    disengage_events = [e for e in _dlog_events if e["event_type"] == "disengage"]
+    completed_events = [
+        e for e in _dlog_events
+        if e["event_type"] == "reengage" and e.get("distraction_duration_s") is not None
+    ]
+    total_distractions = len(disengage_events)
+    total_time = sum(e["distraction_duration_s"] for e in completed_events)
+    avg_duration = (total_time / len(completed_events)) if completed_events else 0.0
+
+    data = {
+        "username": _dlog_username,
+        "session_start": _dlog_session_start_ts,
+        "session_end": _dlog_session_end_ts,
+        "calibration": _dlog_calibration,
+        "events": _dlog_events,
+        "summary": {
+            "total_distractions": total_distractions,
+            "completed_distractions": len(completed_events),
+            "total_distraction_time_s": round(total_time, 2),
+            "avg_distraction_duration_s": round(avg_duration, 2),
+        },
+    }
+
+    os.makedirs(DISTRACTION_LOGS_DIR, exist_ok=True)
+    ts_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+    uname = _dlog_username or "participant"
+    fname = f"distraction_log_{ts_str}_{uname}.json"
+    fpath = os.path.join(DISTRACTION_LOGS_DIR, fname)
+    with open(fpath, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    print(
+        f"[DistractionLog] 已保存: {fname} "
+        f"(共 {total_distractions} 次走神, 累计 {round(total_time, 1)} 秒)"
+    )
 
 
 def _handle_recording_frame(frame: np.ndarray) -> None:
@@ -642,6 +735,17 @@ async def run_client():
                             gaze_mw_break_start_time = None
                             gaze_mind_wandering = False
 
+                            # ── Start distraction log for this session ──
+                            _dlog_start_session(
+                                username=_rec_username or "participant",
+                                calibration={
+                                    "reference_yaw": round(reference_yaw, 2),
+                                    "reference_pitch": round(reference_pitch, 2),
+                                    "reference_gaze_yaw": round(reference_gaze_yaw, 4) if ENABLE_EYE_GAZE else None,
+                                    "reference_gaze_pitch": round(reference_gaze_pitch, 4) if ENABLE_EYE_GAZE else None,
+                                },
+                            )
+
                             # ── Detection loop ──
                             while camera_active.is_set() and not shutdown_event.is_set():
                                 ret, frame = cap.read()
@@ -932,13 +1036,22 @@ async def run_client():
                                         "gaze_mind_wandering": gaze_mind_wandering if ENABLE_EYE_GAZE else None,
                                         "timestamp": now
                                     }
-        
+
+                                    # ── Record distraction event to local log ──
+                                    _dlog_record_event(
+                                        event_type="disengage" if disengaged else "reengage",
+                                        now=now,
+                                        reason=reason,
+                                        msg=message,
+                                    )
+
                                     await websocket.send(json.dumps(message))
                                     print("已发送:", message)
         
                                 await asyncio.sleep(0.01)
 
                             # ── Detection loop ended (stop_camera or shutdown) ──
+                            _dlog_save()
                             if _rec_active:
                                 _do_stop_recording()
                             print("检测循环结束，释放摄像头")
