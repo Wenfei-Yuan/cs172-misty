@@ -3,34 +3,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # -----------------------------
-# 数据
+# 数据 (Post-Session Likert, With-System Only, 1–5)
+# Intrusiveness  = avg(prompts interrupted flow, prompts felt distracting)
+# Support        = avg(phases organized reading, system supported focus)
+# Body-Doubling  = avg(robot made me feel accountable, robot encouraged staying on task)
 # -----------------------------
 data = {
-    "participant": ["P1","P2","P3","P4","P5","P6"],
-    "interrupt":   [2,   5,   None,None,None,None],
-    "distracting": [4,   4,   None,None,None,None],
-    "organize":    [2,   4,   None,None,None,None],
-    "focus":       [3,   4,   None,None,None,None],
-    "accountable": [4,   3,   None,None,None,None],
-    "on_task":     [4,   2,   None,None,None,None]
+    "participant":    ["P01", "P02", "P03", "P04", "P05"],
+    "Intrusiveness":  [3.0,   4.5,   3.5,   4.0,   3.0],
+    "Support":        [2.5,   4.0,   4.0,   4.5,   4.0],
+    "Body-Doubling":  [4.0,   2.5,   3.5,   2.0,   4.5],
 }
 
 df = pd.DataFrame(data)
 
-# -----------------------------
-# 反向编码
-# -----------------------------
-df["interrupt_r"] = 6 - df["interrupt"]
-df["distracting_r"] = 6 - df["distracting"]
-
-# -----------------------------
-# 三个维度
-# -----------------------------
-df["Disruption"] = df[["interrupt_r","distracting_r"]].mean(axis=1)
-df["Support"] = df[["organize","focus"]].mean(axis=1)
-df["Social"] = df[["accountable","on_task"]].mean(axis=1)
-
-dims = ["Disruption","Support","Social"]
+dims = ["Intrusiveness", "Support", "Body-Doubling"]
 
 # -----------------------------
 # 统计
@@ -90,9 +77,9 @@ for i, v in enumerate(means):
 # 坐标轴
 # -----------------------------
 ax.set_xticks(x)
-ax.set_xticklabels(["Disruption","Support","Social"])
+ax.set_xticklabels(["Intrusiveness", "Perceived Support", "Body-Doubling"])
 
-ax.set_ylabel("Rating (1 = Disagree → 5 = Agree)")
+ax.set_ylabel("Rating (1–5)")
 ax.set_ylim(1, 5)
 
 # -----------------------------
@@ -103,7 +90,7 @@ ax.spines['right'].set_visible(False)
 
 ax.grid(axis='y', linestyle='--', alpha=0.3)
 
-ax.set_title("Subjective Experience")
+ax.set_title("Post-Session Likert Scales (With-System Only)")
 
 plt.tight_layout()
 plt.savefig("subjective_chi_style.pdf", dpi=300)
