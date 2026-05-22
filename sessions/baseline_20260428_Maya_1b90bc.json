@@ -1,0 +1,663 @@
+{
+  "session_id": "baseline_20260428_Maya_1b90bc",
+  "participant_id": "Maya",
+  "condition": "no_system",
+  "start_time": "2026-04-28T15:32:46.258988-04:00",
+  "end_time": "2026-04-28T15:38:04.848064-04:00",
+  "events": [
+    {
+      "timestamp": "2026-04-28T15:32:58.526614-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:32:58.872050-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:33:05.407719-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:33:13.310787-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:33:53.143755-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:33:57.137265-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:34:06.250843-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:34:10.496770-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:34:11.882761-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:34:16.736542-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:34:25.105991-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:34:27.754437-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:34:39.018390-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:34:42.850160-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:34:44.657914-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:34:44.795655-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:34:51.372311-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:34:51.510118-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:35:14.341325-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:35:16.086525-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:35:24.893180-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:35:24.913234-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:35:49.574460-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:35:51.744081-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:36:01.931228-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:36:02.315609-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:36:17.361557-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:36:25.247707-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:36:27.663345-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:36:31.719142-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:36:40.260587-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:36:43.428301-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:36:44.457793-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:36:44.630452-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:36:46.403086-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:36:49.698184-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:36:54.507927-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:36:56.433493-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:37:01.046059-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:37:08.110952-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:37:10.149436-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:37:13.351731-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:37:22.956327-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:37:23.234589-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:37:25.121965-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:37:36.885455-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:37:54.907018-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:37:54.941544-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:37:57.155213-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:37:57.250637-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-04-28T15:37:59.245201-04:00",
+      "name": "disengagement_start",
+      "payload": {
+        "reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T15:38:03.554766-04:00",
+      "name": "disengagement_end",
+      "payload": {}
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-04-28T15:32:58.526614-04:00",
+      "distraction_end_time": "2026-04-28T15:32:58.872050-04:00",
+      "distraction_duration_s": 0.35,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 0.35
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-04-28T15:33:05.407719-04:00",
+      "distraction_end_time": "2026-04-28T15:33:13.310787-04:00",
+      "distraction_duration_s": 7.9,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 7.9
+    },
+    {
+      "event_index": 3,
+      "distraction_start_time": "2026-04-28T15:33:53.143755-04:00",
+      "distraction_end_time": "2026-04-28T15:33:57.137265-04:00",
+      "distraction_duration_s": 3.99,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 3.99
+    },
+    {
+      "event_index": 4,
+      "distraction_start_time": "2026-04-28T15:34:06.250843-04:00",
+      "distraction_end_time": "2026-04-28T15:34:10.496770-04:00",
+      "distraction_duration_s": 4.25,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 4.25
+    },
+    {
+      "event_index": 5,
+      "distraction_start_time": "2026-04-28T15:34:11.882761-04:00",
+      "distraction_end_time": "2026-04-28T15:34:16.736542-04:00",
+      "distraction_duration_s": 4.85,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 4.85
+    },
+    {
+      "event_index": 6,
+      "distraction_start_time": "2026-04-28T15:34:25.105991-04:00",
+      "distraction_end_time": "2026-04-28T15:34:27.754437-04:00",
+      "distraction_duration_s": 2.65,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 2.65
+    },
+    {
+      "event_index": 7,
+      "distraction_start_time": "2026-04-28T15:34:39.018390-04:00",
+      "distraction_end_time": "2026-04-28T15:34:42.850160-04:00",
+      "distraction_duration_s": 3.83,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 3.83
+    },
+    {
+      "event_index": 8,
+      "distraction_start_time": "2026-04-28T15:34:44.657914-04:00",
+      "distraction_end_time": "2026-04-28T15:34:44.795655-04:00",
+      "distraction_duration_s": 0.14,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 0.14
+    },
+    {
+      "event_index": 9,
+      "distraction_start_time": "2026-04-28T15:34:51.372311-04:00",
+      "distraction_end_time": "2026-04-28T15:34:51.510118-04:00",
+      "distraction_duration_s": 0.14,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 0.14
+    },
+    {
+      "event_index": 10,
+      "distraction_start_time": "2026-04-28T15:35:14.341325-04:00",
+      "distraction_end_time": "2026-04-28T15:35:16.086525-04:00",
+      "distraction_duration_s": 1.75,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 1.75
+    },
+    {
+      "event_index": 11,
+      "distraction_start_time": "2026-04-28T15:35:24.893180-04:00",
+      "distraction_end_time": "2026-04-28T15:35:24.913234-04:00",
+      "distraction_duration_s": 0.02,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 0.02
+    },
+    {
+      "event_index": 12,
+      "distraction_start_time": "2026-04-28T15:35:49.574460-04:00",
+      "distraction_end_time": "2026-04-28T15:35:51.744081-04:00",
+      "distraction_duration_s": 2.17,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 2.17
+    },
+    {
+      "event_index": 13,
+      "distraction_start_time": "2026-04-28T15:36:01.931228-04:00",
+      "distraction_end_time": "2026-04-28T15:36:02.315609-04:00",
+      "distraction_duration_s": 0.38,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 0.38
+    },
+    {
+      "event_index": 14,
+      "distraction_start_time": "2026-04-28T15:36:17.361557-04:00",
+      "distraction_end_time": "2026-04-28T15:36:25.247707-04:00",
+      "distraction_duration_s": 7.89,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 7.89
+    },
+    {
+      "event_index": 15,
+      "distraction_start_time": "2026-04-28T15:36:27.663345-04:00",
+      "distraction_end_time": "2026-04-28T15:36:31.719142-04:00",
+      "distraction_duration_s": 4.06,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 4.06
+    },
+    {
+      "event_index": 16,
+      "distraction_start_time": "2026-04-28T15:36:40.260587-04:00",
+      "distraction_end_time": "2026-04-28T15:36:43.428301-04:00",
+      "distraction_duration_s": 3.17,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 3.17
+    },
+    {
+      "event_index": 17,
+      "distraction_start_time": "2026-04-28T15:36:44.457793-04:00",
+      "distraction_end_time": "2026-04-28T15:36:44.630452-04:00",
+      "distraction_duration_s": 0.17,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 0.17
+    },
+    {
+      "event_index": 18,
+      "distraction_start_time": "2026-04-28T15:36:46.403086-04:00",
+      "distraction_end_time": "2026-04-28T15:36:49.698184-04:00",
+      "distraction_duration_s": 3.3,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 3.3
+    },
+    {
+      "event_index": 19,
+      "distraction_start_time": "2026-04-28T15:36:54.507927-04:00",
+      "distraction_end_time": "2026-04-28T15:36:56.433493-04:00",
+      "distraction_duration_s": 1.93,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 1.93
+    },
+    {
+      "event_index": 20,
+      "distraction_start_time": "2026-04-28T15:37:01.046059-04:00",
+      "distraction_end_time": "2026-04-28T15:37:08.110952-04:00",
+      "distraction_duration_s": 7.06,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 7.06
+    },
+    {
+      "event_index": 21,
+      "distraction_start_time": "2026-04-28T15:37:10.149436-04:00",
+      "distraction_end_time": "2026-04-28T15:37:13.351731-04:00",
+      "distraction_duration_s": 3.2,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 3.2
+    },
+    {
+      "event_index": 22,
+      "distraction_start_time": "2026-04-28T15:37:22.956327-04:00",
+      "distraction_end_time": "2026-04-28T15:37:23.234589-04:00",
+      "distraction_duration_s": 0.28,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 0.28
+    },
+    {
+      "event_index": 23,
+      "distraction_start_time": "2026-04-28T15:37:25.121965-04:00",
+      "distraction_end_time": "2026-04-28T15:37:36.885455-04:00",
+      "distraction_duration_s": 11.76,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 11.76
+    },
+    {
+      "event_index": 24,
+      "distraction_start_time": "2026-04-28T15:37:54.907018-04:00",
+      "distraction_end_time": "2026-04-28T15:37:54.941544-04:00",
+      "distraction_duration_s": 0.03,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 0.03
+    },
+    {
+      "event_index": 25,
+      "distraction_start_time": "2026-04-28T15:37:57.155213-04:00",
+      "distraction_end_time": "2026-04-28T15:37:57.250637-04:00",
+      "distraction_duration_s": 0.1,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 0.1
+    },
+    {
+      "event_index": 26,
+      "distraction_start_time": "2026-04-28T15:37:59.245201-04:00",
+      "distraction_end_time": "2026-04-28T15:38:03.554766-04:00",
+      "distraction_duration_s": 4.31,
+      "distraction_end_signal_received": true,
+      "exit_reason": "self_recovered",
+      "trigger_source": "gaze_mind_wandering",
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0,
+      "gaze_detected": true,
+      "gaze_latency_s": 4.31
+    }
+  ],
+  "total_distraction_count": 26,
+  "total_voice_prompts": 0
+}

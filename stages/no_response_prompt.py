@@ -36,7 +36,7 @@ def _run_until_done_or_stop(stop_event, func, *args, **kwargs):
     return False, result_box.get("value")
 
 
-def run_no_response(misty, cfg, log, attempt: int, current_text: str = "", stop_event=None) -> None:
+def run_no_response(misty, cfg, log, attempt: int, current_text: str = "", stop_event=None, include_arm_cue: bool = True) -> None:
     if stop_event is not None and stop_event.is_set():
         log.record("no_response_skipped", attempt=attempt, reason="stop_received_before_prompt")
         return
@@ -52,11 +52,11 @@ def run_no_response(misty, cfg, log, attempt: int, current_text: str = "", stop_
     if speech.get("interrupted"):
         log.record("no_response_skipped", attempt=attempt, reason="stop_received_during_speech")
         return
-    if stop_event is not None and stop_event.is_set():
-        log.record("no_response_skipped", attempt=attempt, reason="stop_received_before_arm_cue")
-        return
-
-    cue_screen_with_left_arm(misty, cfg, repetitions=1, stop_event=stop_event)
+    if include_arm_cue:
+        if stop_event is not None and stop_event.is_set():
+            log.record("no_response_skipped", attempt=attempt, reason="stop_received_before_arm_cue")
+            return
+        cue_screen_with_left_arm(misty, cfg, repetitions=1, stop_event=stop_event)
     log.record(
         "no_response_prompt_generated",
         attempt=attempt,

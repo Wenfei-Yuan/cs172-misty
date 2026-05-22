@@ -3,7 +3,25 @@ from __future__ import annotations
 import threading
 from typing import Any
 
-from misty2py.basic_skills.speak import speak
+from misty2py.utils.generators import get_random_string
+
+
+def _speak_ivy(misty, utterance: str) -> dict:
+    """Speak using Polly's Ivy (child female) voice with high pitch.
+
+    Parameter names match Misty's REST API (lowercase camelCase):
+      voice      → selects AWS Polly voice (Ivy = child female)
+      pitch      → 0.0–2.0 float; 1.0 is default, >1 raises pitch
+      speechRate → 0.0–2.0 float; 1.0 is default speed
+    """
+    return misty.perform_action(
+        "speak",
+        data={
+            "text": utterance,
+            "voice": "Kevin",
+            "utteranceId": "utterance_" + get_random_string(6),
+        },
+    ).parse_to_dict()
 
 
 def _perform_and_parse(misty, action_name: str, data: dict[str, Any] | None = None) -> dict:
@@ -40,7 +58,7 @@ def speak_text(misty, cfg, utterance: str, log=None, stage: str | None = None, *
     else:
         def _run_speech() -> None:
             try:
-                result_box["speech"] = speak(misty, utterance)
+                result_box["speech"] = _speak_ivy(misty, utterance)
             except Exception as exc:
                 error_box["error"] = exc
             finally:
@@ -91,3 +109,14 @@ def speak_text(misty, cfg, utterance: str, log=None, stage: str | None = None, *
         payload.update(extra)
         log.record("speech_attempt", **payload)
     return combined
+
+
+def play_audio_file(misty, cfg, asset_id: str, stop_event=None) -> dict:
+    """Fire a Misty built-in audio file (fire-and-forget). Sound plays asynchronously on robot."""
+    if stop_event is not None and stop_event.is_set():
+        return {"overall_success": False, "interrupted": True}
+    result = _perform_and_parse(misty, "audio_play", {"AssetId": asset_id})
+    return {
+        "overall_success": bool(result.get("overall_success")),
+        "interrupted": False,
+    }

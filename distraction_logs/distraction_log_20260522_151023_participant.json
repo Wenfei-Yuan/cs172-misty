@@ -1,0 +1,49 @@
+{
+  "username": "participant",
+  "session_start": "2026-05-22T15:09:07.498553-04:00",
+  "session_end": "2026-05-22T15:10:23.227795-04:00",
+  "calibration": {
+    "reference_yaw": 14.33,
+    "reference_pitch": 0.21,
+    "reference_gaze_yaw": 0.4602,
+    "reference_gaze_pitch": 0.4431
+  },
+  "events": [
+    {
+      "event_time": "2026-05-22T15:09:24.021265-04:00",
+      "event_type": "disengage",
+      "reason": "looking_away",
+      "yaw": -65.78,
+      "pitch": 0.38,
+      "yaw_deviation": 77.21,
+      "pitch_deviation": 1.89,
+      "gaze_yaw_ratio": 0.6468,
+      "gaze_pitch_ratio": 0.6353,
+      "gaze_yaw_deviation": 0.1866,
+      "gaze_pitch_deviation": 0.1922,
+      "gaze_mind_wandering": false,
+      "distraction_duration_s": null
+    },
+    {
+      "event_time": "2026-05-22T15:10:22.693296-04:00",
+      "event_type": "reengage",
+      "reason": "gaze_recovered",
+      "yaw": 1.04,
+      "pitch": -2.96,
+      "yaw_deviation": 26.27,
+      "pitch_deviation": 1.37,
+      "gaze_yaw_ratio": 0.4794,
+      "gaze_pitch_ratio": 0.4389,
+      "gaze_yaw_deviation": 0.0192,
+      "gaze_pitch_deviation": 0.0042,
+      "gaze_mind_wandering": false,
+      "distraction_duration_s": 58.67
+    }
+  ],
+  "summary": {
+    "total_distractions": 1,
+    "completed_distractions": 1,
+    "total_distraction_time_s": 58.67,
+    "avg_distraction_duration_s": 58.67
+  }
+}

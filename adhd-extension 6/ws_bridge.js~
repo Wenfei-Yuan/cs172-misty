@@ -1,0 +1,176 @@
+// ws_bridge.js — Stage 6: WebSocket bridge to Misty II robot
+// Runs in the background service worker alongside background.js.
+//
+// ── SETUP ─────────────────────────────────────────────────────────────────
+// Before the study, fill in the two placeholders below:
+//
+//   MISTY_WS_URL  — Misty's WebSocket address on your local network
+//                   Format: "ws://192.168.x.x:PORT"
+//                   Find Misty's IP in the Misty app under "Settings"
+//                   Default Misty REST/WS port is 80, so try "ws://192.168.x.x:80"
+//
+//   REDIRECTION_EVENT — The exact event name Misty sends when it wants to
+//                       redirect the participant's attention back to reading.
+//                       Check your Misty skill code for what it broadcasts.
+//                       Common pattern: "HazardNotification" or a custom
+//                       skill event like "AttentionRedirect"
+// ──────────────────────────────────────────────────────────────────────────
+
+const MISTY_WS_URL       = "ws://10.5.15.160:8765";  // ← FILL IN Misty's IP (format: ws://192.168.x.x:PORT)
+const REDIRECTION_EVENT  = "AttentionRedirect";        // ← FILL IN event name from Misty skill
+const RESUMPTION_EVENT   = "AttentionResumed";         // ← FILL IN resumption confirm event name
+
+// How often to send reading state to Misty (ms)
+const SEND_INTERVAL_MS = 2000;
+
+// ── State ──────────────────────────────────────────────────────────────────
+let ws            = null;
+let sendInterval  = null;
+let reconnectTimer = null;
+let isConnected   = false;
+let lastReadingState = {};  // most recent state received from content scripts
+
+// ── Connect ────────────────────────────────────────────────────────────────
+function connect() {
+  if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) return;
+
+  console.log("[WS Bridge] Connecting to", MISTY_WS_URL);
+
+  try {
+    ws = new WebSocket(MISTY_WS_URL);
+  } catch (e) {
+    console.warn("[WS Bridge] Could not create WebSocket:", e.message);
+    scheduleReconnect();
+    return;
+  }
+
+  ws.onopen = () => {
+    console.log("[WS Bridge] Connected to Misty.");
+    isConnected = true;
+
+    // Subscribe to Misty events we care about
+    // Misty's WebSocket API uses a JSON subscription message
+    const subscribe = {
+      Operation: "subscribe",
+      Type: REDIRECTION_EVENT,
+      DebounceMS: 0,
+      EventName: REDIRECTION_EVENT,
+    };
+    ws.send(JSON.stringify(subscribe));
+
+    // Also subscribe to resumption event
+    ws.send(JSON.stringify({
+      Operation: "subscribe",
+      Type: RESUMPTION_EVENT,
+      DebounceMS: 0,
+      EventName: RESUMPTION_EVENT,
+    }));
+
+    // Start sending reading state to Misty on an interval
+    clearInterval(sendInterval);
+    sendInterval = setInterval(sendReadingState, SEND_INTERVAL_MS);
+  };
+
+  ws.onmessage = (event) => {
+    let msg;
+    try { msg = JSON.parse(event.data); } catch { return; }
+
+    const eventName = msg?.eventName || msg?.EventName || msg?.type || "";
+
+    if (eventName === REDIRECTION_EVENT) {
+      console.log("[WS Bridge] Redirection signal received from Misty.");
+      // Forward to all content scripts — they will highlight the reading position
+      forwardToContentScripts({ type: "ROBOT_REDIRECT" });
+      // Log the event
+      logToBackground("redirection", { source: "misty", ts: Date.now() });
+    }
+
+    if (eventName === RESUMPTION_EVENT) {
+      console.log("[WS Bridge] Resumption confirm received from Misty.");
+      forwardToContentScripts({ type: "ROBOT_RESUME" });
+      logToBackground("robot_resume", { ts: Date.now() });
+    }
+  };
+
+  ws.onerror = (err) => {
+    console.warn("[WS Bridge] WebSocket error:", err.message || err);
+  };
+
+  ws.onclose = () => {
+    console.log("[WS Bridge] Connection closed. Will retry in 5s.");
+    isConnected = false;
+    clearInterval(sendInterval);
+    scheduleReconnect();
+  };
+}
+
+function scheduleReconnect() {
+  clearTimeout(reconnectTimer);
+  reconnectTimer = setTimeout(connect, 5000);
+}
+
+// ── Send reading state to Misty ────────────────────────────────────────────
+// Extension → Robot:
+//   scrollProgress  (0–100%)
+//   paragraphIndex  (currently focused paragraph index)
+//   activeMode      ("full" | "para" | "sentence")
+//   pauseDuration   (current pause duration in ms in para/sentence mode, 0 otherwise)
+//   currentText     (currently visible reading text)
+//   textChanged     (true if currentText changed since last send)
+//   ts              (client timestamp in ms)
+function sendReadingState() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  const payload = {
+    type: "ReadingState",
+    ...lastReadingState,
+    ts: Date.now(),
+  };
+  try {
+    ws.send(JSON.stringify(payload));
+  } catch (e) {
+    console.warn("[WS Bridge] Send failed:", e.message);
+  }
+}
+
+// ── Forward signal to content scripts ─────────────────────────────────────
+function forwardToContentScripts(msg) {
+  chrome.tabs.query({ active: true }, (tabs) => {
+    tabs.forEach(tab => {
+      chrome.tabs.sendMessage(tab.id, msg).catch(() => {});
+    });
+  });
+}
+
+// ── Log to background session log ─────────────────────────────────────────
+function logToBackground(event, data) {
+  // background.js handles LOG_EVENT messages
+  // We call logEvent directly since we're in the same service worker scope
+  if (typeof logEvent === "function") {
+    logEvent(event, data);
+  }
+}
+
+// ── Receive reading state updates from content scripts ────────────────────
+// background.js routes READING_STATE messages here
+function updateReadingState(state) {
+  lastReadingState = { ...lastReadingState, ...state };
+}
+
+// ── Public API (called from background.js) ────────────────────────────────
+// Call connectBridge() when a study session starts (toolbar button clicked)
+// Call disconnectBridge() when session ends
+function connectBridge() {
+  connect();
+}
+
+function disconnectBridge() {
+  clearInterval(sendInterval);
+  clearTimeout(reconnectTimer);
+  if (ws) { ws.onclose = null; ws.close(); ws = null; }
+  isConnected = false;
+  console.log("[WS Bridge] Disconnected.");
+}
+
+function getBridgeStatus() {
+  return { isConnected, url: MISTY_WS_URL };
+}

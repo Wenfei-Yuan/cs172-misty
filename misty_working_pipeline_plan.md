@@ -1,445 +1,391 @@
 # Misty Working Pipeline Plan
 
-> **Status:** Planning only — no code changes made yet.  
-> **Purpose:** Architecture plan for the full Misty II companion behavior pipeline.  
-> Generated via multi-agent code workflow (focus, broad, free modes + senior staff review + devil's advocate).
+> **Status:** Fully implemented.
+> **Purpose:** Architecture reference for the Misty II companion behavior pipeline.
+> Last updated to match actual codebase (2026-05-20).
 
 ---
 
 ## 1. Pipeline Overview
 
-The Misty robot operates through the following six-stage pipeline loop:
+The Misty robot operates through the following stage loop:
 
 | Stage | Trigger | Misty Behavior |
 |---|---|---|
-| **1. Boot-up** | Program launch | Speak greeting + face expression (joy) + arm gesture; generate session ID |
-| **2. Screen Monitor** | Post-boot / post-recovery | Turn head to cached screen position → capture image → analyze with Vision API → respond with speech (reading face expression) |
-| **3. Distraction Response** | **External signal** from distraction measurement tool (HTTP POST) | Head-only shake (no arms); start periodic VLM gaze analysis loop; log distraction start time |
-| **4. Gaze Recovery** | VLM analysis confirms participant is gazing at robot | Stop shaking → turn head to screen → optional speech (speaking face) → re-run screen monitor; log gaze latency |
-| **5. No-Response Escalation** | Gaze timeout expires | Speak prompt to user; track attempt count; log voice prompt used |
-| **6. Session Close** | External end signal OR max attempts | Speak summary + encouragement; save session JSON log |
+| **1. Boot-up** | Program launch | Reset arms down → speak greeting → VLM screen search → speak result; returns `screen_pos` |
+| **2. Screen Watch** | Post-boot / post-recovery | Turn head to cached `screen_pos` (or re-search if `None`) → VLM alignment check → speak status (reading face) |
+| **3. Wait for Signal** | After screen watch | Block on `signal_rx.wait_for_start()`; HTTP POST `/distraction/start` unblocks with optional `trigger_reason` |
+| **4. Distraction Sequence** | Start signal received | Run `perform_distraction_start_sequence` in daemon thread: turn head to user → left-arm cue → return to screen; main thread polls `consume_interrupt()` for stop/shutdown |
+| **5. Post-Sequence Decision** | Sequence outcome | `"stop"` → log end, loop; `"sequence_complete"` → wait `redirect_confirmation_wait_s` for stop; `"timeout"` → no-response prompt |
+| **6. No-Response Prompt** | Timeout / post-sequence quiet wait | LLM generates focus reminder from `current_text`; speak + left-arm cue; track `attempt` |
+| **7. Session Close** | Shutdown signal OR `max_attempts` exhausted | Speak summary + wave; save session JSON; regenerate CSVs |
 
-Stages 2 → 3 → 4 (or 5) form a **repeating loop** until end signal or `max_attempts` is exhausted.
-
-> **No LED actions anywhere in the pipeline.** All light-based feedback is removed.
+> **No LED actions anywhere.** All `perform_action("led", ...)` are absent from the codebase.
 >
-> **Screen position is calibrated once** (Stage 2, first run) and cached; subsequent turns to screen use the cached angle directly without re-calibration.
+> **Screen position is found once at boot** via VLM grid search and cached; subsequent screen-watch cycles reuse the cached `ScreenPos` directly.
 
 ---
 
 ## 2. Full Pipeline Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                  main.py                                    │
-│  Misty(ip) ──────────────────────────────────► pipeline.run(my_misty, cfg) │
-└─────────────────────────────────┬───────────────────────────────────────────┘
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          pipeline.py  (orchestrator)                        │
-│  cfg = config.load_config()                                                 │
-│  session_id = generate_session_id()   log = SessionLog(session_id, cfg)    │
-│  validate: cfg.ip reachable, cfg.openai_api_key present                    │
-│  screen_pos = None   ← cached after first calibration                      │
-└──┬──────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                  main.py                                     │
+│  args = parse_args()  →  username = resolve_username(args)                   │
+│  misty = _build_misty()  →  run(misty, load_config(username))                │
+└──────────────────────────────────┬───────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          pipeline.py  (orchestrator)                         │
+│  session_id = generate_session_id(cfg.participant_id)                        │
+│  log = SessionLog(session_id, cfg)                                           │
+│  signal_rx = ExternalSignalReceiver(cfg.signal_host, cfg.signal_port)        │
+│  signal_rx.start()                                                           │
+│  screen_pos = None   attempt = 0   screen_search_retries = 0                │
+│  skip_screen_watch_once = False                                              │
+│  ensure_audio_ready(misty, cfg)                                              │
+│  screen_pos = run_bootup(misty, cfg, log)   ← STAGE 1                       │
+│  bootup_screen_pos = screen_pos                                              │
+└──┬───────────────────────────────────────────────────────────────────────────┘
    │
-   │  STAGE 1
+   │  ┌─────────────────────────────────────────────────────────────────────┐
+   │  │  main loop  (while True)                                            │
+   │  │                                                                     │
+   │  │  if has_shutdown_event() → break                                    │
+   │  │                                                                     │
+   │  │  ── STAGE 2 ─────────────────────────────────────────────────      │
+   │  │  unless skip_screen_watch_once:                                     │
+   │  │    screen_pos = run_screen_watch(misty, cfg, log, screen_pos)       │
+   │  │    if screen_pos is None:                                           │
+   │  │      retries += 1                                                   │
+   │  │      if retries >= 3: use default_screen_position(); retries = 0   │
+   │  │      else: continue (retry)                                         │
+   │  │                                                                     │
+   │  │  ── STAGE 3 (wait) ────────────────────────────────────────────    │
+   │  │  start_signal = signal_rx.wait_for_start()                          │
+   │  │  if start_signal.event == "shutdown" → break                        │
+   │  │  signal_rx.clear_redirect_stop()                                    │
+   │  │                                                                     │
+   │  │  ── STAGE 4 (distraction sequence) ─────────────────────────────   │
+   │  │  distraction = run_distraction(misty, cfg, log, screen_pos,         │
+   │  │                  consume_interrupt=signal_rx.consume_interrupt,     │
+   │  │                  trigger_reason=start_signal.trigger_reason)        │
+   │  │                                                                     │
+   │  │  ── STAGE 5 (post-sequence decisions) ─────────────────────────    │
+   │  │  if outcome == "stop":                                              │
+   │  │    clear_redirect_stop → return_to_waiting → log end               │
+   │  │    attempt=0, skip_screen_watch_once=True, continue                 │
+   │  │  if outcome == "shutdown": break                                    │
+   │  │  if outcome == "sequence_complete":                                 │
+   │  │    check pending stop/shutdown first                                │
+   │  │    wait up to redirect_confirmation_wait_s for stop                 │
+   │  │      stop → log end, attempt=0, skip, continue                     │
+   │  │      timeout → run_no_response + quiet_wait + continue              │
+   │  │  if outcome == "timeout":                                           │
+   │  │    attempt += 1                                                     │
+   │  │    run_no_response(misty, cfg, log, attempt,                        │
+   │  │                    current_text=signal_rx.current_text(),           │
+   │  │                    stop_event=signal_rx.redirect_stop_event)        │
+   │  │    if attempt >= cfg.max_attempts: break                            │
+   │  └─────────────────────────────────────────────────────────────────────┘
+   │
+   │  finally:
+   │    signal_rx.stop()
+   │    run_summary(misty, cfg, log)   ← STAGE 7
+   │
    ▼
-┌──────────────────────────────────────────────────────────┐
-│  stages/bootup.py  run_bootup(misty, cfg, log)           │
-│                                                          │
-│  show_image(misty, "e_Joy.jpg")  [joy face — greeting]   │
-│  arm_gesture(misty, "wave")      perform_action(         │
-│                                    "arms_move")          │
-│  speak(misty, "Hello! Let's work") basic_skills.speak()  │
-│  show_image(misty, "e_Content...")[neutral/content face] │
-│  log.record("bootup_complete")                           │
-└───────────────────────────────┬──────────────────────────┘
-                                │
-                                │ loop start (attempt counter reset)
-                                ▼
-┌──────────────────────────────────────────────────────────┐
-│  stages/screen_watch.py  run_screen_watch(misty,cfg,log, │
-│                                           screen_pos)    │
-│                                                          │
-│  [1] show_image(misty, READING_FACE)                     │
-│       e.g. "e_EyesWide.jpg"  ← reading/focused face     │
-│  [2] if screen_pos is None:                              │
-│       screen_pos = calibrate_screen(misty, cfg)          │
-│         → head_move(Yaw, Pitch) + manual confirm         │
-│       else:                                              │
-│       head_move(Yaw=screen_pos.yaw,                      │
-│                 Pitch=screen_pos.pitch, Velocity=50)     │
-│  [3] capture_screen(misty)                               │
-│       get_info("picture_rgb") → base64 JPEG              │
-│  [4] analyze_screen(b64, cfg)                            │
-│       openai.OpenAI().chat.completions.create(           │
-│         model="gpt-4o", image=b64_data_uri)              │
-│       try/except: APIError → fallback_str                │
-│  [5] speak(misty, response_text)                         │
-│       show_image(misty, SPEAKING_FACE) before speak      │
-│       show_image(misty, READING_FACE)  after speak       │
-│  log.record("screen_observed", analysis)                 │
-│  return screen_pos                                       │
-└───────────────────────────────┬──────────────────────────┘
-                                │
-                                │  wait for distraction start signal
-                                ▼
-         ┌──────────────────────────────────────────────────┐
-         │  triggers.py — ExternalSignalReceiver            │
-         │  HTTP server (localhost:PORT) listening for:      │
-         │    POST /distraction/start  → start event        │
-         │    POST /distraction/stop   → end event          │
-         │  wait_for_start() blocks until start POST arrives│
-         │  Returns True (distraction) or False (shutdown)  │
-         └─────────────────────┬────────────────────────────┘
-                               │ start signal received
-                               │
-                               │  STAGE 3
-                               ▼
-┌──────────────────────────────────────────────────────────┐
-│  stages/distraction.py  run_distraction(misty, cfg, log, │
-│                                          screen_pos)     │
-│                                                          │
-│  [1] log.record_distraction_start()  ← timestamp now    │
-│  [2] show_image(misty, DISTRACTION_FACE)                 │
-│       e.g. "e_Concerned.jpg"                             │
-│  [3] stop_shake = threading.Event()                      │
-│       shake_thread = Thread(target=shake_head_only,      │
-│                    args=(misty, cfg, stop_shake))        │
-│       shake_thread.start()   ← HEAD ONLY, no arms        │
-│  [4] VLM gaze polling loop (main thread):                │
-│       poll_start = time.time()                           │
-│       gaze_seen = False                                  │
-│       while not gaze_seen:                               │
-│         if time.time()-poll_start > cfg.gaze_timeout_s:  │
-│           break                                          │
-│         b64 = capture_frame(misty)                       │
-│         gaze_seen = vlm_is_gazing(b64, cfg)              │
-│           → GPT-4o: "Is person looking at camera/robot?"│
-│           → returns bool                                 │
-│         time.sleep(cfg.gaze_poll_interval_s)             │
-│  [5] stop_shake.set(); shake_thread.join()               │
-│  [6] # NO center_head — go directly to screen pos        │
-│  [7] log.record_distraction_gaze(gaze_seen, elapsed_s)   │
-│                                                          │
-│  Returns: gaze_seen (bool)                               │
-└──────────────────┬───────────────────┬───────────────────┘
-                   │                   │
-          gaze     │                   │  gaze timeout
-          seen     │                   │  (no response)
-                   ▼                   ▼
-   ┌───────────────────────┐  ┌────────────────────────────────┐
-   │  STAGE 4 (RECOVERY)   │  │  STAGE 5 (ESCALATION)          │
-   │  [inline in pipeline] │  │  stages/no_response_prompt.py  │
-   │                       │  │                                │
-   │  show_image(SPEAKING) │  │  attempt += 1                  │
-   │  speak(misty, opt.)   │  │  show_image(SPEAKING_FACE)     │
-   │  show_image(READING)  │  │  speak(misty, prompt_text)     │
-   │  → head_move to       │  │  log.record_voice_prompt(      │
-   │    screen_pos         │  │             attempt)           │
-   │  → screen_watch()     │  │                                │
-   │  attempt = 0          │  │  if attempt >= cfg.max_attempts│
-   │  log.record(          │  │    → EXIT LOOP                 │
-   │   "gaze_recovered")   │  │                                │
-   └────────┬──────────────┘  └────────────┬───────────────────┘
-            │                              │
-            │                              │
-            └──────────────────────────────┘
-                          │
-          ┌───────────────┴─────────────────┐
-          │  ExternalSignalReceiver also     │
-          │  listens for /distraction/stop   │
-          │  → log.record_distraction_end()  │
-          │  → compute duration_s            │
-          └───────────────┬─────────────────┘
-                          │  loop back to screen_watch (or exit)
-                          │
-                          │  STAGE 6
-                          ▼
-┌──────────────────────────────────────────────────────────┐
-│  stages/summary.py  run_summary(misty, cfg, log)         │
-│                                                          │
-│  summary_text = log.generate_summary()                   │
-│  show_image(misty, SPEAKING_FACE)                        │
-│  speak(misty, summary_text + encouragement)              │
-│  show_image(misty, "e_Joy.jpg")                          │
-│  log.save_to_file()  → sessions/<session_id>.json        │
-└──────────────────────────────────────────────────────────┘
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FACE EXPRESSION CONSTANTS
-
-  READING_FACE    = "e_EyesWide.jpg"       ← screen-watch mode
-  SPEAKING_FACE   = "e_ContentDefault.jpg" ← when speaking to participant
-  DISTRACTION_FACE= "e_Concerned.jpg"      ← during distraction/shake
-  BOOT_FACE       = "e_Joy.jpg"            ← greeting at startup
-  CLOSE_FACE      = "e_Joy.jpg"            ← session close encouragement
-
-SHARED UTILITIES (called by stages)
-
-  utils/expressions.py  → show_image(), arm_gesture()  [NO led()]
-  utils/head_control.py → look_at_screen(screen_pos), shake_head_only(stop_event)
-  utils/vision.py       → capture_screen(misty), analyze_screen(b64, cfg) → str
-                          vlm_is_gazing(b64, cfg) → bool  ← new
-  utils/session_log.py  → SessionLog: record_distraction_start/gaze/end/voice_prompt,
-                                       generate_summary(), save_to_file()
-  utils/triggers.py     → ExternalSignalReceiver (HTTP), StubTrigger
-
-THREAD DIAGRAM
-
-  Main thread:
-    pipeline.run() → sequential stage calls
-    distraction: main thread polls VLM gaze analysis in loop
-
-  Daemon thread A (during shake):
-    shake_head_only → head_move(Yaw=±N) × loop | stopped via stop_shake.Event
-    NO arm movements
-
-  Background thread B (ExternalSignalReceiver):
-    HTTP server → listens for /distraction/start and /distraction/stop POSTs
-    sets start_event / stop_event respectively
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  end
 ```
 
 ---
 
-## 3. New Scripts / Modules Required
+## 3. Modules and Files
 
 ### Root Level
 
-| File | Status | Role |
+| File | Role |
+|---|---|
+| `main.py` | Parse `--username` / `--participant` args; build Misty connection; call `pipeline.run()` |
+| `config.py` | `@dataclass(frozen=True) Config`; `load_config(participant_id)` reads `.env` |
+| `pipeline.py` | Top-level orchestrator; owns the main loop and all stage transitions |
+| `generate_csv.py` | Regenerated after each session close |
+
+### `stages/`
+
+| File | Signature | Role |
 |---|---|---|
-| `main.py` | **EXISTING** (extend by +2 lines only) | Load env + Misty client; call `pipeline.run(my_misty, cfg)` |
-| `config.py` | **NEW** | `@dataclass(frozen=True)` Config; `load_config()` from `.env` |
-| `pipeline.py` | **NEW** | Top-level orchestrator; owns the stage loop |
+| `bootup.py` | `run_bootup(misty, cfg, log) -> ScreenPos or None` | Reset arms down; speak greeting; VLM screen search; return `screen_pos` |
+| `screen_watch.py` | `run_screen_watch(misty, cfg, log, screen_pos) -> ScreenPos or None` | Head to cached pos (or re-search); VLM alignment check; speak status; return updated `ScreenPos` |
+| `distraction.py` | `run_distraction(misty, cfg, log, screen_pos, consume_interrupt, trigger_reason) -> DistractionResult` | Show `DISTRACTION_FACE`; run `perform_distraction_start_sequence` in daemon thread; poll `consume_interrupt()`; return `DistractionResult(outcome, sequence_completed, completion_latency_s)` |
+| `no_response_prompt.py` | `run_no_response(misty, cfg, log, attempt, current_text, stop_event)` | LLM generates focus reminder from `current_text`; speak + left-arm cue; log event |
+| `summary.py` | `run_summary(misty, cfg, log)` | Speak summary; arm wave; `log.save_to_file()`; `generate_csv.main()` |
 
-### `stages/` Directory (NEW)
+### `utils/`
 
-| File | Function | Role |
+| File | Key Exports | Role |
 |---|---|---|
-| `stages/__init__.py` | — | Package marker |
-| `stages/bootup.py` | `run_bootup(misty, cfg, log)` | Greeting speech + face expression (joy) + arm wave; no LED |
-| `stages/screen_watch.py` | `run_screen_watch(misty, cfg, log, screen_pos) → ScreenPos` | Head to cached screen pos (or calibrate on first call) → reading face → capture → analyze → speak (speaking face) → return to reading face |
-| `stages/distraction.py` | `run_distraction(misty, cfg, log, screen_pos) → bool` | Head-shake only (threaded); VLM gaze polling on main thread; log timings |
-| `stages/no_response_prompt.py` | `run_no_response(misty, cfg, log, attempt)` | Speaking face + speak escalation prompt; log voice_prompt_used |
-| `stages/summary.py` | `run_summary(misty, cfg, log)` | Speaking face + speak summary + encouragement; save session JSON |
-
-### `utils/` Directory (NEW)
-
-| File | Contents | Role |
-|---|---|---|
-| `utils/__init__.py` | — | Package marker |
-| `utils/expressions.py` | `show_image(misty, filename)`, `arm_gesture(misty, preset)` | Typed wrappers for face expression display and arms; **no LED** |
-| `utils/head_control.py` | `look_at_screen(misty, screen_pos)`, `shake_head_only(misty, cfg, stop_event)` | Head movement helpers only; shake HEAD ONLY, no arms; no `center_head` |
-| `utils/vision.py` | `capture_frame(misty) → b64`, `analyze_screen(b64, cfg) → str`, `vlm_is_gazing(b64, cfg) → bool` | Camera capture; GPT-4o screen analysis; GPT-4o gaze detection ("Is person looking at robot?") |
-| `utils/session_log.py` | `SessionLog(session_id, cfg)`: `record_distraction_start()`, `record_distraction_gaze(gaze_seen, latency_s)`, `record_distraction_end()`, `record_voice_prompt(attempt)`, `generate_summary() → str`, `save_to_file()` | Full structured session log; saves to `sessions/<session_id>.json` |
-| `utils/triggers.py` | `ExternalSignalReceiver` (HTTP server), `StubTrigger` | HTTP trigger for external distraction tool; stub for testing |
-| `utils/session_id.py` | `generate_session_id() → str` | Generates UUID-based session ID (e.g., `session_20260321_abc123`) |
+| `audio.py` | `ensure_audio_ready()`, `speak_text()` | Thread-wrapped `speak()`; handles `stop_event` interrupt; returns `{interrupted, timed_out, ...}` |
+| `expressions.py` | `BOOT/READING/SPEAKING/DISTRACTION/CLOSE_FACE`, `show_image()`, `arm_gesture()` | Face expression constants and typed wrappers; no LED |
+| `focus_prompt.py` | `generate_focus_reminder_from_text(reading_text, cfg) -> FocusPromptResult` | GPT call (text model) → one gentle reminder sentence from reading context |
+| `head_control.py` | `look_at_screen()`, `reset_arms_down()`, `acknowledge_gaze_recovery()`, `perform_distraction_start_sequence()`, `redirect_attention_to_screen()`, `cue_screen_with_left_arm()` | All head and arm motion helpers; every function is stoppable via `stop_event` |
+| `openai_client.py` | `get_openai_client(cfg)` | Shared OpenAI client factory |
+| `session_id.py` | `generate_session_id(participant_id) -> str` | e.g. `baseline_20260520_alice_ab12cd` |
+| `session_log.py` | `SessionLog` | Structured event log; `record_distraction_start/result/end/voice_prompt`, `generate_summary()`, `save_to_file()` -> `sessions/<id>.json` |
+| `triggers.py` | `ExternalSignalReceiver`, `StartSignalResult` | `ThreadingHTTPServer` on `signal_host:signal_port`; handles `/distraction/start`, `/distraction/stop`, `/shutdown`, `/current_text`; exposes `redirect_stop_event` for interrupting in-flight speech/motion |
+| `vision.py` | `capture_frame_result()`, `analyze_screen_capture()`, `FrameCaptureResult`, `VisionCheckResult` | Camera capture via `GET /api/cameras/rgb`; resize/compress; GPT-4o vision call; returns `status` in `{aligned, visible, not_aligned, error}` |
 
 ---
 
-## 4. misty2py API Mapping (Per Stage)
+## 4. Stage Details
 
-> **No LED calls anywhere.** All `perform_action("led", ...)` are removed from every stage.
+### Stage 1 — Boot-up (`stages/bootup.py`)
 
-### Stage 1 — Boot-up
 ```python
-from misty2py.basic_skills.speak import speak
+show_image(BOOT_FACE)                              # e_Joy.jpg
+reset_arms_down(misty, cfg)
+speak_text("Hello! I'm Misty. Let's focus today!")
+speak_text("I'm looking for your screen now.")
+log.record("screen_search_started")
 
-# Joy face at greeting
-misty.perform_action("image_show", {"FileName": "e_Joy.jpg"})
-# Arm wave (arms only used here at boot-up)
-misty.perform_action("arms_move",  {"LeftArmPosition": -80, "RightArmPosition": -80,
-                                    "LeftArmVelocity": 50,  "RightArmVelocity": 50})
-speak(misty, "Hello! I'm Misty. Let's focus today!")
-# Settle into neutral/content face after greeting
-misty.perform_action("image_show", {"FileName": "e_ContentDefault.jpg"})
-```
-
-### Stage 2 — Screen Watch
-```python
-# 1. Switch to reading/focused face expression
-misty.perform_action("image_show", {"FileName": "e_EyesWide.jpg"})
-
-# 2. Turn head toward screen using cached position
-#    screen_pos is a ScreenPos(yaw, pitch) namedtuple
-#    On first call: interactively calibrate; on subsequent calls: use cached values
-misty.perform_action("head_move", {"Yaw": screen_pos.yaw,
-                                   "Pitch": screen_pos.pitch,
-                                   "Velocity": 50})
-
-# 3. Capture image from Misty camera
-resp = misty.get_info("picture_rgb")
-b64  = resp.parse_to_dict()["result"]["base64"]   # verify key path on real robot
-
-# 4. Analyze screen content (OpenAI Vision — sync client)
-import openai
-client = openai.OpenAI(api_key=cfg.openai_api_key, timeout=30)
 try:
-    result = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": [
-            {"type": "text",
-             "text": "Describe what you see on this computer screen in one sentence."},
-            {"type": "image_url",
-             "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
-        ]}]
-    )
-    analysis = result.choices[0].message.content
+    search = find_screen_position_with_vlm(misty, cfg, log)
+    screen_pos = search.position
 except Exception:
-    analysis = "I couldn't analyze the screen right now."
+    screen_pos = None  # fallback to default_screen_position(cfg)
 
-# 5. Respond with speaking face, then return to reading face
-misty.perform_action("image_show", {"FileName": "e_ContentDefault.jpg"})  # speaking
-speak(misty, analysis)
-misty.perform_action("image_show", {"FileName": "e_EyesWide.jpg"})         # back to reading
+if screen_pos:
+    look_at_screen(misty, screen_pos)
+    speak_text("I've found the screen!")
+    speak_text("Let's start reading. You can open the browser extension and start reading now.")
+else:
+    speak_text("I'm still looking for the screen.")
+
+show_image(SPEAKING_FACE)
+log.record("bootup_complete")
+return screen_pos
 ```
 
-### Stage 3 — Distraction
+### Stage 2 — Screen Watch (`stages/screen_watch.py`)
+
 ```python
-import threading, time
+if screen_pos and cfg.cache_screen_pos:           # fast path
+    show_image(READING_FACE)
+    sleep(return_to_screen_pause_s)
+    look_at_screen(misty, screen_pos)
+    sleep(screen_settle_s)
+    log.record("screen_cache_hit")
+    return screen_pos
 
-# 1. Log distraction start timestamp
-log.record_distraction_start()
+if screen_pos is None:
+    search = find_screen_position_with_vlm(...)   # coarse + fine grid search
+    position = search.position
+else:
+    look_at_screen(misty, screen_pos)
 
-# 2. Switch to distraction/concerned face
-misty.perform_action("image_show", {"FileName": "e_Concerned.jpg"})
+result = _check_screen_alignment(misty, cfg, log) # VLM: aligned/visible/not_aligned
+if result.status != "aligned":
+    retry or reuse screen_pos as fallback
 
-# 3. Start head-shake in background thread — HEAD ONLY, no arm movements
-stop_shake = threading.Event()
-shake_thread = threading.Thread(
-    target=shake_head_only, args=(misty, cfg, stop_shake), daemon=True)
-shake_thread.start()
-
-# 4. VLM gaze polling loop on main thread
-client = openai.OpenAI(api_key=cfg.openai_api_key, timeout=20)
-poll_start = time.time()
-gaze_seen = False
-gaze_latency = None
-while not gaze_seen:
-    elapsed = time.time() - poll_start
-    if elapsed > cfg.gaze_timeout_s:
-        break
-    try:
-        resp = misty.get_info("picture_rgb")
-        b64  = resp.parse_to_dict()["result"]["base64"]
-        result = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": [
-                {"type": "text",
-                 "text": "Is the person in this image looking directly at the camera "
-                         "(i.e., making eye contact)? Answer only yes or no."},
-                {"type": "image_url",
-                 "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
-            ]}]
-        )
-        answer = result.choices[0].message.content.strip().lower()
-        if answer.startswith("yes"):
-            gaze_seen = True
-            gaze_latency = time.time() - poll_start
-    except Exception:
-        pass   # skip failed frame, continue polling
-    time.sleep(cfg.gaze_poll_interval_s)
-
-# 5. Stop shake thread
-stop_shake.set()
-shake_thread.join()
-
-# 6. Turn head directly to screen (no center_head — skip to screen position)
-misty.perform_action("head_move", {"Yaw": screen_pos.yaw,
-                                   "Pitch": screen_pos.pitch,
-                                   "Velocity": 50})
-
-# 7. Log result
-log.record_distraction_gaze(gaze_seen, gaze_latency)
+speak("I found the screen..." or "I'm still adjusting...")
+show_image(READING_FACE)
+log.record_screen_observation(...)
+return position
 ```
 
-### `shake_head_only()` — head movement only, no arms
+**VLM grid search** (`find_screen_position_with_vlm`): starts from
+`(screen_search_seed_yaw, screen_search_seed_pitch)`, sweeps
+`screen_search_yaw_offsets x screen_search_pitch_offsets`; if no `aligned`
+position found, does a fine search around the best `visible` candidate.
+Confirms alignment with `screen_alignment_confirm_checks` repeated checks.
+
+### Stage 3 — Wait for Signal (`pipeline.py`)
+
 ```python
-def shake_head_only(misty, cfg, stop_event):
-    while not stop_event.is_set():
-        misty.perform_action("head_move",
-            {"Yaw": cfg.shake_amplitude_deg, "Velocity": 80})
-        time.sleep(cfg.shake_period_s)
-        if stop_event.is_set(): break
-        time.sleep(cfg.shake_pause_s)
-        if stop_event.is_set(): break
-        misty.perform_action("head_move",
-            {"Yaw": -cfg.shake_amplitude_deg, "Velocity": 80})
-        time.sleep(cfg.shake_period_s)
-        if stop_event.is_set(): break
-        time.sleep(cfg.shake_pause_s)
+start_signal = signal_rx.wait_for_start()
+# Returns StartSignalResult(event, stale_stop_events_cleared, trigger_reason)
+if start_signal.event == "shutdown":
+    break
+signal_rx.clear_redirect_stop()
 ```
 
-### Stage 4 — Recovery (inline in pipeline.py)
+`ExternalSignalReceiver` HTTP endpoints:
+
+- `POST /distraction/start` — optional JSON body `{"reason": "..."}` sets `trigger_reason`
+- `POST /distraction/stop`
+- `POST /shutdown`
+- `POST /current_text` — body `{"text": "..."}` updates `current_text` used by no-response prompt
+
+### Stage 4 — Distraction Sequence (`stages/distraction.py`)
+
 ```python
-if gaze_seen:
-    misty.perform_action("image_show", {"FileName": "e_ContentDefault.jpg"})  # speaking
-    speak(misty, "I see you! Let me check what you were working on.")
-    log.record("gaze_recovered")
-    attempt = 0
-    # head is already pointing at screen — run screen_watch directly
-    screen_pos = run_screen_watch(misty, cfg, log, screen_pos)
+log.record_distraction_start(trigger_reason)
+show_image(DISTRACTION_FACE)                      # e_Concerned.jpg
+
+motion_thread = Thread(target=perform_distraction_start_sequence, daemon=True)
+motion_thread.start()
+
+# Main thread polls for interrupts while motion runs:
+while not motion_done:
+    interrupt = consume_interrupt()
+    if interrupt == "shutdown": outcome = "shutdown"; break
+    if interrupt == "stop":     outcome = "stop";     break
+    if elapsed >= gaze_timeout_s: outcome = "timeout"; break
+    motion_done.wait(timeout=0.1)
+else:
+    outcome = "sequence_complete"
+
+stop_motion.set(); motion_thread.join()
+if outcome == "timeout":
+    look_at_screen(misty, screen_pos)
+log.record_distraction_result(outcome, ...)
+return DistractionResult(outcome, sequence_completed, completion_latency_s)
 ```
 
-### Stage 5 — No Response
+**`perform_distraction_start_sequence`** (`utils/head_control.py`):
+
+1. Turn head to user (`distraction_user_turn_yaw_deg`, default -45 deg)
+2. Hold for `distraction_user_focus_pause_s`
+3. Turn head back to screen position
+4. Left-arm cue (`distraction_left_arm_repetitions` reps: arm up -> hold -> arm down)
+5. Settle `redirect_settle_s`
+
+Each step checks `stop_event` via `_wait_or_stop()`; on early exit, `_recover()`
+snaps head+arms back to screen position at maximum velocity.
+
+### Stage 5 — Post-Sequence Decisions (`pipeline.py`)
+
+| `outcome` | Action |
+|---|---|
+| `"stop"` | `clear_redirect_stop` -> `_return_to_waiting_position` -> `log.record_distraction_end()` -> `attempt = 0` -> `skip_screen_watch_once = True` -> `continue` |
+| `"shutdown"` | `_close_active_distraction(log, "shutdown")` -> `break` |
+| `"sequence_complete"` | Check pending stop/shutdown; then `wait_for_stop_or_shutdown_only(redirect_confirmation_wait_s)` -> stop: log end + loop; timeout: `run_no_response` + `quiet_wait` + loop |
+| `"timeout"` | `attempt += 1` -> `run_no_response(...)` -> if `attempt >= max_attempts`: `break` |
+
+### Stage 6 — No-Response Prompt (`stages/no_response_prompt.py`)
+
 ```python
-misty.perform_action("image_show", {"FileName": "e_ContentDefault.jpg"})  # speaking
-speak(misty, escalation_prompts[attempt % len(escalation_prompts)])
-log.record_voice_prompt(attempt)
+show_image(SPEAKING_FACE)
+dynamic = generate_focus_reminder_from_text(current_text, cfg)
+# GPT call (text_model, temperature=0.5):
+#   "Generate one gentle focus reminder based on this reading passage."
+#   Falls back to generic reminder if current_text is empty.
+
+speak_text(misty, cfg, dynamic.reminder, stop_event=stop_event)
+cue_screen_with_left_arm(misty, cfg, repetitions=1, stop_event=stop_event)
+log.record("no_response_prompt_generated", attempt, ...)
+log.record_voice_prompt()
 ```
 
-### Stage 6 — Summary
+Each step checks `stop_event`; if set, returns early and logs `"no_response_skipped"`.
+
+### Stage 7 — Session Close (`stages/summary.py`)
+
 ```python
-misty.perform_action("image_show", {"FileName": "e_ContentDefault.jpg"})  # speaking
 summary_text = log.generate_summary()
-speak(misty, summary_text)
-misty.perform_action("image_show", {"FileName": "e_Joy.jpg"})             # close on joy
-log.save_to_file()   # writes sessions/<session_id>.json
+show_image(SPEAKING_FACE)
+speak_text(misty, cfg, summary_text)
+show_image(CLOSE_FACE)           # e_Joy.jpg
+arm_gesture(misty, "wave")
+log.save_to_file()               # -> sessions/<session_id>.json
+generate_csv.main()              # regenerate analysis CSVs (best-effort)
 ```
 
 ---
 
-## 5. Configuration (`config.py`)
+## 5. Thread Model
+
+```
+Main thread:
+  pipeline.run() — sequential stage calls
+  Stage 4: polls consume_interrupt() at 0.1s intervals
+           while daemon motion thread runs
+
+Daemon thread (per distraction episode):
+  perform_distraction_start_sequence()
+  head_move + arms_move choreography
+  each step calls _wait_or_stop(stop_event, duration)
+
+Background thread (ExternalSignalReceiver):
+  ThreadingHTTPServer on cfg.signal_host:cfg.signal_port
+  Queues events: "start" / "stop" / "shutdown"
+  Updates current_text on /current_text POST
+  Sets redirect_stop_event on "stop" / "shutdown"
+```
+
+---
+
+## 6. Face Expression Constants
+
+| Constant | File | Usage |
+|---|---|---|
+| `BOOT_FACE` | `e_Joy.jpg` | Startup greeting |
+| `READING_FACE` | `e_EyesWide.jpg` | Screen-watch idle state |
+| `SPEAKING_FACE` | `e_ContentDefault.jpg` | Whenever Misty is speaking |
+| `DISTRACTION_FACE` | `e_Concerned.jpg` | During distraction sequence |
+| `CLOSE_FACE` | `e_Joy.jpg` | Session close encouragement |
+
+---
+
+## 7. Configuration (`config.py`)
+
+All fields are on `@dataclass(frozen=True) Config`. Selected fields:
 
 ```python
-from dataclasses import dataclass
-from misty2py.utils.env_loader import EnvLoader
+# Core
+ip: str
+openai_api_key: str
+participant_id: str
 
-@dataclass(frozen=True)
-class Config:
-    ip: str
-    openai_api_key: str
-    participant_id: str       # set per experiment run (e.g., "P01")
+# Models
+vision_model: str = "gpt-4o"         # used by vision.py (screen alignment)
+text_model: str = "gpt-4o-mini"      # used by focus_prompt.py
 
-    # Timing
-    gaze_timeout_s: float = 60.0       # seconds of VLM polling before escalating
-    gaze_poll_interval_s: float = 2.0  # seconds between VLM gaze frames
+# Camera / Vision
+camera_timeout_s: float = 1.5
+vision_max_image_dim_px: int = 768
+vision_jpeg_quality: int = 72
+openai_timeout_s: float = 6.0
+openai_max_retries: int = 0
 
-    # Behavior
-    max_attempts: int = 3              # max no-response attempts before session close
-    shake_amplitude_deg: int = 75      # degrees left/right for head shake (head only)
-    shake_period_s: float = 0.6        # seconds used to reach each end position
-    shake_pause_s: float = 0.5         # seconds to hold at the left/right endpoints
+# Audio
+speech_volume: int = 30
+speech_timeout_s: float = 8.0
 
-    # External signal receiver
-    signal_host: str = "127.0.0.1"
-    signal_port: int = 5050            # ExternalSignalReceiver listens on this port
+# Screen search
+screen_search_seed_yaw: float = 0.0
+screen_search_seed_pitch: float = 0.0
+screen_search_yaw_offsets: tuple = (0.0, -10.0, 10.0, -20.0, 20.0, -30.0, 30.0)
+screen_search_pitch_offsets: tuple = (0.0, -8.0, 8.0, -15.0, 15.0)
+screen_search_fine_yaw_offsets: tuple = (0.0, -5.0, 5.0, -10.0, 10.0)
+screen_search_fine_pitch_offsets: tuple = (0.0, -4.0, 4.0, -8.0, 8.0)
+screen_alignment_confirm_checks: int = 2
+screen_alignment_confirm_settle_s: float = 0.4
+screen_settle_s: float = 0.7
+cache_screen_pos: bool = True
+return_to_screen_pause_s: float = 2.0
 
-    # Escalation speech pool
-    escalation_prompts: tuple = (
-        "Hey, are you still with me? Don't forget to focus!",
-        "I noticed you're distracted. Take a breath and get back to it!",
-        "Time to refocus — you're almost there. You've got this!",
-    )
+# Distraction sequence
+gaze_timeout_s: float = 45.0            # max elapsed time before "timeout" outcome
+distraction_user_turn_yaw_deg: float = -45.0
+distraction_user_focus_pause_s: float = 2.0
+distraction_left_arm_repetitions: int = 2
+distraction_both_arms_down_deg: int = 80
+distraction_both_arms_velocity: int = 110
 
-def load_config(participant_id: str) -> "Config":
-    e = EnvLoader()
-    ip  = e.get_ip()
-    key = e.values.get("OPENAI_API_KEY", "")
-    return Config(ip=ip, openai_api_key=key, participant_id=participant_id)
+# Redirect (post-sequence)
+redirect_confirmation_wait_s: float = 60.0
+redirect_left_arm_repetitions: int = 1
+redirect_screen_focus_pause_s: float = 1.5
+redirect_settle_s: float = 1.5
+redirect_nod_action_name: str = "head-down-up-nod"
+redirect_nod_action_wait_s: float = 1.2
+redirect_action_timeout_s: float = 10.0
+
+# Session
+max_attempts: int = 3
+signal_host: str = "127.0.0.1"
+signal_port: int = 5050
 ```
 
 `.env` must contain:
@@ -448,334 +394,37 @@ MISTY_IP_ADDRESS=<robot IP>
 OPENAI_API_KEY=<your key>
 ```
 
-`participant_id` is passed as a command-line argument when launching `main.py`:
+---
+
+## 8. Launch
+
 ```bash
-python main.py --participant P01
+# With --username (preferred)
+python main.py --username alice
+
+# Legacy alias
+python main.py --participant alice
 ```
+
+If no flag is passed, the program prompts interactively: `Enter username:`.
 
 ---
 
-## 6. `main.py` Extension (Non-Breaking)
-
-The existing 9 lines remain **completely untouched**. Lines are appended for argument parsing and pipeline launch:
-
-```python
-# ---- existing lines (unchanged) ----
-from misty2py.robot import Misty
-from misty2py.utils.env_loader import EnvLoader
-
-env_loader = EnvLoader()
-my_misty = Misty(env_loader.get_ip())
-
-# Example: get device info to verify connection
-#response = my_misty.get_info("device")
-#print(response.parse_to_dict())
-# -------------------------------------
-
-import argparse                        # ← new
-from config import load_config         # ← new
-from pipeline import run               # ← new
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--participant", required=True,
-                    help="Participant ID, e.g. P01")
-args = parser.parse_args()             # ← new
-
-run(my_misty, load_config(args.participant))   # ← new
-```
-
----
-
-## 7. `pipeline.py` Pseudocode
-
-```python
-from utils.session_id import generate_session_id
-
-def run(misty: Misty, cfg: Config):
-    # Startup validation
-    if not cfg.ip:
-        raise EnvironmentError("MISTY_IP_ADDRESS not set in .env")
-    if not cfg.openai_api_key:
-        raise EnvironmentError("OPENAI_API_KEY not set in .env")
-
-    session_id = generate_session_id(cfg.participant_id)
-    log = SessionLog(session_id, cfg)
-
-    # External distraction signal receiver (HTTP)
-    signal_rx = ExternalSignalReceiver(cfg.signal_host, cfg.signal_port)
-    signal_rx.start()   # starts background HTTP server thread
-
-    run_bootup(misty, cfg, log)
-
-    screen_pos = None   # will be set on first screen_watch call
-    attempt = 0
-
-    while True:
-        screen_pos = run_screen_watch(misty, cfg, log, screen_pos)
-
-        # Wait for distraction START signal from external tool
-        signal = signal_rx.wait_for_start()
-        if not signal:
-            break  # shutdown command received
-
-        gaze_seen = run_distraction(misty, cfg, log, screen_pos)
-
-        # Also listen for distraction END signal (may arrive concurrently)
-        if signal_rx.end_received():
-            log.record_distraction_end()
-
-        if gaze_seen:
-            misty.perform_action("image_show", {"FileName": "e_ContentDefault.jpg"})
-            speak(misty, "I see you! Let me check what you were working on.")
-            log.record("gaze_recovered")
-            attempt = 0
-            # head is already at screen_pos — loop back to screen_watch
-        else:
-            attempt += 1
-            run_no_response(misty, cfg, log, attempt)
-            if attempt >= cfg.max_attempts:
-                break  # session over
-
-    signal_rx.stop()
-    run_summary(misty, cfg, log)
-```
-
----
-
-## 8. New Dependencies Required
-
-| Package | Version | Purpose |
-|---|---|---|
-| `misty2py` | 5.0.3 (installed) | Robot SDK |
-| `python-dotenv` | latest | `.env` loading (already used by misty2py) |
-| `openai` | >=1.0.0 | GPT-4o Vision API for screen analysis AND gaze detection (sync client) |
-| `requests` | (already installed) | HTTP (already used by misty2py) |
-| `websocket-client` | (already installed) | WebSocket (already used by misty2py) |
-
-> **Removed:** `pyee` is no longer needed — the new gaze detection approach uses VLM polling on the main thread instead of WebSocket event emitters.
-
-Install command:
-```bash
-pip install openai
-```
-
----
-
-## 9. Known Risks and Implementation Notes
-
-These issues were identified during planning (devil's advocate review). Updated after requirement changes:
+## 9. Known Risks and Notes
 
 | # | Issue | Severity | Resolution |
 |---|---|---|---|
-| **H1** | VLM gaze polling adds ~2–5s latency per frame; participant may look away between polls | **HIGH** | Tune `cfg.gaze_poll_interval_s` (default 2s). If too slow, reduce interval or cache camera frames |
-| **H2** | `shake_head_only` runs on daemon thread; must not issue `arms_move` or any non-head action | **HIGH** | Strictly limit `shake_head_only()` to only `head_move` calls — no arm actions anywhere in Stage 3 |
-| **H3** | OpenAI Vision API called twice per distraction cycle (screen analyze + gaze polling) → cost/rate limits | **HIGH** | Gaze polling uses separate client with short timeout; add retry cap; log API errors without crashing |
-| **H4** | Screen position calibration must happen exactly once; cached value must persist across loop cycles | **HIGH** | `screen_pos` is a module-level variable in `pipeline.py`; `run_screen_watch` returns updated value only on first call |
-| **M1** | ExternalSignalReceiver HTTP server may miss /stop if it arrives during VLM polling | **MEDIUM** | Signal receiver buffers events in a queue; `end_received()` checks the queue after gaze loop |
-| **M2** | GPT-4o "yes/no" gaze answer may include surrounding text; string parsing must be robust | **MEDIUM** | Check `.startswith("yes")` on lowercased, stripped response; add fallback to False on parse failure |
-| **M3** | Missing `OPENAI_API_KEY` crashes mid-session | **MEDIUM** | Validate at startup in `pipeline.run()` before any stage runs |
-| **M4** | `participant_id` not provided → `argparse` will exit with clear error message | **MEDIUM** | `required=True` in argparse handles this cleanly |
-| **L1** | Head absolute angle drift over many cycles (robot firmware issue) | **LOW** | Use absolute `Yaw`/`Pitch` values always; add Velocity parameter to ensure smooth motion |
-| **L2** | `sessions/` directory may not exist on first run | **LOW** | `session_log.save_to_file()` calls `os.makedirs("sessions", exist_ok=True)` before writing |
+| **H1** | VLM screen alignment check adds latency; screen may be mis-classified if lighting changes | HIGH | `screen_alignment_confirm_checks=2` re-verifies before accepting; fast path uses cache on repeat cycles |
+| **H2** | `perform_distraction_start_sequence` must recover to screen position if `stop_event` fires mid-motion | HIGH | Every `_sleep()` call internally uses `_wait_or_stop()`; `_recover()` snaps back at max velocity |
+| **H3** | OpenAI errors during screen search could stall boot | HIGH | `try/except` in `run_bootup` falls back to `default_screen_position(cfg)`; VLM errors return `VisionCheckResult(ok=False)` |
+| **H4** | `redirect_confirmation_wait_s` (default 60s) means Misty waits up to 1 min after sequence | HIGH | Tunable in Config; browser extension sends `/distraction/stop` as soon as user refocuses |
+| **M1** | `current_text` may be stale if `/current_text` POST has not arrived | MEDIUM | `generate_focus_reminder_from_text` falls back to a generic reminder when text is empty |
+| **M2** | `sessions/` directory may not exist on first run | MEDIUM | `SessionLog.save_to_file()` calls `os.makedirs(..., exist_ok=True)` |
+| **M3** | Stale `/distraction/stop` events from a prior episode could suppress a new distraction | MEDIUM | `wait_for_start()` drains stale stop events; count reported via `stale_stop_events_cleared` |
+| **L1** | Head angle drift over many cycles (robot firmware) | LOW | All `head_move` calls use absolute `Yaw`/`Pitch`; never relative offsets |
+| **L2** | `generate_csv.main()` at session end may fail if CSV schema changes | LOW | Wrapped in `try/except`; failure is logged and does not affect session JSON save |
 
 ---
 
-## 10. Gaze Detection: VLM-Based Analysis
-
-**Decision: Use GPT-4o Vision to determine if participant is gazing at the robot.**
-
-`FaceDetection` (misty2py WebSocket stream) only detects whether a face is *present* in frame — it cannot determine whether the participant is actually *looking at* the robot. This is insufficient for the experimental requirement.
-
-### Approach
-
-During Stage 3 (distraction), Misty's camera periodically captures a frame. The frame is sent to GPT-4o with the prompt:
-
-> *"Is the person in this image looking directly at the camera (i.e., making eye contact)? Answer only yes or no."*
-
-If the answer is `"yes"`, gaze is confirmed and Stage 4 (recovery) begins.
-
-| Approach | FaceDetection (rejected) | VLM Gaze Analysis (chosen) |
-|---|---|---|
-| Detects face presence | ✓ | ✓ |
-| Detects actual gaze direction | ✗ | ✓ |
-| Latency | ~200ms (event-driven) | ~2–5s (API round trip) |
-| Dependencies | `pyee` + WebSocket subscription | `openai` (already needed) |
-| Accuracy for gaze direction | Poor (not designed for it) | High (VLM spatial reasoning) |
-| Setup required | None | None (same API as screen analysis) |
-
-### Implementation in `utils/vision.py`
-
-```python
-def vlm_is_gazing(b64: str, cfg: Config) -> bool:
-    """Returns True if GPT-4o determines the person is looking at the camera."""
-    client = openai.OpenAI(api_key=cfg.openai_api_key, timeout=20)
-    try:
-        result = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": [
-                {"type": "text",
-                 "text": "Is the person in this image looking directly at the camera "
-                         "(i.e., making eye contact with the camera)? "
-                         "Answer only: yes or no."},
-                {"type": "image_url",
-                 "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
-            ]}]
-        )
-        answer = result.choices[0].message.content.strip().lower()
-        return answer.startswith("yes")
-    except Exception:
-        return False   # fail-safe: assume not gazing
-```
-
----
-
-## 11. Screen Capture Strategy
-
-Misty's **built-in RGB camera** (`get_info("picture_rgb")`) is used for screen capture. The camera must be physically aimed at the computer screen — controlled via `head_move` in `look_at_screen()`.
-
-**Physical calibration needed:** `cfg.screen_head_yaw` and `cfg.screen_head_pitch` must be tuned to the specific desk layout and robot placement. Start with `Yaw = -40` (left), `Pitch = -10` (down).
-
-**Vision API:** GPT-4o Vision (sync `openai.OpenAI()` client). Base64 image from `picture_rgb` is passed as a `data:image/jpeg;base64,...` URI. Tesseract is **not recommended** (OCR only, fails on UI/diagram/code content).
-
----
-
-## 12. Distraction Signal Design
-
-**Implementation: `ExternalSignalReceiver` (HTTP server)**
-
-Misty is a pure **executor** — it only reacts to signals sent by an external distraction measurement tool. The robot does not determine when distraction starts or ends; it is told.
-
-The external tool (e.g., eye-tracker software, EEG, or research platform) sends HTTP POST requests to a local server running inside the pipeline:
-
-```
-POST http://127.0.0.1:5050/distraction/start  → distraction begins
-POST http://127.0.0.1:5050/distraction/stop   → distraction ends
-POST http://127.0.0.1:5050/shutdown           → end session
-```
-
-```
-ExternalSignalReceiver
-    └── lightweight HTTP server (http.server or Flask) in background thread
-        listens on cfg.signal_port (default 5050)
-        queues events: START, STOP, SHUTDOWN
-
-StubTrigger   ← testing only: auto-fires START after N seconds, STOP N seconds later
-```
-
-### Both start AND stop signals are logged
-
-The `distraction_duration_s` metric is computed from the delta between the START and STOP timestamps, regardless of when gaze is detected. The STOP signal is recorded even if it arrives during gaze polling — `ExternalSignalReceiver` buffers it and `pipeline.py` checks after the distraction stage completes.
-
----
-
-## 13. File/Directory Final Structure
-
-```
-cs172-misty/
-├── main.py                       ← EXISTING (+argparse + pipeline call)
-├── config.py                     ← NEW
-├── pipeline.py                   ← NEW
-├── stages/
-│   ├── __init__.py               ← NEW
-│   ├── bootup.py                 ← NEW
-│   ├── screen_watch.py           ← NEW (returns screen_pos; caches after first call)
-│   ├── distraction.py            ← NEW (VLM gaze loop; head-only shake)
-│   ├── no_response_prompt.py     ← NEW
-│   └── summary.py                ← NEW (saves session JSON)
-├── utils/
-│   ├── __init__.py               ← NEW
-│   ├── expressions.py            ← NEW (show_image, arm_gesture — NO led)
-│   ├── head_control.py           ← NEW (look_at_screen, shake_head_only — no center_head)
-│   ├── vision.py                 ← NEW (capture_frame, analyze_screen, vlm_is_gazing)
-│   ├── session_log.py            ← NEW (structured log + save_to_file)
-│   ├── session_id.py             ← NEW (generate_session_id)
-│   └── triggers.py               ← NEW (ExternalSignalReceiver HTTP, StubTrigger)
-├── sessions/                     ← AUTO-CREATED at runtime
-│   └── <session_id>.json         ← one file per experiment run
-├── .env                          ← EXISTING (add OPENAI_API_KEY)
-├── README.md                     ← EXISTING
-└── misty_working_pipeline_plan.md ← THIS FILE
-```
-
-Total new files: **15** (1 config, 1 pipeline, 5 stages, 7 utils, 1 sessions dir auto-created)
-
----
-
-## 14. Session Log Schema (`sessions/<session_id>.json`)
-
-Each experiment run produces one JSON file. All timestamps are ISO-8601 UTC.
-
-```json
-{
-  "session_id": "session_20260321_P01_abc123",
-  "participant_id": "P01",
-  "start_time": "2026-03-21T14:00:00Z",
-  "end_time": "2026-03-21T14:43:17Z",
-  "screen_observations": [
-    {"timestamp": "...", "analysis": "User is writing Python code in VS Code."}
-  ],
-  "distraction_events": [
-    {
-      "event_index": 1,
-      "distraction_start_time": "2026-03-21T14:12:05Z",
-      "distraction_end_time": "2026-03-21T14:12:48Z",
-      "distraction_end_signal_received": true,
-      "distraction_duration_s": 43.1,
-      "gaze_detected": true,
-      "gaze_latency_s": 12.4,
-      "voice_prompt_used": false,
-      "voice_prompt_count": 0
-    },
-    {
-      "event_index": 2,
-      "distraction_start_time": "2026-03-21T14:28:30Z",
-      "distraction_end_time": null,
-      "distraction_end_signal_received": false,
-      "distraction_duration_s": null,
-      "gaze_detected": false,
-      "gaze_latency_s": null,
-      "voice_prompt_used": true,
-      "voice_prompt_count": 2
-    }
-  ],
-  "total_distraction_count": 2,
-  "total_voice_prompts": 2
-}
-```
-
-### Fields Explained
-
-| Field | Type | Description |
-|---|---|---|
-| `session_id` | str | Unique ID: `session_<date>_<participant_id>_<uuid6>` |
-| `participant_id` | str | From `--participant` CLI arg |
-| `distraction_start_time` | ISO timestamp | When `/distraction/start` POST received |
-| `distraction_end_time` | ISO timestamp or null | When `/distraction/stop` POST received; null if never received |
-| `distraction_end_signal_received` | bool | Whether an explicit stop signal was received |
-| `distraction_duration_s` | float or null | `end_time - start_time`; null if no end signal |
-| `gaze_detected` | bool | Whether VLM confirmed participant looking at robot |
-| `gaze_latency_s` | float or null | Seconds from distraction start to gaze confirmation; null if not detected |
-| `voice_prompt_used` | bool | Whether any escalation prompt was spoken |
-| `voice_prompt_count` | int | Number of voice prompts issued for this distraction event |
-| `total_distraction_count` | int | Total number of distraction START signals received in session |
-
----
-
-## 15. Recommended Implementation Order
-
-1. `config.py` + `utils/session_id.py` — pure Python, no hardware needed
-2. `utils/expressions.py` + `utils/head_control.py` — verify on real robot (no LED, no center_head)
-3. `stages/bootup.py` — first live robot test
-4. `utils/vision.py` — verify `picture_rgb` base64 key path + `analyze_screen` + `vlm_is_gazing`
-5. `stages/screen_watch.py` — screen calibration cache + reading/speaking face switching
-6. `utils/session_log.py` — JSON log structure + `save_to_file()`
-7. `utils/triggers.py` (`StubTrigger` first) — offline pipeline testing
-8. `stages/distraction.py` — VLM gaze loop + head-only shake (no arms, no center_head)
-9. `stages/no_response_prompt.py` + `stages/summary.py`
-10. `pipeline.py` — wire all stages; integrate `screen_pos` caching
-11. `utils/triggers.py` (`ExternalSignalReceiver`) — replace stub for real experiment
-
----
-
-*Plan updated: 2026-03-21 (revision 2)*  
-*Changes from revision 1: removed all LED, added session ID/participant tracking, differentiated face expressions, switched distraction to external HTTP signal, replaced FaceDetection with VLM gaze analysis, removed arm movements from distraction stage, removed center_head, cached screen position, restructured SessionLog for experiment data.*
+*Plan updated: 2026-05-20 (revision 3)*
+*Changes from revision 2: status -> fully implemented; Stage 2 now only checks VLM alignment (no screen content analysis); Stage 3 distraction replaced VLM gaze polling + head-shake with physical choreography (head turn to user + left-arm cue) in a daemon thread; outcomes are stop/shutdown/sequence_complete/timeout; added Stage 5 post-sequence decision table; Stage 6 uses LLM-generated context-aware prompt (focus_prompt.py) not static escalation_prompts; new utils: audio.py, focus_prompt.py, openai_client.py; ExternalSignalReceiver gains /shutdown and /current_text endpoints + redirect_stop_event; Config expanded with vision/screen-search/redirect params; removed VLM gaze detection section (no longer used).*

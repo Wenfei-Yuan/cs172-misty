@@ -4,6 +4,7 @@ BOOT_FACE = "e_Joy.jpg"
 READING_FACE = "e_EyesWide.jpg"
 SPEAKING_FACE = "e_ContentDefault.jpg"
 DISTRACTION_FACE = "e_Concerned.jpg"
+JOY_GOOFY_FACE = "e_JoyGoofy.jpg"
 CLOSE_FACE = "e_Joy.jpg"
 
 

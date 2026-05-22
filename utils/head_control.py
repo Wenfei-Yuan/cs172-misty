@@ -326,6 +326,50 @@ def perform_distraction_start_sequence(misty, cfg, screen_pos, stop_event=None) 
     _sleep(settle_s)
 
 
+def perform_head_redirect_only(misty, cfg, screen_pos, stop_event=None) -> None:
+    """Turn head toward user, pause while facing them, return to screen. No arm movement."""
+    head_velocity = int(getattr(cfg, "redirect_head_velocity", 100))
+    left_turn_yaw = float(getattr(cfg, "distraction_user_turn_yaw_deg", -45.0))
+    left_turn_move_s = max(0.0, float(getattr(cfg, "distraction_user_turn_move_s", 0.45)))
+    user_focus_pause_s = max(0.0, float(getattr(cfg, "distraction_user_focus_pause_s", 2.0)))
+    screen_yaw = float(screen_pos.yaw) if screen_pos is not None else 0.0
+    base_pitch = float(screen_pos.pitch) if screen_pos is not None else 0.0
+    action_timeout_s = max(0.1, float(getattr(cfg, "robot_action_timeout_s", _ACTION_TIMEOUT_S)))
+
+    def _sleep(duration_s: float) -> bool:
+        if stop_event is not None:
+            return _wait_or_stop(stop_event, duration_s)
+        time.sleep(duration_s)
+        return False
+
+    def _recover() -> None:
+        _head_move(misty, timeout_s=action_timeout_s, Yaw=screen_yaw, Pitch=base_pitch, Velocity=100)
+        # No arm reset needed since arms were never moved in this function
+
+    # 1. Turn head toward user
+    _head_move(misty, timeout_s=action_timeout_s, Yaw=left_turn_yaw, Pitch=base_pitch, Velocity=head_velocity)
+    turn_to_user_move_s = max(
+        left_turn_move_s,
+        _estimate_motion_duration_s(screen_yaw, left_turn_yaw, head_velocity),
+    )
+    if _sleep(turn_to_user_move_s):
+        _recover()
+        return
+
+    # 2. Pause while looking at user
+    if _sleep(user_focus_pause_s):
+        _recover()
+        return
+
+    # 3. Return head to screen — NO arm cue
+    _head_move(misty, timeout_s=action_timeout_s, Yaw=screen_yaw, Pitch=base_pitch, Velocity=head_velocity)
+    screen_focus_pause_s = max(0.0, float(getattr(cfg, "redirect_screen_focus_pause_s", 1.5)))
+    return_to_screen_move_s = _estimate_motion_duration_s(left_turn_yaw, screen_yaw, head_velocity)
+    if _sleep(return_to_screen_move_s + screen_focus_pause_s):
+        _recover()
+        return
+
+
 def redirect_attention_to_screen(misty, cfg, screen_pos, stop_event=None) -> None:
     head_velocity = int(getattr(cfg, "redirect_head_velocity", 100))
     arm_down_deg = int(getattr(cfg, "redirect_left_arm_down_deg", 80))

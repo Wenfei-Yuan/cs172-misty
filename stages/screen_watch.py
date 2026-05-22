@@ -53,9 +53,17 @@ def _check_screen_alignment(misty, cfg, log=None, stage: str = "screen_watch") -
         log.record("camera_capture_succeeded", stage=stage, source=frame.source, mime_type=frame.mime_type)
         log.record("vlm_request_started", stage=stage, model=str(getattr(cfg, "vision_model", "gpt-4o")))
 
-    result = analyze_screen_capture(frame, cfg)
-    if log is not None:
-        log.record("vlm_request_finished", stage=stage, status=result.status, reason=result.reason)
+    result = None
+    try:
+        result = analyze_screen_capture(frame, cfg)
+    finally:
+        if log is not None:
+            log.record(
+                "vlm_request_finished",
+                stage=stage,
+                status=result.status if result is not None else "vlm_interrupted",
+                reason=result.reason if result is not None else None,
+            )
     if log is not None and not result.ok:
         log.record("vlm_check_error", stage=stage, reason=result.reason, status=result.status)
     return result

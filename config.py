@@ -75,6 +75,11 @@ class Config:
         "I noticed you're distracted. Take a breath and get back to it!",
         "Time to refocus — you're almost there. You've got this!",
     )
+    initial_self_recovery_wait_s: float = 15.0
+    confused_sound_followup_wait_s: float = 15.0
+    head_redirect_followup_wait_s: float = 15.0
+    voice_prompt_followup_wait_s: float = 15.0
+    confused_sound_name: str = "s_DisorientedConfused.wav"
 
 
 def load_config(participant_id: str) -> Config:

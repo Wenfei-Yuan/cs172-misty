@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from config import Config
 from stages.bootup import run_bootup
-from stages.distraction import run_distraction
-from stages.no_response_prompt import run_no_response
+from stages.distraction import run_staged_distraction
 from stages.screen_watch import run_screen_watch, default_screen_position
 from stages.summary import run_summary
 from utils.audio import ensure_audio_ready, speak_text
@@ -86,18 +85,24 @@ def run(misty, cfg: Config) -> None:
             # stop signal cannot suppress the new motion/prompt sequence.
             signal_rx.clear_redirect_stop()
 
-            distraction = run_distraction(
+            distraction = run_staged_distraction(
                 misty,
                 cfg,
                 log,
                 screen_pos,
                 consume_interrupt=signal_rx.consume_interrupt,
+                stop_event=signal_rx.redirect_stop_event,
+                current_text_getter=signal_rx.current_text,
                 trigger_reason=start_signal.trigger_reason,
             )
 
             if distraction.outcome == "stop":
                 signal_rx.clear_redirect_stop()
-                _return_to_waiting_position(misty, cfg, log, bootup_screen_pos, screen_pos)
+                # Only move head back if it was actually moved (stages_completed > 0).
+                # If the user self-recovered during the grace period the head never
+                # moved, so skipping the return avoids a visible micro-movement.
+                if distraction.stages_completed > 0:
+                    _return_to_waiting_position(misty, cfg, log, bootup_screen_pos, screen_pos)
                 log.record_distraction_end()
                 attempt = 0
                 skip_screen_watch_once = True
@@ -108,7 +113,7 @@ def run(misty, cfg: Config) -> None:
                 break
 
             if distraction.outcome == "sequence_complete":
-                log.record("sequence_completed")
+                log.record("staged_sequence_completed", stages=distraction.stages_completed)
                 _pending = signal_rx.consume_stop_or_shutdown()
                 if _pending == "shutdown":
                     _close_active_distraction(log, "shutdown")
@@ -120,29 +125,7 @@ def run(misty, cfg: Config) -> None:
                     skip_screen_watch_once = True
                     continue
 
-                log.record("post_sequence_wait_started", wait_s=cfg.redirect_confirmation_wait_s)
-                confirmation = signal_rx.wait_for_stop_or_shutdown_only(cfg.redirect_confirmation_wait_s)
-                if confirmation == "shutdown":
-                    _close_active_distraction(log, "shutdown")
-                    break
-                if confirmation == "stop":
-                    signal_rx.clear_redirect_stop()
-                    log.record_distraction_end()
-                    attempt = 0
-                    skip_screen_watch_once = True
-                    continue
-
-                log.record("post_sequence_wait_timed_out", wait_s=cfg.redirect_confirmation_wait_s)
-                signal_rx.clear_redirect_stop()
-                run_no_response(
-                    misty,
-                    cfg,
-                    log,
-                    attempt + 1,
-                    current_text=signal_rx.current_text(),
-                    stop_event=signal_rx.redirect_stop_event,
-                )
-                log.record("post_sequence_quiet_wait_started")
+                log.record("post_staged_quiet_wait_started")
                 quiet_wait = _wait_until_stop_or_shutdown(signal_rx)
                 if quiet_wait == "shutdown":
                     _close_active_distraction(log, "shutdown")
@@ -153,13 +136,6 @@ def run(misty, cfg: Config) -> None:
                 skip_screen_watch_once = True
                 continue
 
-            attempt += 1
-            signal_rx.clear_redirect_stop()
-            run_no_response(misty, cfg, log, attempt, current_text=signal_rx.current_text(), stop_event=signal_rx.redirect_stop_event)
-            if attempt >= cfg.max_attempts:
-                log.record("max_attempts_reached", attempt=attempt)
-                _close_active_distraction(log, "max_attempts")
-                break
     except Exception as exc:
         log.record("pipeline_error", reason=f"{type(exc).__name__}: {exc}")
         raise
