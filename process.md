@@ -67,3 +67,20 @@ python review_recordings.py
 python review_recordings.py -- session session_20260417_hang_abc123
 
 open recordings/recording_20260417_173646_hang3.avi
+
+
+同一台电脑：SERVER_IP = "127.0.0.1"  
+# 终端1
+python server.py
+
+# 终端2
+cd webcam && PARTICIPANT_CLIENT_MODE=1 python browser_bridge.py
+
+# 终端3
+python web_controller.py
+
+# 终端4
+cd webcam && python participant_client.py
+
+http://localhost:8080
+http://localhost:9877/researcher

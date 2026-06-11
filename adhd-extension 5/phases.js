@@ -308,13 +308,21 @@
   }
 
   // ── Public API ────────────────────────────────────────────────────────
+  function syncPhaseState() {
+    if (window.__readerState) {
+      window.__readerState.__currentPhase = currentPhase;
+    }
+  }
+
   function activate(readingMode) {
     isActive = true; currentPhase = "skim";
+    syncPhaseState();
     notesFab.classList.add("visible");
     setReadingMode(readingMode || "full");
   }
 
   function setReadingMode(mode) {
+    syncPhaseState();
     if (mode === "full") {
       pill.className = "phase-pill " + currentPhase + " visible";
       if (currentPhase === "skim") applySkimDimming();
@@ -332,6 +340,8 @@
     notesPanel.classList.remove("visible");
     showCheckinScreen((results) => {
       isActive = false;
+      currentPhase = null;
+      syncPhaseState();
       pill.className = "phase-pill"; pill.classList.remove("visible");
       removeSkimDimming();
       if (onDone) onDone(results);
@@ -341,6 +351,7 @@
   // ── Skim phase ────────────────────────────────────────────────────────
   function enterSkimPhase() {
     currentPhase = "skim";
+    syncPhaseState();
     removeThoroughFocus();
     if (window.__readerModes) window.__readerModes.setMode("full");
     shadow.getElementById("mode-full").classList.add("active");
@@ -360,6 +371,7 @@
 
   function enterThoroughPhase() {
     currentPhase = "thorough";
+    syncPhaseState();
     removeSkimDimming();
 
     // Stay in Full mode — full page stays visible, no mode switch
@@ -419,6 +431,7 @@
     if (window.__readerState) {
       window.__readerState.__currentParaIndex     = idx;
       window.__readerState.__currentSentenceIndex = null;
+      window.__readerState.__currentPhase         = currentPhase;
     }
   }
 

@@ -1,0 +1,109 @@
+{
+  "username": "participant",
+  "session_start": "2026-05-26T14:11:22.399044-04:00",
+  "session_end": "2026-05-26T14:13:03.697826-04:00",
+  "calibration": {
+    "reference_yaw": 4.47,
+    "reference_pitch": 0.17,
+    "reference_gaze_yaw": 0.4958,
+    "reference_gaze_pitch": 0.4614
+  },
+  "events": [
+    {
+      "event_time": "2026-05-26T14:11:28.144244-04:00",
+      "event_type": "disengage",
+      "reason": "gaze_mind_wandering",
+      "yaw": 28.97,
+      "pitch": -4.21,
+      "yaw_deviation": 23.95,
+      "pitch_deviation": 5.02,
+      "gaze_yaw_ratio": 0.5031,
+      "gaze_pitch_ratio": 0.4374,
+      "gaze_yaw_deviation": 0.0073,
+      "gaze_pitch_deviation": 0.024,
+      "gaze_mind_wandering": true,
+      "distraction_duration_s": null
+    },
+    {
+      "event_time": "2026-05-26T14:11:28.384835-04:00",
+      "event_type": "reengage",
+      "reason": "gaze_recovered",
+      "yaw": 25.03,
+      "pitch": -2.98,
+      "yaw_deviation": 21.56,
+      "pitch_deviation": 3.79,
+      "gaze_yaw_ratio": 0.5062,
+      "gaze_pitch_ratio": 0.4427,
+      "gaze_yaw_deviation": 0.0105,
+      "gaze_pitch_deviation": 0.0187,
+      "gaze_mind_wandering": false,
+      "distraction_duration_s": 0.24
+    },
+    {
+      "event_time": "2026-05-26T14:11:33.790245-04:00",
+      "event_type": "disengage",
+      "reason": "looking_away",
+      "yaw": -43.96,
+      "pitch": 0.65,
+      "yaw_deviation": 48.53,
+      "pitch_deviation": 1.58,
+      "gaze_yaw_ratio": 0.565,
+      "gaze_pitch_ratio": 0.4572,
+      "gaze_yaw_deviation": 0.0693,
+      "gaze_pitch_deviation": 0.0041,
+      "gaze_mind_wandering": false,
+      "distraction_duration_s": null
+    },
+    {
+      "event_time": "2026-05-26T14:12:47.511598-04:00",
+      "event_type": "reengage",
+      "reason": "gaze_recovered",
+      "yaw": 4.82,
+      "pitch": -0.18,
+      "yaw_deviation": 0.88,
+      "pitch_deviation": 0.33,
+      "gaze_yaw_ratio": 0.4582,
+      "gaze_pitch_ratio": 0.4755,
+      "gaze_yaw_deviation": 0.0375,
+      "gaze_pitch_deviation": 0.0141,
+      "gaze_mind_wandering": false,
+      "distraction_duration_s": 73.72
+    },
+    {
+      "event_time": "2026-05-26T14:12:56.808410-04:00",
+      "event_type": "disengage",
+      "reason": "gaze_mind_wandering",
+      "yaw": 10.56,
+      "pitch": 2.15,
+      "yaw_deviation": 3.74,
+      "pitch_deviation": 3.83,
+      "gaze_yaw_ratio": 0.4914,
+      "gaze_pitch_ratio": 0.3411,
+      "gaze_yaw_deviation": 0.0044,
+      "gaze_pitch_deviation": 0.1203,
+      "gaze_mind_wandering": true,
+      "distraction_duration_s": null
+    },
+    {
+      "event_time": "2026-05-26T14:13:02.453029-04:00",
+      "event_type": "reengage",
+      "reason": "gaze_recovered",
+      "yaw": 22.31,
+      "pitch": -0.16,
+      "yaw_deviation": 17.95,
+      "pitch_deviation": 0.67,
+      "gaze_yaw_ratio": 0.4336,
+      "gaze_pitch_ratio": 0.4265,
+      "gaze_yaw_deviation": 0.0621,
+      "gaze_pitch_deviation": 0.0348,
+      "gaze_mind_wandering": false,
+      "distraction_duration_s": 5.64
+    }
+  ],
+  "summary": {
+    "total_distractions": 3,
+    "completed_distractions": 3,
+    "total_distraction_time_s": 79.6,
+    "avg_distraction_duration_s": 26.53
+  }
+}

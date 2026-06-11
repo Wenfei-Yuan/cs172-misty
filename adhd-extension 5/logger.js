@@ -87,10 +87,22 @@
   let redirectHighlightCleanupTimer = null;
   let redirectHighlightTarget       = null;
   let redirectHighlightOriginals    = null;
+  let sentenceHighlightTimer        = null;
   let scrollSamples = [];
   let currentMode   = "full"; // tracked so we know which logic to apply
   let dwellStart    = null;   // when the user landed on current para/sentence
   let dwellPosition = null;   // { paraIndex, sentenceIndex } for para/sent modes
+
+  const sentenceHighlightStyle = document.createElement("style");
+  sentenceHighlightStyle.textContent = `
+    .current-sentence-highlight {
+      background: rgba(250, 204, 21, 0.32) !important;
+      box-shadow: inset 0 -0.22em 0 rgba(250, 204, 21, 0.45), 0 0 0 2px rgba(202, 138, 4, 0.18) !important;
+      border-radius: 4px !important;
+      transition: background 160ms ease, box-shadow 160ms ease !important;
+    }
+  `;
+  shadow.appendChild(sentenceHighlightStyle);
 
   // Track mode changes so pause logic knows which mode we're in
   ["mode-full", "mode-para", "mode-sentence"].forEach(id => {
@@ -208,6 +220,31 @@
     return Math.round((totalWords * scrollFraction) / elapsedMin);
   }
 
+  function getCurrentPhase() {
+    return window.__readerState?.__currentPhase || null;
+  }
+
+  function getCurrentReadingTarget() {
+    const modeText = shadow.getElementById("mode-text");
+    if (currentMode === "sentence" && modeText) {
+      return { kind: "element", element: modeText, text: modeText.textContent.trim() };
+    }
+
+    const paras = shadow.querySelectorAll(".article-paragraph");
+    const paraIndex = window.__readerState?.__currentParaIndex ?? getVisibleParagraphIndex();
+    const paragraphEl = paras[paraIndex] || paras[getVisibleParagraphIndex()];
+
+    if (getCurrentPhase() === "thorough") {
+      return { kind: "element", element: paragraphEl, text: paragraphEl?.textContent?.trim() || "" };
+    }
+
+    if (currentMode === "para" && modeText) {
+      return { kind: "element", element: modeText, text: modeText.textContent.trim() };
+    }
+
+    return { kind: "element", element: paragraphEl, text: paragraphEl?.textContent?.trim() || "" };
+  }
+
   if (overlay) {
     overlay.addEventListener("scroll", () => {
       if (currentMode !== "full") return; // only Full mode uses scroll
@@ -240,26 +277,65 @@
   // ── Send reading state to Misty every 2s ──────────────────────────
   // Includes current paragraph/sentence text so Misty can feed it to an LLM
   function getCurrentText() {
-    if (currentMode === "para" || currentMode === "sentence") {
-      // In para/sent mode, the visible text is in #mode-text
-      return shadow.getElementById("mode-text")?.textContent?.trim() || "";
+    return getCurrentReadingTarget().text || "";
+  }
+
+  function splitSentencesForContext(text) {
+    const protected_ = (text || "").replace(/\b(Dr|Mr|Mrs|Ms|Prof|Sr|Jr|vs|etc|approx|Fig|St|Dept|Vol|No)\./g, "$1PROTECTEDDOT");
+    return protected_
+      .split(/(?<=[.!?])\s+(?=[A-Z"'])/)
+      .map(s => s.replace(/PROTECTEDDOT/g, ".").trim())
+      .filter(Boolean);
+  }
+
+  function getParagraphTexts() {
+    return Array.from(shadow.querySelectorAll(".article-paragraph"))
+      .map(p => p.textContent.trim())
+      .filter(Boolean);
+  }
+
+  function getFullReadingContext(currentText) {
+    const paras = getParagraphTexts();
+    const state = window.__readerState || {};
+    const paraIdx = currentMode === "full"
+      ? getVisibleParagraphIndex()
+      : Math.max(0, state.__currentParaIndex ?? 0);
+    const sentenceIdx = state.__currentSentenceIndex ?? null;
+
+    let readSoFar = paras.slice(0, paraIdx).join("\n\n");
+    let upcoming = paras.slice(paraIdx + 1).join("\n\n");
+
+    if (currentMode === "sentence" && Number.isInteger(sentenceIdx)) {
+      const currentParaSentences = splitSentencesForContext(paras[paraIdx] || "");
+      const readSentences = currentParaSentences.slice(0, sentenceIdx + 1).join(" ");
+      const nextSentences = currentParaSentences.slice(sentenceIdx + 1).join(" ");
+      readSoFar = [readSoFar, readSentences].filter(Boolean).join("\n\n");
+      upcoming = [nextSentences, upcoming].filter(Boolean).join("\n\n");
+    } else {
+      readSoFar = [readSoFar, currentText].filter(Boolean).join("\n\n");
     }
-    // In full mode, get the paragraph closest to the top of the view
-    const paras = shadow.querySelectorAll(".article-paragraph");
-    const idx   = getVisibleParagraphIndex();
-    return paras[idx]?.textContent?.trim() || "";
+
+    return {
+      fullArticleText: paras.join("\n\n"),
+      readSoFarText: readSoFar,
+      upcomingText: upcoming,
+      currentSentence: currentText,
+    };
   }
 
   let lastSentText = "";
   const readingStateInterval = setInterval(() => {
     const currentText = getCurrentText();
+    const readingContext = getFullReadingContext(currentText);
     const state = {
       scrollProgress: getScrollProgress(),
       paragraphIndex: getVisibleParagraphIndex(),
       activeMode:     currentMode,
+      currentPhase:   getCurrentPhase(),
       pauseDuration:       isPaused ? Date.now() - pauseStart : 0,
       covert_disengagemnt: isPaused,
       currentText,
+      ...readingContext,
       textChanged:    currentText !== lastSentText,
     };
     lastSentText = currentText;
@@ -360,7 +436,51 @@
 
       send("redirection", { paragraphIndex: idx, scrollProgress: getScrollProgress() });
     }
+
+    if (msg.type === "HIGHLIGHT_CURRENT_SENTENCE") {
+      const durationMs = Number(msg.durationMs || 10000);
+      triggerCurrentSentenceHighlight(Number.isFinite(durationMs) ? durationMs : 10000);
+    }
   });
+
+  // ── Highlight the currently displayed sentence/text for Stage 2 ───────────
+  function triggerCurrentSentenceHighlight(durationMs = 10000) {
+    const target = getCurrentReadingTarget();
+    if (!target?.element) return;
+
+    clearTimeout(sentenceHighlightTimer);
+    clearCurrentSentenceHighlight();
+
+    const highlightedEl = target.element;
+    if (!highlightedEl) return;
+
+    highlightedEl.classList.add("current-sentence-highlight");
+    const rect = highlightedEl.getBoundingClientRect();
+    const alreadyVisible = rect.top >= 48 && rect.bottom <= window.innerHeight - 48;
+    if (!alreadyVisible) {
+      highlightedEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    sentenceHighlightTimer = setTimeout(() => {
+      clearCurrentSentenceHighlight();
+      sentenceHighlightTimer = null;
+    }, Math.max(1, durationMs));
+
+    send("current_sentence_highlight", {
+      durationMs,
+      paragraphIndex: window.__readerState?.__currentParaIndex ?? getVisibleParagraphIndex(),
+      sentenceIndex: window.__readerState?.__currentSentenceIndex ?? null,
+      activeMode: currentMode,
+      currentPhase: getCurrentPhase(),
+      currentText: target.text,
+    });
+  }
+
+  function clearCurrentSentenceHighlight() {
+    shadow.querySelectorAll(".current-sentence-highlight").forEach(el => {
+      el.classList.remove("current-sentence-highlight");
+    });
+  }
 
   // ── Check bridge status on load (connection may already be established)
   setTimeout(() => {

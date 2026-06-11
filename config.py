@@ -15,6 +15,7 @@ class Config:
     openai_max_retries: int = 0
     camera_timeout_s: float = 1.5
     speech_volume: int = 30
+    speech_voice: str = "Justin"
     gaze_timeout_s: float = 45.0
     gaze_poll_interval_s: float = 0.7
     fast_gaze_poll_interval_s: float = 0.18
@@ -77,8 +78,11 @@ class Config:
     )
     initial_self_recovery_wait_s: float = 15.0
     confused_sound_followup_wait_s: float = 15.0
-    head_redirect_followup_wait_s: float = 15.0
+    head_redirect_followup_wait_s: float = 120.0
     voice_prompt_followup_wait_s: float = 15.0
+    fatigue_offer_wait_s: float = 20.0
+    fatigue_default_mode: str = "para"
+    fatigue_offer_enabled: bool = True
     confused_sound_name: str = "s_DisorientedConfused.wav"
 
 

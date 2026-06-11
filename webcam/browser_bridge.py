@@ -808,10 +808,12 @@ var SERVER_WS_PORT = 8765;
 
 var sessionId = null, sessionEvents = [], timerInterval = null, sessionStart = null;
 var camWs = null, camStream = null, camTimer = null, camStreaming = false;
+var _camGen = 0;  // generation counter — invalidates stale WebSocket handlers
 var camVideo  = document.getElementById('camVideo');
 var camCanvas = document.getElementById('camCanvas');
 var camCtx    = camCanvas.getContext('2d');
 var serverWs = null;
+var _srvGen = 0;
 var controlStatusTimer = null;
 
 function setStatus(msg, type) {
@@ -913,14 +915,17 @@ async function pollParticipantControlStatus() {
 /* ── Camera ──────────────────────────────────────────── */
 function connectBridge() {
   var wsUrl = 'ws://' + location.hostname + ':' + CAM_WS_PORT;
+  var gen = ++_camGen;
   setCamStatus('📷 Connecting to camera bridge…', 'info');
   camWs = new WebSocket(wsUrl);
   camWs.binaryType = 'arraybuffer';
   camWs.onopen = function() {
+    if (gen !== _camGen) return;
     camWs.send(JSON.stringify({type: 'hello', role: 'participant'}));
     setCamStatus('📷 Bridge connected — camera ready', 'ok');
   };
   camWs.onmessage = function(e) {
+    if (gen !== _camGen) return;
     try {
       var msg = JSON.parse(e.data);
       if (msg.type === 'start_camera') startCamera();
@@ -928,11 +933,12 @@ function connectBridge() {
     } catch(_) {}
   };
   camWs.onclose = function(ev) {
+    if (gen !== _camGen) return;
     stopCamera();
     setCamStatus('📷 Bridge disconnected — reconnecting…', 'err');
     setTimeout(connectBridge, 3000);
   };
-  camWs.onerror = function() { setCamStatus('📷 Bridge connection error', 'err'); };
+  camWs.onerror = function() {};  // onclose always fires after onerror; let it handle messaging
 }
 
 async function startCamera() {
@@ -979,13 +985,16 @@ function sendCamFrames() {
 /* ── Detection server WebSocket ──────────────────────── */
 function connectServer() {
   var wsUrl = 'ws://' + location.hostname + ':' + SERVER_WS_PORT;
+  var gen = ++_srvGen;
   setServerStatus('🔗 Connecting…', '');
   serverWs = new WebSocket(wsUrl);
   serverWs.onopen = function() {
+    if (gen !== _srvGen) return;
     serverWs.send(JSON.stringify({client: 'baseline'}));
     setServerStatus('🔗 Detection server connected', 'ok');
   };
   serverWs.onmessage = function(e) {
+    if (gen !== _srvGen) return;
     try {
       var msg = JSON.parse(e.data);
       if (msg.type === 'baseline_event' && sessionId) {
@@ -995,10 +1004,11 @@ function connectServer() {
     } catch(_) {}
   };
   serverWs.onclose = function() {
+    if (gen !== _srvGen) return;
     setServerStatus('🔗 Disconnected — reconnecting…', 'err');
     setTimeout(connectServer, 3000);
   };
-  serverWs.onerror = function() { setServerStatus('🔗 Connection error', 'err'); };
+  serverWs.onerror = function() {};  // onclose always fires after onerror; let it handle messaging
 }
 
 /* ── Session control ─────────────────────────────────── */
@@ -1248,6 +1258,7 @@ var PREVIEW_WS = 'ws://' + location.hostname + ':' + __PREVIEW_PORT__;
 var previewWs = null;
 var statusTimer = null;
 var controlMode = false;
+var _pollFailCount = 0;  // consecutive pollStatus failures before showing error
 
 function sessionMetaEl() {
     return document.getElementById('sessionMeta');
@@ -1310,6 +1321,7 @@ async function pollStatus() {
             fetchControlSessionStatus(),
             fetchControlParticipantStatus()
         ]);
+        _pollFailCount = 0;
         var res = responses[0];
         var d = await res.json();
         var control = responses[1];
@@ -1341,7 +1353,10 @@ async function pollStatus() {
             document.getElementById('btnStop').disabled = !control.control_mode || !control.active;
     }
   } catch(e) {
-    setStatus('red', 'Cannot reach bridge server');
+    _pollFailCount++;
+    if (_pollFailCount >= 2) {
+      setStatus('red', 'Cannot reach bridge server');
+    }
   }
 }
 

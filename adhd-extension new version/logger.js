@@ -2,8 +2,7 @@
 // Observes user behaviour and sends timestamped events to background.js.
 //
 // Events logged:
-//   mode_change         — Full / Para / Sent / Study button clicks
-//   phase_change        — skim ↔ thorough transitions via pill button
+//   mode_change         — Full / Para / Sent button clicks
 //   settings_change     — font size / line height / theme
 //   pause_start         — scroll stall > 5s (includes scroll %, para index)
 //   pause_end           — scroll resumes (includes duration ms)
@@ -26,38 +25,16 @@
     console.warn("[ADHD Reader] logger.js: no host found.");
     return;
   }
+  window.__readerLogExported = false;
 
   // ── Mode change logging ──────────────────────────────────────────────
-  ["mode-full", "mode-para", "mode-sentence", "mode-study"].forEach(id => {
+  ["mode-full", "mode-para", "mode-sentence"].forEach(id => {
     const btn = shadow.getElementById(id);
     if (!btn) return;
     btn.addEventListener("click", () => {
       send("mode_change", { mode: id.replace("mode-", "") });
     });
   });
-
-  // ── Phase change logging (skim pill button) ──────────────────────────
-  // Uses MutationObserver so it picks up the pill even if phases.js
-  // inserts it after logger.js runs.
-  function attachPhasePillLogger() {
-    const pillBtn = shadow.getElementById("phase-pill-btn");
-    if (!pillBtn) return false;
-    pillBtn.addEventListener("click", () => {
-      setTimeout(() => {
-        const label = shadow.getElementById("phase-pill-label")?.textContent;
-        send("phase_change", { phase: label });
-      }, 10);
-    });
-    return true;
-  }
-
-  if (!attachPhasePillLogger()) {
-    // Pill not yet in DOM — wait for it
-    const pillObserver = new MutationObserver(() => {
-      if (attachPhasePillLogger()) pillObserver.disconnect();
-    });
-    pillObserver.observe(shadow, { childList: true, subtree: true });
-  }
 
   // ── Settings change logging ──────────────────────────────────────────
   const fontSlider = shadow.getElementById("font-size-slider");
@@ -88,6 +65,73 @@
   let dwellStart    = null;   // when the user landed on current para/sentence
   let dwellPosition = null;   // { paraIndex, sentenceIndex } for para/sent modes
   let demoMode      = false;  // Demo mode: fire highlight locally without robot
+  let sentenceHighlightTimer = null;
+
+  const sentenceHighlightStyle = document.createElement("style");
+  sentenceHighlightStyle.textContent = `
+    .current-sentence-highlight {
+      background: rgba(250, 204, 21, 0.32) !important;
+      box-shadow: inset 0 -0.22em 0 rgba(250, 204, 21, 0.45), 0 0 0 2px rgba(202, 138, 4, 0.18) !important;
+      border-radius: 4px !important;
+      transition: background 160ms ease, box-shadow 160ms ease !important;
+    }
+    .reading-mode-offer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483646;
+      background: rgba(26, 26, 26, 0.24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .reading-mode-offer {
+      width: min(420px, 100%);
+      background: var(--reader-bg, #fffaf2);
+      color: var(--reader-fg, #1f2933);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 8px;
+      box-shadow: 0 18px 54px rgba(0, 0, 0, 0.22);
+      padding: 18px;
+      font-family: inherit;
+    }
+    .reading-mode-offer h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.25;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+    .reading-mode-offer p {
+      margin: 0 0 16px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: inherit;
+      opacity: 0.78;
+    }
+    .reading-mode-offer-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .reading-mode-offer-actions button {
+      min-height: 36px;
+      padding: 8px 14px;
+      border: 1px solid #d0ccc4;
+      border-radius: 6px;
+      background: white;
+      color: #333;
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+    }
+    .reading-mode-offer-actions button.primary {
+      background: #1a1a1a;
+      border-color: #1a1a1a;
+      color: white;
+    }
+  `;
+  shadow.appendChild(sentenceHighlightStyle);
 
   // Track mode changes so pause logic knows which mode we're in
   ["mode-full", "mode-para", "mode-sentence"].forEach(id => {
@@ -176,6 +220,9 @@
   }
 
   function getVisibleParagraphIndex() {
+    if (currentMode !== "full") {
+      return window.__readerState?.__currentParaIndex ?? 0;
+    }
     const paras = shadow.querySelectorAll(".article-paragraph");
     if (!paras.length) return 0;
     // Find the paragraph whose center is closest to 40% viewport height
@@ -204,6 +251,35 @@
     const scrollFraction = Math.min(1, (last.scrollTop - first.scrollTop) /
       Math.max(1, overlay.scrollHeight - overlay.clientHeight));
     return Math.round((totalWords * scrollFraction) / elapsedMin);
+  }
+
+  function getCurrentPhase() {
+    return window.__readerState?.__currentPhase || null;
+  }
+
+  function getCurrentReadingTarget() {
+    const modeText = shadow.getElementById("mode-text");
+    if (currentMode === "sentence" && modeText) {
+      return { kind: "element", element: modeText, text: modeText.textContent.trim() };
+    }
+    if (currentMode === "para" && modeText) {
+      const focusedSentence = modeText.querySelector(".para-focus-sentence");
+      return {
+        kind: "element",
+        element: focusedSentence || modeText,
+        text: (focusedSentence || modeText).textContent.trim(),
+      };
+    }
+
+    const paras = shadow.querySelectorAll(".article-paragraph");
+    const paraIndex = window.__readerState?.__currentParaIndex ?? getVisibleParagraphIndex();
+    const paragraphEl = paras[paraIndex] || paras[getVisibleParagraphIndex()];
+
+    if (getCurrentPhase() === "thorough") {
+      return { kind: "element", element: paragraphEl, text: paragraphEl?.textContent?.trim() || "" };
+    }
+
+    return { kind: "element", element: paragraphEl, text: paragraphEl?.textContent?.trim() || "" };
   }
 
   if (overlay) {
@@ -239,14 +315,7 @@
   // ── Send reading state to Misty every 2s ──────────────────────────
   // Includes current paragraph/sentence text so Misty can feed it to an LLM
   function getCurrentText() {
-    if (currentMode === "para" || currentMode === "sentence") {
-      // In para/sent mode, the visible text is in #mode-text
-      return shadow.getElementById("mode-text")?.textContent?.trim() || "";
-    }
-    // In full mode, get the paragraph closest to the top of the view
-    const paras = shadow.querySelectorAll(".article-paragraph");
-    const idx   = getVisibleParagraphIndex();
-    return paras[idx]?.textContent?.trim() || "";
+    return getCurrentReadingTarget().text || "";
   }
 
   let lastSentText = "";
@@ -256,6 +325,7 @@
       scrollProgress: getScrollProgress(),
       paragraphIndex: getVisibleParagraphIndex(),
       activeMode:     currentMode,
+      currentPhase:   getCurrentPhase(),
       pauseDuration:       isPaused ? Date.now() - pauseStart : 0,
       covert_disengagemnt: isPaused,
       currentText,
@@ -295,45 +365,127 @@
     if (msg.type === "ROBOT_REDIRECT") {
       triggerRedirectHighlight();
     }
-  });
 
-  // ── Highlight the current paragraph (shared by ROBOT_REDIRECT + demo mode) ──
-  function triggerRedirectHighlight() {
-    const idx    = getVisibleParagraphIndex();
-    const paras  = shadow.querySelectorAll(".article-paragraph");
-    const target = paras[idx];
-
-    if (target) {
-      const HOLD_MS = 6000;  // solid highlight — time to notice robot + turn back
-      const FADE_MS = 1500;  // gentle fade-out so it doesn't hard-cut
-
-      const origBackground   = target.style.background;
-      const origBoxShadow    = target.style.boxShadow;
-      const origBorderRadius = target.style.borderRadius;
-      const origTransition   = target.style.transition;
-
-      target.style.transition   = "none";
-      target.style.background   = "rgba(124, 58, 237, 0.09)";
-      target.style.boxShadow    = "inset 4px 0 0 #7c3aed";
-      target.style.borderRadius = "0 6px 6px 0";
-
-      const rect = target.getBoundingClientRect();
-      const alreadyVisible = rect.top >= 40 && rect.bottom <= window.innerHeight - 40;
-      if (!alreadyVisible) {
-        target.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-
-      setTimeout(() => {
-        target.style.transition = `background ${FADE_MS}ms ease-out, box-shadow ${FADE_MS}ms ease-out`;
-        target.style.background = origBackground || "";
-        target.style.boxShadow  = origBoxShadow  || "none";
-        setTimeout(() => {
-          target.style.borderRadius = origBorderRadius;
-          target.style.transition   = origTransition;
-        }, FADE_MS);
-      }, HOLD_MS);
+    if (msg.type === "HIGHLIGHT_CURRENT_SENTENCE") {
+      const durationMs = Number(msg.durationMs || 10000);
+      triggerCurrentSentenceHighlight(Number.isFinite(durationMs) ? durationMs : 10000);
     }
 
+    if (msg.type === "OFFER_READING_MODE") {
+      showReadingModeOffer(msg.currentMode || currentMode, msg.recommendedMode || "para", msg.source || "stage4_fatigue_support");
+    }
+  });
+
+  function normalizeMode(mode) {
+    return ["full", "para", "sentence"].includes(mode) ? mode : "full";
+  }
+
+  function modeLabel(mode) {
+    if (mode === "para") return "paragraph";
+    if (mode === "sentence") return "sentence";
+    return "full";
+  }
+
+  function showReadingModeOffer(rawCurrentMode, rawRecommendedMode, source) {
+    const offerCurrentMode = normalizeMode(rawCurrentMode);
+    if (offerCurrentMode === "sentence") {
+      send("fatigue_support_offer_skipped", { currentMode: offerCurrentMode, source });
+      return;
+    }
+
+    const existing = shadow.getElementById("reading-mode-offer-backdrop");
+    if (existing) existing.remove();
+
+    const options = offerCurrentMode === "para" ? ["sentence"] : ["para", "sentence"];
+    const recommendedMode = options.includes(rawRecommendedMode) ? rawRecommendedMode : options[0];
+    const stayLabel = offerCurrentMode === "para" ? "Stay paragraph" : "Stay full";
+
+    const backdrop = document.createElement("div");
+    backdrop.id = "reading-mode-offer-backdrop";
+    backdrop.className = "reading-mode-offer-backdrop";
+    backdrop.innerHTML = `
+      <section class="reading-mode-offer" role="dialog" aria-modal="true" aria-labelledby="reading-mode-offer-title">
+        <h2 id="reading-mode-offer-title">Adjust reading mode?</h2>
+        <p>Choose a smaller view for this section, or keep reading in ${modeLabel(offerCurrentMode)} mode.</p>
+        <div class="reading-mode-offer-actions">
+          ${options.map(mode => `<button class="${mode === recommendedMode ? 'primary' : ''}" data-mode="${mode}">Switch to ${modeLabel(mode)}</button>`).join("")}
+          <button data-mode="stay">${stayLabel}</button>
+        </div>
+      </section>
+    `;
+    shadow.appendChild(backdrop);
+
+    send("fatigue_support_offer_shown", {
+      currentMode: offerCurrentMode,
+      recommendedMode,
+      options,
+      source,
+    });
+
+    backdrop.querySelectorAll("button[data-mode]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const selectedMode = btn.getAttribute("data-mode");
+        backdrop.remove();
+        if (selectedMode === "stay") {
+          send("fatigue_support_declined", { currentMode: offerCurrentMode, source });
+          return;
+        }
+        if (window.__readerSetMode) window.__readerSetMode(selectedMode);
+        currentMode = selectedMode;
+        cancelPause();
+        if (selectedMode !== "full") startDwellTracking();
+        send("fatigue_support_mode_selected", {
+          previousMode: offerCurrentMode,
+          selectedMode,
+          source,
+        });
+        send("mode_change", { mode: selectedMode, source: "fatigue_support" });
+      });
+    });
+  }
+
+  // ── Highlight the currently displayed sentence/text for Stage 2 ───────────
+  function triggerCurrentSentenceHighlight(durationMs = 10000) {
+    const target = getCurrentReadingTarget();
+    if (!target?.element) return;
+
+    clearTimeout(sentenceHighlightTimer);
+    clearCurrentSentenceHighlight();
+
+    const highlightedEl = target.element;
+    if (!highlightedEl) return;
+
+    highlightedEl.classList.add("current-sentence-highlight");
+    const rect = highlightedEl.getBoundingClientRect();
+    const alreadyVisible = rect.top >= 48 && rect.bottom <= window.innerHeight - 48;
+    if (!alreadyVisible) {
+      highlightedEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    sentenceHighlightTimer = setTimeout(() => {
+      clearCurrentSentenceHighlight();
+      sentenceHighlightTimer = null;
+    }, Math.max(1, durationMs));
+
+    send("current_sentence_highlight", {
+      durationMs,
+      paragraphIndex: window.__readerState?.__currentParaIndex ?? getVisibleParagraphIndex(),
+      sentenceIndex: window.__readerState?.__currentSentenceIndex ?? null,
+      activeMode: currentMode,
+      currentPhase: getCurrentPhase(),
+      currentText: target.text,
+    });
+  }
+
+  function clearCurrentSentenceHighlight() {
+    shadow.querySelectorAll(".current-sentence-highlight").forEach(el => {
+      el.classList.remove("current-sentence-highlight");
+    });
+  }
+
+  // ── Log redirect event (no visual highlight) ────────────────────────────────
+  function triggerRedirectHighlight() {
+    const idx = getVisibleParagraphIndex();
     send("redirection", { paragraphIndex: idx, scrollProgress: getScrollProgress() });
   }
 
@@ -405,11 +557,15 @@
     });
 
     // ── Session log export ─────────────────────────────────────────────
-    shadow.getElementById("export-log-btn").addEventListener("click", () => {
-      const status = shadow.getElementById("export-status");
-      status.textContent = "Exporting...";
+    window.__readerExportLog = function exportReaderLog(statusEl, onDone) {
+      const status = statusEl || shadow.getElementById("export-status");
+      if (status) status.textContent = "Exporting...";
       chrome.runtime.sendMessage({ type: "EXPORT_LOG" }, response => {
-        if (!response?.log) { status.textContent = "No log found."; return; }
+        if (!response?.log) {
+          if (status) status.textContent = "No log found.";
+          if (onDone) onDone(false);
+          return;
+        }
         const log = response.log;
         const durationSec = Math.round((log.totalDuration || 0) / 1000);
         const avgPauseMs  = log.pauseCount > 0 ? Math.round(log.totalPauseMs / log.pauseCount) : 0;
@@ -439,9 +595,17 @@
           JSON.stringify(log, null, 2),
           "application/json"
         );
-        status.textContent = `Saved: adhd_session_${log.sessionId}.json`;
-        setTimeout(() => { status.textContent = ""; }, 4000);
+        window.__readerLogExported = true;
+        if (status) {
+          status.textContent = `Saved: adhd_session_${log.sessionId}.json`;
+          setTimeout(() => { status.textContent = ""; }, 4000);
+        }
+        if (onDone) onDone(true);
       });
+    };
+
+    shadow.getElementById("export-log-btn").addEventListener("click", () => {
+      window.__readerExportLog(shadow.getElementById("export-status"));
     });
 
     // ── Notes export ───────────────────────────────────────────────────

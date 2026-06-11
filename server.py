@@ -6,12 +6,15 @@ import json
 import os
 import uuid
 from pathlib import Path
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib import error, request
 
 import websockets
 
 WS_HOST = os.getenv("WS_HOST", "0.0.0.0")
 WS_PORT = int(os.getenv("WS_PORT", "8765"))
+COMMAND_HTTP_HOST = os.getenv("COMMAND_HTTP_HOST", "127.0.0.1")
+COMMAND_HTTP_PORT = int(os.getenv("COMMAND_HTTP_PORT", "8766"))
 TRIGGER_HOST = os.getenv("TRIGGER_HOST", "127.0.0.1")
 TRIGGER_PORT = int(os.getenv("TRIGGER_PORT", "5050"))
 BRIDGE_HTTP_PORT = int(os.getenv("BRIDGE_HTTP_PORT", "9877"))
@@ -49,6 +52,16 @@ connected_clients = set()
 client_roles = {}
 role_clients = {}
 POSTURE_DISENGAGED_MESSAGE = "ROBOT_REDIRECT"
+HIGHLIGHT_CURRENT_SENTENCE_MESSAGE = {
+    "type": "HIGHLIGHT_CURRENT_SENTENCE",
+    "durationMs": 10000,
+    "source": "stage2_confused_sound",
+}
+OFFER_READING_MODE_MESSAGE = {
+    "type": "OFFER_READING_MODE",
+    "recommendedMode": "para",
+    "source": "stage4_fatigue_support",
+}
 
 # ── Control-group session management ──────────────────────────────────
 
@@ -479,6 +492,52 @@ def parse_current_text_message(message: str) -> str | None:
     return None
 
 
+def parse_reading_context_message(message: str) -> dict | None:
+    text = message.strip()
+    if not text:
+        return None
+
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+
+    context = {}
+    for key in ("text", "currentText", "current_text"):
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            context["text"] = value.strip()
+            break
+
+    for source_key, context_key in (
+        ("fullArticleText", "fullArticleText"),
+        ("full_article_text", "fullArticleText"),
+        ("readSoFarText", "readSoFarText"),
+        ("read_so_far_text", "readSoFarText"),
+        ("upcomingText", "upcomingText"),
+        ("upcoming_text", "upcomingText"),
+        ("currentSentence", "currentSentence"),
+        ("current_sentence", "currentSentence"),
+    ):
+        value = payload.get(source_key)
+        if isinstance(value, str) and value.strip():
+            context[context_key] = value.strip()
+
+    for key in ("activeMode", "active_mode", "mode"):
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip().lower() in {"full", "para", "sentence"}:
+            context["activeMode"] = value.strip().lower()
+            break
+
+    return context or None
+
+
+def has_extended_reading_context(context: dict | None) -> bool:
+    if not context:
+        return False
+    return any(context.get(key) for key in ("fullArticleText", "readSoFarText", "upcomingText", "currentSentence"))
+
+
 def is_extension_reading_state_message(message: str, source_role: str | None) -> bool:
     try:
         payload = json.loads(message.strip())
@@ -551,9 +610,17 @@ def post_trigger_event(event: str, reason: str | None = None) -> tuple[bool, str
         return False, str(exc)
 
 
-def post_current_text(text: str) -> tuple[bool, str]:
+def post_current_text(text: str, active_mode: str | None = None, context: dict | None = None) -> tuple[bool, str]:
     endpoint = f"http://{TRIGGER_HOST}:{TRIGGER_PORT}{CURRENT_TEXT_PATH}"
-    body = json.dumps({"text": text}).encode("utf-8")
+    payload = {"text": text}
+    if active_mode:
+        payload["activeMode"] = active_mode
+    if context:
+        for key in ("fullArticleText", "readSoFarText", "upcomingText", "currentSentence"):
+            value = context.get(key)
+            if isinstance(value, str) and value.strip():
+                payload[key] = value.strip()
+    body = json.dumps(payload).encode("utf-8")
     req = request.Request(endpoint, data=body, method="POST")
     req.add_header("Content-Type", "application/json")
 
@@ -569,8 +636,8 @@ async def forward_event(event: str, reason: str | None = None) -> tuple[bool, st
     return await asyncio.to_thread(post_trigger_event, event, reason)
 
 
-async def forward_current_text(text: str) -> tuple[bool, str]:
-    return await asyncio.to_thread(post_current_text, text)
+async def forward_current_text(text: str, active_mode: str | None = None, context: dict | None = None) -> tuple[bool, str]:
+    return await asyncio.to_thread(post_current_text, text, active_mode, context)
 
 
 async def notify_baseline_event(event: str, reason: str | None = None) -> None:
@@ -610,6 +677,137 @@ async def notify_extension_posture_disengagement(source_role: str | None, signal
         await extension_socket.send(POSTURE_DISENGAGED_MESSAGE)
     except websockets.ConnectionClosed:
         _log("server", "console", "extension WebSocket 在发送前关闭，通知未送达")
+
+
+async def notify_extension_highlight_current_sentence(duration_ms: int = 10000, source: str = "stage2_confused_sound") -> tuple[bool, str]:
+    if CONTROL_MODE:
+        _log("server", "console", "[对照组] 跳过 extension 当前句子高亮通知")
+        return False, "control_mode"
+    extension_socket = role_clients.get("extension")
+    if extension_socket is None:
+        _log("server", "console", "当前句子高亮未发送: 未找到已注册的 extension 客户端")
+        return False, "extension_not_connected"
+
+    payload = {
+        **HIGHLIGHT_CURRENT_SENTENCE_MESSAGE,
+        "durationMs": max(1, int(duration_ms)),
+        "source": source,
+        "ts": _local_iso(),
+    }
+    _log("server", "extension", f"WebSocket 定向发送 -> extension: {json.dumps(payload, ensure_ascii=False)}")
+    try:
+        await extension_socket.send(json.dumps(payload))
+        return True, "ok"
+    except websockets.ConnectionClosed:
+        unregister_client(extension_socket)
+        _log("server", "console", "extension WebSocket 在发送当前句子高亮前关闭，通知未送达")
+        return False, "extension_connection_closed"
+
+
+async def notify_extension_offer_reading_mode(
+    current_mode: str = "full",
+    recommended_mode: str = "para",
+    source: str = "stage4_fatigue_support",
+) -> tuple[bool, str]:
+    if CONTROL_MODE:
+        _log("server", "console", "[对照组] 跳过 extension 阅读模式切换邀请")
+        return False, "control_mode"
+    extension_socket = role_clients.get("extension")
+    if extension_socket is None:
+        _log("server", "console", "阅读模式切换邀请未发送: 未找到已注册的 extension 客户端")
+        return False, "extension_not_connected"
+
+    current_mode = current_mode if current_mode in {"full", "para", "sentence"} else "full"
+    recommended_mode = recommended_mode if recommended_mode in {"para", "sentence"} else "para"
+    payload = {
+        **OFFER_READING_MODE_MESSAGE,
+        "currentMode": current_mode,
+        "recommendedMode": recommended_mode,
+        "source": source,
+        "ts": _local_iso(),
+    }
+    _log("server", "extension", f"WebSocket 定向发送 -> extension: {json.dumps(payload, ensure_ascii=False)}")
+    try:
+        await extension_socket.send(json.dumps(payload))
+        return True, "ok"
+    except websockets.ConnectionClosed:
+        unregister_client(extension_socket)
+        _log("server", "console", "extension WebSocket 在发送阅读模式切换邀请前关闭，通知未送达")
+        return False, "extension_connection_closed"
+
+
+def start_command_http_server(loop: asyncio.AbstractEventLoop) -> ThreadingHTTPServer:
+    class CommandHandler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            if self.path not in (
+                "/extension/highlight_current_sentence",
+                "/highlight_current_sentence",
+                "/extension/offer_reading_mode",
+                "/offer_reading_mode",
+            ):
+                self.send_response(404)
+                self.end_headers()
+                return
+
+            is_offer_path = self.path in ("/extension/offer_reading_mode", "/offer_reading_mode")
+            duration_ms = HIGHLIGHT_CURRENT_SENTENCE_MESSAGE["durationMs"]
+            source = OFFER_READING_MODE_MESSAGE["source"] if is_offer_path else HIGHLIGHT_CURRENT_SENTENCE_MESSAGE["source"]
+            current_mode = "full"
+            recommended_mode = OFFER_READING_MODE_MESSAGE["recommendedMode"]
+            length = int(self.headers.get("Content-Length", "0"))
+            if length:
+                raw_body = self.rfile.read(length)
+                try:
+                    payload = json.loads(raw_body.decode("utf-8"))
+                    requested_duration = payload.get("durationMs") or payload.get("duration_ms")
+                    if requested_duration is not None:
+                        duration_ms = int(requested_duration)
+                    requested_source = payload.get("source")
+                    if isinstance(requested_source, str) and requested_source.strip():
+                        source = requested_source.strip()
+                    requested_current_mode = payload.get("currentMode") or payload.get("current_mode")
+                    if isinstance(requested_current_mode, str) and requested_current_mode.strip().lower() in {"full", "para", "sentence"}:
+                        current_mode = requested_current_mode.strip().lower()
+                    requested_recommended_mode = payload.get("recommendedMode") or payload.get("recommended_mode")
+                    if isinstance(requested_recommended_mode, str) and requested_recommended_mode.strip().lower() in {"para", "sentence"}:
+                        recommended_mode = requested_recommended_mode.strip().lower()
+                except (json.JSONDecodeError, UnicodeDecodeError, TypeError, ValueError):
+                    pass
+
+            if is_offer_path:
+                future = asyncio.run_coroutine_threadsafe(
+                    notify_extension_offer_reading_mode(
+                        current_mode=current_mode,
+                        recommended_mode=recommended_mode,
+                        source=source,
+                    ),
+                    loop,
+                )
+                event_name = "offer_reading_mode"
+            else:
+                future = asyncio.run_coroutine_threadsafe(
+                    notify_extension_highlight_current_sentence(duration_ms=duration_ms, source=source),
+                    loop,
+                )
+                event_name = "highlight_current_sentence"
+            try:
+                ok, detail = future.result(timeout=5)
+            except Exception as exc:
+                ok, detail = False, f"{type(exc).__name__}: {exc}"
+            status = 200 if ok else 503
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": ok, "event": event_name, "detail": detail}).encode("utf-8"))
+
+        def log_message(self, format, *args):
+            return
+
+    httpd = ThreadingHTTPServer((COMMAND_HTTP_HOST, COMMAND_HTTP_PORT), CommandHandler)
+    thread = asyncio.to_thread(httpd.serve_forever)
+    asyncio.create_task(thread)
+    _log("server", "console", f"内部控制 HTTP 已启动: http://{COMMAND_HTTP_HOST}:{COMMAND_HTTP_PORT}")
+    return httpd
 
 
 async def handler(websocket):
@@ -657,12 +855,22 @@ async def handler(websocket):
             _saved_active = tracker.distraction_active
             event = parse_message_event(message, receiver_role)
             if not event:
-                current_text = parse_current_text_message(message)
-                if current_text:
+                reading_context = parse_reading_context_message(message)
+                if reading_context:
                     if CONTROL_MODE:
                         response = {"ok": True, "type": "current_text", "mode": "control"}
                     else:
-                        ok, detail = await forward_current_text(current_text)
+                        if has_extended_reading_context(reading_context):
+                            ok, detail = await forward_current_text(
+                                reading_context.get("text", ""),
+                                reading_context.get("activeMode"),
+                                reading_context,
+                            )
+                        else:
+                            ok, detail = await forward_current_text(
+                                reading_context.get("text", ""),
+                                reading_context.get("activeMode"),
+                            )
                         response = {"ok": ok, "type": "current_text"}
                         if ok:
                             response["trigger_response"] = detail
@@ -681,9 +889,19 @@ async def handler(websocket):
                 await websocket.send(json.dumps({"ok": False, "reason": reason}))
                 continue
 
-            current_text = parse_current_text_message(message)
-            if current_text and not CONTROL_MODE:
-                text_ok, text_detail = await forward_current_text(current_text)
+            reading_context = parse_reading_context_message(message)
+            if reading_context and not CONTROL_MODE:
+                if has_extended_reading_context(reading_context):
+                    text_ok, text_detail = await forward_current_text(
+                        reading_context.get("text", ""),
+                        reading_context.get("activeMode"),
+                        reading_context,
+                    )
+                else:
+                    text_ok, text_detail = await forward_current_text(
+                        reading_context.get("text", ""),
+                        reading_context.get("activeMode"),
+                    )
 
             disengage_reason = _extract_disengage_reason(message) if event == "start" else None
 
@@ -725,6 +943,7 @@ async def handler(websocket):
 
 async def main():
     server = await websockets.serve(handler, WS_HOST, WS_PORT)
+    command_http_server = start_command_http_server(asyncio.get_running_loop())
     _log("server", "console", "WebSocket bridge 已启动")
     if CONTROL_MODE:
         _log("server", "console", "══════ 对照组模式 ══════")
@@ -738,7 +957,11 @@ async def main():
     _log("server", "console", '客户端可先发送 JSON 注册身份: {"client": "webcam"} 或 {"client": "extension"}')
     _log("server", "console", "支持消息: start, stop, shutdown, posture_disengaged=true/false, re-engagement")
     _log("server", "console", '也支持 JSON: {"event": "start"} 或 {"posture_disengaged": true}')
-    await server.wait_closed()
+    try:
+        await server.wait_closed()
+    finally:
+        command_http_server.shutdown()
+        command_http_server.server_close()
 
 
 

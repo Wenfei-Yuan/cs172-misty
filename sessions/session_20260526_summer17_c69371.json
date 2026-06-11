@@ -1,0 +1,454 @@
+{
+  "session_id": "session_20260526_summer17_c69371",
+  "participant_id": "summer17",
+  "start_time": "2026-05-26T14:09:55.059009-04:00",
+  "end_time": "2026-05-26T14:12:58.842712-04:00",
+  "screen_observations": [
+    {
+      "timestamp": "2026-05-26T14:10:08.097977-04:00",
+      "analysis": "Screen alignment verified via cached position."
+    }
+  ],
+  "events": [
+    {
+      "timestamp": "2026-05-26T14:09:55.665052-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_intro",
+        "utterance": "Hello! I'm Misty. Let's focus today!",
+        "success": true,
+        "response": {
+          "misty2py_response": {
+            "success": true
+          },
+          "overall_success": true,
+          "rest_response": {
+            "result": true,
+            "success": true
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:09:55.805279-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_search_start",
+        "utterance": "I'm looking for your screen now.",
+        "success": true,
+        "response": {
+          "misty2py_response": {
+            "success": true
+          },
+          "overall_success": true,
+          "rest_response": {
+            "result": true,
+            "success": true
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:09:55.805320-04:00",
+      "name": "screen_search_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:09:55.805345-04:00",
+      "name": "screen_search_seed",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:09:56.536357-04:00",
+      "name": "screen_search_candidate",
+      "payload": {
+        "stage": "screen_search",
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:09:57.468612-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search"
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:09:58.504692-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:09:58.504733-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:10:01.537951-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:10:01.943003-04:00",
+      "name": "camera_capture_started",
+      "payload": {
+        "stage": "screen_search_confirm"
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:10:02.966643-04:00",
+      "name": "camera_capture_succeeded",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "source": "raw_bytes",
+        "mime_type": "image/jpeg"
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:10:02.966680-04:00",
+      "name": "vlm_request_started",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "model": "gpt-4o"
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:10:04.585013-04:00",
+      "name": "vlm_request_finished",
+      "payload": {
+        "stage": "screen_search_confirm",
+        "status": "aligned",
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:10:04.664592-04:00",
+      "name": "screen_search_verified",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "reason": null
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:10:04.664624-04:00",
+      "name": "screen_position_initialized",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:10:04.996817-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_screen_found",
+        "utterance": "I've found the screen!",
+        "success": true,
+        "response": {
+          "misty2py_response": {
+            "success": true
+          },
+          "overall_success": true,
+          "rest_response": {
+            "result": true,
+            "success": true
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:10:05.192542-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "bootup_start_reading",
+        "utterance": "Let's start reading. You can open the browser extension and start reading now.",
+        "success": true,
+        "response": {
+          "misty2py_response": {
+            "success": true
+          },
+          "overall_success": true,
+          "rest_response": {
+            "result": true,
+            "success": true
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:10:05.233599-04:00",
+      "name": "bootup_complete",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:10:08.097768-04:00",
+      "name": "screen_cache_hit",
+      "payload": {
+        "yaw": 0.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:10:08.097994-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:11:28.235235-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:11:28.239432-04:00",
+      "name": "self_recovery_grace_started",
+      "payload": {
+        "wait_s": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:11:28.398000-04:00",
+      "name": "self_recovery_grace_cancelled",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:11:28.398137-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:11:33.887002-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "looking_away"
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:11:33.887364-04:00",
+      "name": "self_recovery_grace_started",
+      "payload": {
+        "wait_s": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:11:48.891433-04:00",
+      "name": "self_recovery_grace_timeout",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:11:49.099066-04:00",
+      "name": "confused_sound_prompt_started",
+      "payload": {
+        "sound": "s_DisorientedConfused.wav"
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:11:49.152244-04:00",
+      "name": "confused_sound_prompt_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:12:04.369593-04:00",
+      "name": "head_redirect_only_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:12:09.137460-04:00",
+      "name": "head_redirect_only_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:12:24.138841-04:00",
+      "name": "llm_voice_prompt_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:12:26.695686-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "no_response_prompt",
+        "utterance": "You're doing great\u2014let's dive back into how the conversational agent impacts children's story comprehension!",
+        "success": true,
+        "response": {
+          "misty2py_response": {
+            "success": true
+          },
+          "overall_success": true,
+          "rest_response": {
+            "result": true,
+            "success": true
+          }
+        },
+        "interrupted": false,
+        "timed_out": false,
+        "attempt": 1
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:12:26.695782-04:00",
+      "name": "no_response_prompt_generated",
+      "payload": {
+        "attempt": 1,
+        "summary": "",
+        "reminder": "You're doing great\u2014let's dive back into how the conversational agent impacts children's story comprehension!",
+        "used_fallback": false,
+        "fallback_reason": null,
+        "has_current_text": true
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:12:26.695983-04:00",
+      "name": "llm_voice_prompt_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:12:41.698916-04:00",
+      "name": "arm_wave_cue_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:12:42.965651-04:00",
+      "name": "arm_wave_cue_completed",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:12:42.965753-04:00",
+      "name": "staged_distraction_sequence_complete",
+      "payload": {
+        "stages": 5
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:12:42.965941-04:00",
+      "name": "staged_sequence_completed",
+      "payload": {
+        "stages": 5
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:12:42.966037-04:00",
+      "name": "post_staged_quiet_wait_started",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:12:47.606292-04:00",
+      "name": "waiting_for_start_signal",
+      "payload": {}
+    },
+    {
+      "timestamp": "2026-05-26T14:12:56.866487-04:00",
+      "name": "start_signal_received",
+      "payload": {
+        "event": "start",
+        "trigger_reason": "gaze_mind_wandering"
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:12:56.866562-04:00",
+      "name": "self_recovery_grace_started",
+      "payload": {
+        "wait_s": 15.0
+      }
+    },
+    {
+      "timestamp": "2026-05-26T14:12:58.761587-04:00",
+      "name": "speech_attempt",
+      "payload": {
+        "stage": "summary",
+        "utterance": "Great job finishing your reading session! Every session is a step forward. Keep it up \u2014 I'll be here cheering you on next time!",
+        "success": true,
+        "response": {
+          "misty2py_response": {
+            "success": true
+          },
+          "overall_success": true,
+          "rest_response": {
+            "result": true,
+            "success": true
+          }
+        },
+        "interrupted": false,
+        "timed_out": false
+      }
+    }
+  ],
+  "distraction_events": [
+    {
+      "event_index": 1,
+      "distraction_start_time": "2026-05-26T14:11:28.239389-04:00",
+      "trigger_reason": "gaze_mind_wandering",
+      "motion_end_time": "2026-05-26T14:11:28.398039-04:00",
+      "motion_duration_s": 0.16,
+      "distraction_end_time": "2026-05-26T14:11:28.398109-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 0.16,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": "stop",
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    },
+    {
+      "event_index": 2,
+      "distraction_start_time": "2026-05-26T14:11:33.887232-04:00",
+      "trigger_reason": "looking_away",
+      "motion_end_time": "2026-05-26T14:12:42.965806-04:00",
+      "motion_duration_s": 69.08,
+      "distraction_end_time": "2026-05-26T14:12:47.606178-04:00",
+      "distraction_end_signal_received": true,
+      "distraction_duration_s": 73.72,
+      "sequence_completed": true,
+      "completion_latency_s": null,
+      "exit_reason": "sequence_complete",
+      "session_close_reason": null,
+      "voice_prompt_used": true,
+      "voice_prompt_count": 1
+    },
+    {
+      "event_index": 3,
+      "distraction_start_time": "2026-05-26T14:12:56.866542-04:00",
+      "trigger_reason": "gaze_mind_wandering",
+      "motion_end_time": null,
+      "motion_duration_s": null,
+      "distraction_end_time": null,
+      "distraction_end_signal_received": false,
+      "distraction_duration_s": null,
+      "sequence_completed": false,
+      "completion_latency_s": null,
+      "exit_reason": null,
+      "session_close_reason": null,
+      "voice_prompt_used": false,
+      "voice_prompt_count": 0
+    }
+  ],
+  "total_distraction_count": 3,
+  "total_voice_prompts": 1
+}

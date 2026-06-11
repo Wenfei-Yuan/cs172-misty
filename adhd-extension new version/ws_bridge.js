@@ -19,6 +19,7 @@
 const MISTY_WS_URL       = "ws://10.5.15.160:8765";  // ← Wenfei's bridge server — update port if not 8765
 const REDIRECTION_EVENT  = "AttentionRedirect";        // ← FILL IN event name from Misty skill
 const RESUMPTION_EVENT   = "AttentionResumed";         // ← FILL IN resumption confirm event name
+const HIGHLIGHT_SENTENCE_EVENT = "HIGHLIGHT_CURRENT_SENTENCE";
 const DISENGAGEMENT_SIGNAL = "covert_disengagement=true";
 const REENGAGEMENT_SIGNAL  = "covert_disengagement=false";
 
@@ -347,6 +348,32 @@ function connect() {
       return;
     }
 
+    if (eventName === HIGHLIGHT_SENTENCE_EVENT || eventName === "highlight_current_sentence") {
+      const durationMs = Number(msg?.durationMs || msg?.duration_ms || 10000);
+      console.log("[WS Bridge] Current sentence highlight event received.");
+      forwardToContentScripts({
+        type: "HIGHLIGHT_CURRENT_SENTENCE",
+        durationMs: Number.isFinite(durationMs) ? durationMs : 10000,
+        source: msg?.source || "misty",
+      });
+      logToBackground("highlight_current_sentence", { source: msg?.source || "misty", durationMs, ts: Date.now() });
+      return;
+    }
+
+    if (eventName === "OFFER_READING_MODE" || eventName === "offer_reading_mode") {
+      const currentMode = msg?.currentMode || msg?.current_mode || "full";
+      const recommendedMode = msg?.recommendedMode || msg?.recommended_mode || "para";
+      console.log("[WS Bridge] Reading mode offer received.");
+      forwardToContentScripts({
+        type: "OFFER_READING_MODE",
+        currentMode,
+        recommendedMode,
+        source: msg?.source || "stage4_fatigue_support",
+      });
+      logToBackground("fatigue_support_offer_received", { currentMode, recommendedMode, source: msg?.source || "misty", ts: Date.now() });
+      return;
+    }
+
     if (eventName === RESUMPTION_EVENT) {
       console.log("[WS Bridge] Resumption confirm received.");
       forwardToContentScripts({ type: "ROBOT_RESUME" });
@@ -382,7 +409,7 @@ function scheduleReconnect() {
 //   readingSpeed    (estimated wpm, null if unknown)
 //   pauseDuration   (ms since last scroll stall, 0 if active)
 //   activeMode      ("full" | "para" | "sentence")
-//   currentPhase    ("skim" | "thorough" | null if Study not active)
+//   currentPhase    ("thorough" | null)
 function sendReadingState() {
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
 

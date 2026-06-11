@@ -1,0 +1,79 @@
+{
+  "username": "participant",
+  "session_start": "2026-06-11T18:02:39.075320-04:00",
+  "session_end": "2026-06-11T18:04:14.919503-04:00",
+  "calibration": {
+    "reference_yaw": 12.52,
+    "reference_pitch": 1.68,
+    "reference_gaze_yaw": 0.4785,
+    "reference_gaze_pitch": 0.4502
+  },
+  "events": [
+    {
+      "event_time": "2026-06-11T18:02:55.559720-04:00",
+      "event_type": "disengage",
+      "reason": "gaze_mind_wandering",
+      "yaw": -25.08,
+      "pitch": 8.8,
+      "yaw_deviation": 32.91,
+      "pitch_deviation": 7.1,
+      "gaze_yaw_ratio": 0.6332,
+      "gaze_pitch_ratio": 0.3896,
+      "gaze_yaw_deviation": 0.1547,
+      "gaze_pitch_deviation": 0.0606,
+      "gaze_mind_wandering": true,
+      "distraction_duration_s": null
+    },
+    {
+      "event_time": "2026-06-11T18:04:03.600373-04:00",
+      "event_type": "reengage",
+      "reason": "gaze_recovered",
+      "yaw": -5.68,
+      "pitch": 3.59,
+      "yaw_deviation": 17.97,
+      "pitch_deviation": 1.78,
+      "gaze_yaw_ratio": 0.4802,
+      "gaze_pitch_ratio": 0.4348,
+      "gaze_yaw_deviation": 0.0017,
+      "gaze_pitch_deviation": 0.0155,
+      "gaze_mind_wandering": false,
+      "distraction_duration_s": 68.04
+    },
+    {
+      "event_time": "2026-06-11T18:04:12.003030-04:00",
+      "event_type": "disengage",
+      "reason": "gaze_mind_wandering",
+      "yaw": 15.12,
+      "pitch": -1.22,
+      "yaw_deviation": 4.9,
+      "pitch_deviation": 4.48,
+      "gaze_yaw_ratio": 0.4897,
+      "gaze_pitch_ratio": 0.3788,
+      "gaze_yaw_deviation": 0.0112,
+      "gaze_pitch_deviation": 0.0715,
+      "gaze_mind_wandering": true,
+      "distraction_duration_s": null
+    },
+    {
+      "event_time": "2026-06-11T18:04:14.248716-04:00",
+      "event_type": "reengage",
+      "reason": "gaze_recovered",
+      "yaw": 11.55,
+      "pitch": 1.03,
+      "yaw_deviation": 4.69,
+      "pitch_deviation": 0.45,
+      "gaze_yaw_ratio": 0.4815,
+      "gaze_pitch_ratio": 0.4084,
+      "gaze_yaw_deviation": 0.0031,
+      "gaze_pitch_deviation": 0.0418,
+      "gaze_mind_wandering": false,
+      "distraction_duration_s": 2.25
+    }
+  ],
+  "summary": {
+    "total_distractions": 2,
+    "completed_distractions": 2,
+    "total_distraction_time_s": 70.29,
+    "avg_distraction_duration_s": 35.15
+  }
+}

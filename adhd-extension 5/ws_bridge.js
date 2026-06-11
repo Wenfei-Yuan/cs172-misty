@@ -19,6 +19,7 @@
 const MISTY_WS_URL       = "ws://10.5.15.160:8765";  // ← Wenfei's bridge server — update port if not 8765
 const REDIRECTION_EVENT  = "AttentionRedirect";        // ← FILL IN event name from Misty skill
 const RESUMPTION_EVENT   = "AttentionResumed";         // ← FILL IN resumption confirm event name
+const HIGHLIGHT_SENTENCE_EVENT = "HIGHLIGHT_CURRENT_SENTENCE";
 const DISENGAGEMENT_SIGNAL = "covert_disengagement=true";
 const REENGAGEMENT_SIGNAL  = "covert_disengagement=false";
 
@@ -344,6 +345,18 @@ function connect() {
       console.log("[WS Bridge] JSON redirection event received.");
       forwardToContentScripts({ type: "ROBOT_REDIRECT" });
       logToBackground("redirection", { source: "misty", eventName, ts: Date.now() });
+      return;
+    }
+
+    if (eventName === HIGHLIGHT_SENTENCE_EVENT || eventName === "highlight_current_sentence") {
+      const durationMs = Number(msg?.durationMs || msg?.duration_ms || 10000);
+      console.log("[WS Bridge] Current sentence highlight event received.");
+      forwardToContentScripts({
+        type: "HIGHLIGHT_CURRENT_SENTENCE",
+        durationMs: Number.isFinite(durationMs) ? durationMs : 10000,
+        source: msg?.source || "misty",
+      });
+      logToBackground("highlight_current_sentence", { source: msg?.source || "misty", durationMs, ts: Date.now() });
       return;
     }
 

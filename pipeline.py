@@ -93,6 +93,7 @@ def run(misty, cfg: Config) -> None:
                 consume_interrupt=signal_rx.consume_interrupt,
                 stop_event=signal_rx.redirect_stop_event,
                 current_text_getter=signal_rx.current_text,
+                current_mode_getter=signal_rx.current_mode,
                 trigger_reason=start_signal.trigger_reason,
             )
 

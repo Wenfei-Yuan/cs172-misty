@@ -101,6 +101,10 @@ class ServerEventMappingTests(unittest.TestCase):
         self.assertIsNone(server.parse_current_text_message('{"text":"   "}'))
         self.assertIsNone(server.parse_current_text_message("start"))
 
+    def test_reading_context_message_includes_active_mode(self) -> None:
+        payload = server.parse_reading_context_message('{"currentText":"abc","activeMode":"para"}')
+        self.assertEqual(payload, {"text": "abc", "activeMode": "para"})
+
 
     def test_posture_payload_with_client_field_is_not_treated_as_registration(self) -> None:
         payload = (
@@ -243,7 +247,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(json.loads(webcam_socket.sent_messages[1])["event"], "stop")
 
     def test_current_text_message_is_forwarded(self) -> None:
-        async def fake_forward_current_text(text: str) -> tuple[bool, str]:
+        async def fake_forward_current_text(text: str, active_mode: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"ok": True, "text": text})
 
         server.forward_current_text = fake_forward_current_text
@@ -261,7 +265,7 @@ class ServerHandlerTests(unittest.TestCase):
         async def fake_forward_event(event: str, reason: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"event": event})
 
-        async def fake_forward_current_text(text: str) -> tuple[bool, str]:
+        async def fake_forward_current_text(text: str, active_mode: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"ok": True, "text": text})
 
         server.forward_event = fake_forward_event
@@ -290,7 +294,7 @@ class ServerHandlerTests(unittest.TestCase):
         self.assertEqual(payload["type"], "current_text")
 
     def test_unregistered_extension_reading_state_does_not_trigger_start(self) -> None:
-        async def fake_forward_current_text(text: str) -> tuple[bool, str]:
+        async def fake_forward_current_text(text: str, active_mode: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"ok": True, "text": text})
 
         server.forward_current_text = fake_forward_current_text
@@ -322,7 +326,7 @@ class ServerHandlerTests(unittest.TestCase):
             forwarded_events.append(event)
             return True, json.dumps({"event": event})
 
-        async def fake_forward_current_text(text: str) -> tuple[bool, str]:
+        async def fake_forward_current_text(text: str, active_mode: str | None = None) -> tuple[bool, str]:
             return True, json.dumps({"ok": True, "text": text})
 
         server.forward_event = fake_forward_event

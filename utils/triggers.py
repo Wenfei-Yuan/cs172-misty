@@ -21,6 +21,7 @@ class ExternalSignalReceiver:
         self.port = port
         self._events = deque()
         self._current_text = ""
+        self._current_mode = "full"
         self._last_trigger_reason: str | None = None
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
@@ -56,6 +57,8 @@ class ExternalSignalReceiver:
                     event = "shutdown"
                 elif self.path == "/current_text":
                     text_payload = ""
+                    mode_payload = None
+                    context_payload = {}
                     if raw_body:
                         try:
                             payload = json.loads(raw_body.decode("utf-8"))
@@ -64,15 +67,40 @@ class ExternalSignalReceiver:
                                 if isinstance(value, str) and value.strip():
                                     text_payload = value.strip()
                                     break
+                            for key in ("activeMode", "active_mode", "mode"):
+                                value = payload.get(key)
+                                if isinstance(value, str) and value.strip().lower() in {"full", "para", "sentence"}:
+                                    mode_payload = value.strip().lower()
+                                    break
+                            for source_key, context_key in (
+                                ("fullArticleText", "fullArticleText"),
+                                ("full_article_text", "fullArticleText"),
+                                ("readSoFarText", "readSoFarText"),
+                                ("read_so_far_text", "readSoFarText"),
+                                ("upcomingText", "upcomingText"),
+                                ("upcoming_text", "upcomingText"),
+                                ("currentSentence", "currentSentence"),
+                                ("current_sentence", "currentSentence"),
+                            ):
+                                value = payload.get(source_key)
+                                if isinstance(value, str) and value.strip():
+                                    context_payload[context_key] = value.strip()
                         except json.JSONDecodeError:
                             text_payload = ""
-                    if text_payload:
+                    if text_payload or mode_payload:
                         with parent._lock:
-                            parent._current_text = text_payload
+                            if text_payload:
+                                if context_payload:
+                                    context_payload.setdefault("text", text_payload)
+                                    parent._current_text = json.dumps(context_payload, ensure_ascii=False)
+                                else:
+                                    parent._current_text = text_payload
+                            if mode_payload:
+                                parent._current_mode = mode_payload
                         self.send_response(200)
                         self.send_header("Content-Type", "application/json")
                         self.end_headers()
-                        self.wfile.write(json.dumps({"ok": True, "event": "current_text_updated"}).encode("utf-8"))
+                        self.wfile.write(json.dumps({"ok": True, "event": "reading_context_updated"}).encode("utf-8"))
                         return
                     self.send_response(400)
                     self.send_header("Content-Type", "application/json")
@@ -222,6 +250,10 @@ class ExternalSignalReceiver:
     def current_text(self) -> str:
         with self._lock:
             return self._current_text
+
+    def current_mode(self) -> str:
+        with self._lock:
+            return self._current_mode
 
     def clear_redirect_stop(self) -> None:
         self._redirect_stop_event.clear()

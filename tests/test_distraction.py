@@ -12,8 +12,8 @@ class _FakeLog:
         self.records = []
         self.results = []
 
-    def record_distraction_start(self) -> None:
-        self.records.append(("start", {}))
+    def record_distraction_start(self, **payload) -> None:
+        self.records.append(("start", payload))
 
     def record(self, name: str, **payload) -> None:
         self.records.append((name, payload))

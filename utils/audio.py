@@ -6,20 +6,20 @@ from typing import Any
 from misty2py.utils.generators import get_random_string
 
 
-def _speak_ivy(misty, utterance: str) -> dict:
-    """Speak using Polly's Ivy (child female) voice with high pitch.
+DEFAULT_CHILD_VOICE = "Justin"
 
-    Parameter names match Misty's REST API (lowercase camelCase):
-      voice      → selects AWS Polly voice (Ivy = child female)
-      pitch      → 0.0–2.0 float; 1.0 is default, >1 raises pitch
-      speechRate → 0.0–2.0 float; 1.0 is default speed
+
+def _speak_with_voice(misty, utterance: str, voice: str = DEFAULT_CHILD_VOICE) -> dict:
+    """Speak using a childlike Amazon Polly voice.
+
+    Parameter names follow Misty REST API PascalCase convention.
     """
     return misty.perform_action(
         "speak",
         data={
-            "text": utterance,
-            "voice": "Kevin",
-            "utteranceId": "utterance_" + get_random_string(6),
+            "Text": utterance,
+            "Voice": voice,
+            "UtteranceId": "utterance_" + get_random_string(6),
         },
     ).parse_to_dict()
 
@@ -47,6 +47,7 @@ def ensure_audio_ready(misty, cfg) -> dict[str, dict]:
 def speak_text(misty, cfg, utterance: str, log=None, stage: str | None = None, **extra) -> dict:
     stop_event = extra.pop("stop_event", None)
     timeout_s = max(0.1, float(getattr(cfg, "speech_timeout_s", 8.0)))
+    voice = (getattr(cfg, "speech_voice", DEFAULT_CHILD_VOICE) or DEFAULT_CHILD_VOICE).strip()
     result_box: dict[str, Any] = {}
     error_box: dict[str, Exception] = {}
     done = threading.Event()
@@ -58,7 +59,7 @@ def speak_text(misty, cfg, utterance: str, log=None, stage: str | None = None, *
     else:
         def _run_speech() -> None:
             try:
-                result_box["speech"] = _speak_ivy(misty, utterance)
+                result_box["speech"] = _speak_with_voice(misty, utterance, voice)
             except Exception as exc:
                 error_box["error"] = exc
             finally:
@@ -101,6 +102,7 @@ def speak_text(misty, cfg, utterance: str, log=None, stage: str | None = None, *
         payload = {
             "stage": stage,
             "utterance": utterance,
+            "voice": voice,
             "success": combined["overall_success"],
             "response": speech_result,
             "interrupted": interrupted,

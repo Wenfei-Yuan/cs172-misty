@@ -248,6 +248,7 @@ HTML_PAGE = """\
 <script>
 var CAM_WS_PORT = 9876;
 var camWs = null, camStream = null, camTimer = null, camStreaming = false;
+var _camGen = 0;  // generation counter — invalidates stale WebSocket handlers
 var camVideo = document.getElementById('camVideo');
 var camCanvas = document.getElementById('camCanvas');
 var camCtx = camCanvas.getContext('2d');
@@ -266,14 +267,17 @@ function setCamStatus(msg, type) {
 
 function connectBridge() {
   var wsUrl = 'ws://' + location.hostname + ':' + CAM_WS_PORT;
+  var gen = ++_camGen;
   setCamStatus('📷 Connecting to ' + wsUrl + '...', 'info');
   camWs = new WebSocket(wsUrl);
   camWs.binaryType = 'arraybuffer';
   camWs.onopen = function() {
+    if (gen !== _camGen) return;
     camWs.send(JSON.stringify({type: 'hello', role: 'participant'}));
     setCamStatus('📷 Connected — camera ready, controlled by researcher', 'ok');
   };
   camWs.onmessage = function(e) {
+    if (gen !== _camGen) return;
     try {
       var msg = JSON.parse(e.data);
       if (msg.type === 'start_camera') startCamera();
@@ -281,13 +285,12 @@ function connectBridge() {
     } catch(_) {}
   };
   camWs.onclose = function(ev) {
+    if (gen !== _camGen) return;
     stopCamera();
     setCamStatus('📷 Disconnected (code ' + ev.code + ') — reconnecting in 3s...', 'err');
     setTimeout(connectBridge, 3000);
   };
-  camWs.onerror = function(ev) {
-    setCamStatus('📷 Connection error to ' + wsUrl, 'err');
-  };
+  camWs.onerror = function() {};  // onclose always fires after onerror; let it handle messaging
 }
 
 async function startCamera() {

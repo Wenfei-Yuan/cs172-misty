@@ -246,12 +246,14 @@ var sessionStart  = null;
 
 /* camera */
 var camWs = null, camStream = null, camTimer = null, camStreaming = false;
+var _camGen = 0;  // generation counter — invalidates stale WebSocket handlers
 var camVideo  = document.getElementById('camVideo');
 var camCanvas = document.getElementById('camCanvas');
 var camCtx    = camCanvas.getContext('2d');
 
 /* server.py WebSocket */
 var serverWs = null;
+var _srvGen = 0;
 
 /* ── UI helpers ────────────────────────────────────────── */
 function setStatus(msg, type) {
@@ -287,14 +289,17 @@ function updateTimer() {
 /* ── Camera bridge (same as Misty controller) ──────────── */
 function connectBridge() {
   var wsUrl = 'ws://' + location.hostname + ':' + CAM_WS_PORT;
+  var gen = ++_camGen;
   setCamStatus('📷 Connecting to ' + wsUrl + '…', 'info');
   camWs = new WebSocket(wsUrl);
   camWs.binaryType = 'arraybuffer';
   camWs.onopen = function() {
+    if (gen !== _camGen) return;
     camWs.send(JSON.stringify({type: 'hello', role: 'participant'}));
     setCamStatus('📷 Connected — camera ready, controlled by researcher', 'ok');
   };
   camWs.onmessage = function(e) {
+    if (gen !== _camGen) return;
     try {
       var msg = JSON.parse(e.data);
       if (msg.type === 'start_camera') startCamera();
@@ -302,13 +307,12 @@ function connectBridge() {
     } catch(_) {}
   };
   camWs.onclose = function(ev) {
+    if (gen !== _camGen) return;
     stopCamera();
     setCamStatus('📷 Disconnected (code ' + ev.code + ') — reconnecting in 3 s…', 'err');
     setTimeout(connectBridge, 3000);
   };
-  camWs.onerror = function() {
-    setCamStatus('📷 Connection error', 'err');
-  };
+  camWs.onerror = function() {};  // onclose always fires after onerror; let it handle messaging
 }
 
 async function startCamera() {
@@ -356,15 +360,18 @@ function sendCamFrames() {
 /* ── Detection server WebSocket ────────────────────────── */
 function connectServer() {
   var wsUrl = 'ws://' + location.hostname + ':' + SERVER_WS_PORT;
+  var gen = ++_srvGen;
   setServerStatus('🔗 Connecting to ' + wsUrl + '…', '');
   serverWs = new WebSocket(wsUrl);
 
   serverWs.onopen = function() {
+    if (gen !== _srvGen) return;
     serverWs.send(JSON.stringify({client: 'baseline'}));
     setServerStatus('🔗 Detection server connected', 'ok');
   };
 
   serverWs.onmessage = function(e) {
+    if (gen !== _srvGen) return;
     try {
       var msg = JSON.parse(e.data);
       if (msg.type === 'baseline_event' && sessionId) {
@@ -375,13 +382,12 @@ function connectServer() {
   };
 
   serverWs.onclose = function() {
+    if (gen !== _srvGen) return;
     setServerStatus('🔗 Detection server disconnected — reconnecting…', 'err');
     setTimeout(connectServer, 3000);
   };
 
-  serverWs.onerror = function() {
-    setServerStatus('🔗 Detection server error', 'err');
-  };
+  serverWs.onerror = function() {};  // onclose always fires after onerror; let it handle messaging
 }
 
 /* ── Session control ───────────────────────────────────── */

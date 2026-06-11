@@ -2,16 +2,29 @@ from __future__ import annotations
 
 import threading
 import time
+import random
+import json
+import os
 from dataclasses import dataclass
+from urllib import error, request
 
 from utils.expressions import DISTRACTION_FACE, JOY_GOOFY_FACE, show_image
-from utils.audio import play_audio_file
+from utils.audio import play_audio_file, speak_text
 from utils.head_control import (
     look_at_screen,
     perform_distraction_start_sequence,
     perform_head_redirect_only,
     cue_screen_with_left_arm,
 )
+
+STAGE2_SOUND_CHOICES = (
+    "s_Joy.wav",
+    "s_Distraction.wav",
+    "s_Acceptance.wav",
+)
+
+DEFAULT_HIGHLIGHT_URL = "http://127.0.0.1:8766/extension/highlight_current_sentence"
+DEFAULT_READING_MODE_OFFER_URL = "http://127.0.0.1:8766/extension/offer_reading_mode"
 
 
 @dataclass(frozen=True)
@@ -30,6 +43,95 @@ def _pause_before_return_to_screen(cfg) -> None:
 def _stop_thread(stop_event, thread, timeout: float = 2.0) -> None:
     stop_event.set()
     thread.join(timeout=timeout)
+
+
+def _notify_extension_sentence_highlight(log, duration_ms: int = 10000, source: str = "stage2_confused_sound") -> None:
+    highlight_url = os.getenv("HIGHLIGHT_SERVER_URL", DEFAULT_HIGHLIGHT_URL).strip()
+    if not highlight_url:
+        return
+
+    payload = {
+        "type": "highlight_current_sentence",
+        "durationMs": duration_ms,
+        "source": source,
+    }
+    req = request.Request(
+        highlight_url,
+        data=json.dumps(payload).encode("utf-8"),
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with request.urlopen(req, timeout=1.0) as response:
+            detail = response.read().decode("utf-8") or "{}"
+        log.record("extension_sentence_highlight_requested", ok=True, duration_ms=duration_ms, source=source, response=detail)
+    except (TimeoutError, error.URLError, OSError) as exc:
+        log.record("extension_sentence_highlight_requested", ok=False, duration_ms=duration_ms, source=source, reason=str(exc))
+
+
+def _notify_extension_reading_mode_offer(
+    log,
+    current_mode: str,
+    recommended_mode: str,
+    source: str = "stage4_fatigue_support",
+) -> bool:
+    offer_url = os.getenv("READING_MODE_OFFER_SERVER_URL", DEFAULT_READING_MODE_OFFER_URL).strip()
+    if not offer_url:
+        return False
+
+    payload = {
+        "type": "offer_reading_mode",
+        "currentMode": current_mode,
+        "recommendedMode": recommended_mode,
+        "source": source,
+    }
+    req = request.Request(
+        offer_url,
+        data=json.dumps(payload).encode("utf-8"),
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with request.urlopen(req, timeout=1.0) as response:
+            detail = response.read().decode("utf-8") or "{}"
+        log.record(
+            "fatigue_support_offer_sent",
+            ok=True,
+            current_mode=current_mode,
+            recommended_mode=recommended_mode,
+            response=detail,
+        )
+        return True
+    except (TimeoutError, error.URLError, OSError) as exc:
+        log.record(
+            "fatigue_support_offer_sent",
+            ok=False,
+            current_mode=current_mode,
+            recommended_mode=recommended_mode,
+            reason=str(exc),
+        )
+        return False
+
+
+def _normalize_reading_mode(mode: str | None) -> str:
+    normalized = (mode or "full").strip().lower()
+    return normalized if normalized in {"full", "para", "sentence"} else "full"
+
+
+def _fatigue_recommendation_for_mode(current_mode: str, cfg) -> tuple[str | None, str | None]:
+    if current_mode == "sentence":
+        return None, None
+    if current_mode == "para":
+        return "sentence", (
+            "This part feels a little dense. We can take it one sentence at a time if that feels easier. "
+            "Would you like to switch to sentence mode?"
+        )
+    default_mode = _normalize_reading_mode(getattr(cfg, "fatigue_default_mode", "para"))
+    recommended = default_mode if default_mode in {"para", "sentence"} else "para"
+    return recommended, (
+        "This article is a bit of a workout. We can make the page feel lighter if that helps. "
+        "Would you like to switch to paragraph or sentence mode?"
+    )
 
 
 def run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None, trigger_reason: str | None = None) -> DistractionResult:
@@ -169,9 +271,10 @@ def run_staged_distraction(
     consume_interrupt=None,
     stop_event=None,
     current_text_getter=None,
+    current_mode_getter=None,
     trigger_reason: str | None = None,
 ) -> StagedDistractionResult:
-    """Staged 8-step distraction escalation policy.
+    """Staged distraction escalation policy.
 
     Returns StagedDistractionResult with outcome in:
       "stop"             — user recovered (stop signal received)
@@ -209,8 +312,10 @@ def run_staged_distraction(
     show_image(misty, DISTRACTION_FACE)
 
     # ── Stage 2: CONFUSED_SOUND ──────────────────────────────────────────────
-    log.record("confused_sound_prompt_started", sound=cfg.confused_sound_name)
-    sound_result = play_audio_file(misty, cfg, cfg.confused_sound_name, stop_event=stop_event)
+    stage2_sound_name = random.choice(STAGE2_SOUND_CHOICES)
+    log.record("confused_sound_prompt_started", sound=stage2_sound_name)
+    _notify_extension_sentence_highlight(log, duration_ms=10000)
+    sound_result = play_audio_file(misty, cfg, stage2_sound_name, stop_event=stop_event)
     if sound_result.get("Joy"):
         log.record("confused_sound_prompt_interrupted")
         log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
@@ -244,11 +349,31 @@ def run_staged_distraction(
         log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
 
-    # ── Stage 3: HEAD_REDIRECT_ONLY ──────────────────────────────────────────
+    # ── Stage 3: HEAD_REDIRECT_ONLY + LLM_CONTEXT_VOICE_PROMPT + ARM_WAVE_CUE ─
     show_image(misty, JOY_GOOFY_FACE)
     log.record("head_redirect_only_started")
+    _notify_extension_sentence_highlight(log, duration_ms=15000, source="stage3_head_redirect")
+
+    def _run_stage3_head_voice_arm(se) -> None:
+        perform_head_redirect_only(misty, cfg, screen_pos, stop_event=se)
+        if se is not None and se.is_set():
+            return
+
+        current_text = current_text_getter() if current_text_getter is not None else ""
+        run_no_response(
+            misty, cfg, log,
+            attempt=1,
+            current_text=current_text,
+            stop_event=se,
+            include_arm_cue=False,
+        )
+        if se is not None and se.is_set():
+            return
+
+        cue_screen_with_left_arm(misty, cfg, repetitions=1, stop_event=se)
+
     interrupt = _run_motion(
-        lambda se: perform_head_redirect_only(misty, cfg, screen_pos, stop_event=se)
+        _run_stage3_head_voice_arm
     )
     if interrupt == "shutdown":
         log.record("distraction_shutdown", stage="head_redirect_only")
@@ -272,55 +397,63 @@ def run_staged_distraction(
         log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
 
-    # ── Stage 4: LLM_CONTEXT_VOICE_PROMPT ────────────────────────────────────
-    current_text = current_text_getter() if current_text_getter is not None else ""
-    log.record("llm_voice_prompt_started")
+    # ── Stage 4: FATIGUE_MANAGEMENT_SUPPORT ──────────────────────────────────
+    current_mode = _normalize_reading_mode(current_mode_getter() if current_mode_getter is not None else "full")
+    recommended_mode, fatigue_utterance = _fatigue_recommendation_for_mode(current_mode, cfg)
+    log.record(
+        "fatigue_support_stage_started",
+        current_mode=current_mode,
+        recommended_mode=recommended_mode,
+        enabled=bool(getattr(cfg, "fatigue_offer_enabled", True)),
+    )
+
+    if current_mode == "sentence" or not getattr(cfg, "fatigue_offer_enabled", True):
+        log.record("fatigue_support_offer_skipped", current_mode=current_mode)
+        log.record("staged_distraction_sequence_complete", stages=stages_done)
+        log.record_distraction_result(outcome="sequence_complete", sequence_completed=True, latency_s=None)
+        return StagedDistractionResult(outcome="sequence_complete", stages_completed=stages_done)
+
+    log.record("fatigue_support_speech_started", current_mode=current_mode, recommended_mode=recommended_mode)
     interrupt = _run_motion(
-        lambda se: run_no_response(
-            misty, cfg, log,
-            attempt=1,
-            current_text=current_text,
+        lambda se: speak_text(
+            misty,
+            cfg,
+            fatigue_utterance,
+            log=log,
+            stage="fatigue_support",
             stop_event=se,
-            include_arm_cue=False,
+            current_mode=current_mode,
+            recommended_mode=recommended_mode,
         )
     )
     if interrupt == "shutdown":
-        log.record("distraction_shutdown", stage="llm_voice_prompt")
+        log.record("distraction_shutdown", stage="fatigue_support_speech")
         log.record_distraction_result(outcome="shutdown", sequence_completed=False, latency_s=None)
         return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
     if interrupt == "stop":
-        log.record("llm_voice_prompt_interrupted")
+        log.record("fatigue_support_speech_interrupted")
         log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
-    log.record("llm_voice_prompt_completed")
-    stages_done += 1
+    log.record("fatigue_support_speech_completed")
 
-    # ── Stage 4 wait: WAIT_AFTER_VOICE_PROMPT ────────────────────────────────
-    interrupt = _wait(cfg.voice_prompt_followup_wait_s)
-    if interrupt == "shutdown":
-        log.record("distraction_shutdown", stage="wait_after_voice_prompt")
-        log.record_distraction_result(outcome="shutdown", sequence_completed=False, latency_s=None)
-        return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
-    if interrupt == "stop":
-        log.record("distraction_recovered", stage="wait_after_voice_prompt")
-        log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
-        return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
-
-    # ── Stage 5: ARM_WAVE_CUE ────────────────────────────────────────────────
-    log.record("arm_wave_cue_started")
-    interrupt = _run_motion(
-        lambda se: cue_screen_with_left_arm(misty, cfg, repetitions=1, stop_event=se)
+    _notify_extension_reading_mode_offer(
+        log,
+        current_mode=current_mode,
+        recommended_mode=recommended_mode or "para",
     )
+    stages_done += 1
+
+    # Wait once for confirmation/re-engagement. If nothing happens, do not repeat.
+    interrupt = _wait(getattr(cfg, "fatigue_offer_wait_s", 20.0))
     if interrupt == "shutdown":
-        log.record("distraction_shutdown", stage="arm_wave_cue")
+        log.record("distraction_shutdown", stage="wait_after_fatigue_support")
         log.record_distraction_result(outcome="shutdown", sequence_completed=False, latency_s=None)
         return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
     if interrupt == "stop":
-        log.record("arm_wave_cue_interrupted")
+        log.record("distraction_recovered", stage="wait_after_fatigue_support")
         log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
-    log.record("arm_wave_cue_completed")
-    stages_done += 1
+    log.record("fatigue_support_offer_timeout", current_mode=current_mode, recommended_mode=recommended_mode)
 
     log.record("staged_distraction_sequence_complete", stages=stages_done)
     log.record_distraction_result(outcome="sequence_complete", sequence_completed=True, latency_s=None)
