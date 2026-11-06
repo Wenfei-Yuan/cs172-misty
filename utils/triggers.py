@@ -7,12 +7,28 @@ from collections import deque
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from utils.session_log import local_iso
+
 
 @dataclass(frozen=True)
 class StartSignalResult:
     event: str
     stale_stop_events_cleared: int = 0
     trigger_reason: str | None = None
+    received_at: str | None = None
+
+
+class _QueuedEvent(str):
+    """An event name that remembers when it arrived and why.
+
+    It is still a str, so the queue logic can keep comparing it to "start"/"stop".
+    """
+
+    def __new__(cls, name: str, received_at: str | None = None, trigger_reason: str | None = None):
+        event = super().__new__(cls, name)
+        event.received_at = received_at
+        event.trigger_reason = trigger_reason
+        return event
 
 
 class ExternalSignalReceiver:
@@ -22,7 +38,7 @@ class ExternalSignalReceiver:
         self._events = deque()
         self._current_text = ""
         self._current_mode = "full"
-        self._last_trigger_reason: str | None = None
+        self._last_stop_time: str | None = None
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
         self._redirect_stop_event = threading.Event()
@@ -109,12 +125,7 @@ class ExternalSignalReceiver:
                     return
 
                 if event:
-                    with parent._lock:
-                        parent._events.append(event)
-                        if event == "start" and trigger_reason:
-                            parent._last_trigger_reason = trigger_reason
-                    if event in ("stop", "shutdown"):
-                        parent._redirect_stop_event.set()
+                    parent._enqueue(event, trigger_reason)
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
@@ -139,36 +150,37 @@ class ExternalSignalReceiver:
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=2)
 
+    def _enqueue(self, event: str, trigger_reason: str | None = None) -> None:
+        with self._lock:
+            self._events.append(_QueuedEvent(event, local_iso(), trigger_reason))
+        if event in ("stop", "shutdown"):
+            self._redirect_stop_event.set()
+
     def wait_for_start(self) -> StartSignalResult:
         stale_stop_events_cleared = 0
         while not self._stop_event.is_set():
             with self._lock:
-                if self._events:
-                    retained_events = deque()
-                    start_seen = False
-                    shutdown_seen = False
+                if "shutdown" in self._events:
+                    stale_stop_events_cleared += sum(1 for event in self._events if event == "stop")
+                    self._events.clear()
+                    return StartSignalResult(event="shutdown", stale_stop_events_cleared=stale_stop_events_cleared)
 
-                    while self._events:
-                        event = self._events.popleft()
-                        if event == "stop":
-                            stale_stop_events_cleared += 1
-                            continue
-                        if event == "shutdown":
-                            shutdown_seen = True
-                            continue
-                        if event == "start":
-                            start_seen = True
-                            continue
-                        retained_events.append(event)
-
-                    self._events = retained_events
-
-                    if shutdown_seen:
-                        return StartSignalResult(event="shutdown", stale_stop_events_cleared=stale_stop_events_cleared)
-                    if start_seen:
-                        reason = self._last_trigger_reason
-                        self._last_trigger_reason = None
-                        return StartSignalResult(event="start", stale_stop_events_cleared=stale_stop_events_cleared, trigger_reason=reason)
+                while self._events:
+                    event = self._events.popleft()
+                    if event == "stop":
+                        stale_stop_events_cleared += 1
+                        continue
+                    # Anything queued after this start happened after it (e.g. while the
+                    # robot was speaking), so it stays queued for the new episode. A stop
+                    # here means that episode already ended.
+                    while self._events and self._events[0] == "start":
+                        self._events.popleft()
+                    return StartSignalResult(
+                        event="start",
+                        stale_stop_events_cleared=stale_stop_events_cleared,
+                        trigger_reason=getattr(event, "trigger_reason", None),
+                        received_at=getattr(event, "received_at", None),
+                    )
             time.sleep(0.1)
         return StartSignalResult(event="shutdown", stale_stop_events_cleared=stale_stop_events_cleared)
 
@@ -185,6 +197,15 @@ class ExternalSignalReceiver:
             while self._events:
                 event = self._events.popleft()
                 if event == "stop":
+                    if start_retained and stop_count:
+                        # This stop ends the disengagement that started after the first
+                        # stop, so it has to stay behind that start.
+                        retained_events.append(event)
+                        retained_events.extend(self._events)
+                        self._events.clear()
+                        break
+                    if not stop_count:
+                        self._last_stop_time = getattr(event, "received_at", None)
                     stop_count += 1
                     continue
                 if event == "start":
@@ -211,6 +232,8 @@ class ExternalSignalReceiver:
             while self._events:
                 event = self._events.popleft()
                 if event == "stop":
+                    if not stop_count:
+                        self._last_stop_time = getattr(event, "received_at", None)
                     stop_count += 1
                     continue
                 if event == "start":
@@ -246,6 +269,15 @@ class ExternalSignalReceiver:
     def has_shutdown_event(self) -> bool:
         with self._lock:
             return "shutdown" in self._events
+
+    def has_pending_start(self) -> bool:
+        with self._lock:
+            return "start" in self._events
+
+    def last_stop_time(self) -> str | None:
+        """When the most recently consumed stop reached this process."""
+        with self._lock:
+            return self._last_stop_time
 
     def current_text(self) -> str:
         with self._lock:

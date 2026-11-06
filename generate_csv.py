@@ -315,6 +315,21 @@ def _find_voice_info(de: dict, events: list[dict], next_start_ts: str | None):
     }
 
 
+def _find_highlight_ts(de: dict, events: list[dict], next_start_ts: str | None) -> str:
+    """When a sentence highlight actually reached the extension, or "" if none did."""
+    # Sessions with post_return_highlight highlight after the return, which can be
+    # logged after the next event's start, so the time window below is not reliable.
+    if "post_return_highlight" in de:
+        highlight = de["post_return_highlight"]
+        return (highlight["time"] or "") if highlight["sent"] and highlight["ok"] else ""
+
+    requests = _find_events_in_window(
+        events, "extension_sentence_highlight_requested", de.get("distraction_start_time"), next_start_ts
+    )
+    delivered = [e for e in requests if e.get("payload", {}).get("ok")]
+    return delivered[0]["timestamp"] if delivered else ""
+
+
 def _user_resumed(de: dict) -> bool:
     """Did the user actually resume (return attention) during this distraction?"""
     if de.get("distraction_end_signal_received"):
@@ -330,9 +345,26 @@ def _user_resumed(de: dict) -> bool:
     return False
 
 
-def _determine_resume_stage(de: dict, escalated: bool) -> str:
+def _fatigue_offer_spoken(de: dict, events: list[dict], next_start_ts: str | None) -> bool:
+    speech_events = _find_events_in_window(events, "speech_attempt", de.get("distraction_start_time"), next_start_ts)
+    return any(e.get("payload", {}).get("stage") == "fatigue_support" for e in speech_events)
+
+
+def _determine_resume_stage(de: dict, escalated: bool, events: list[dict], next_start_ts: str | None) -> str:
+    """What the participant had received when they returned.
+
+    Sessions with recovered_at_stage speak the recap after the return, so voice_prompt_used
+    says nothing about what preceded it. In older sessions the voice came before the return.
+    """
     if not _user_resumed(de):
         return "not_resumed"
+    recovered_at_stage = de.get("recovered_at_stage")
+    if recovered_at_stage == "self_recovery":
+        return "self_recovered"
+    if recovered_at_stage == "fatigue_support":
+        return "resumed_after_voice" if _fatigue_offer_spoken(de, events, next_start_ts) else "resumed_after_nonverbal"
+    if recovered_at_stage is not None:
+        return "resumed_after_nonverbal"
     if escalated:
         return "resumed_after_voice"
     return "resumed_after_nonverbal"
@@ -348,6 +380,10 @@ def build_intervention_events(sessions: list[dict]) -> list[dict]:
         events = sess.get("events", [])
         distractions = sess.get("distraction_events", [])
         condition = sess.get("condition", "with_system")
+        # Sessions from before highlights were logged leave highlight_shown blank: unknown, not 0.
+        session_logs_highlights = any("post_return_highlight" in de for de in distractions) or any(
+            e["name"] == "extension_sentence_highlight_requested" for e in events
+        )
 
         for i, de in enumerate(distractions):
             global_event_id += 1
@@ -402,10 +438,8 @@ def build_intervention_events(sessions: list[dict]) -> list[dict]:
             escalated = de.get("voice_prompt_used", False)
             voice_info = _find_voice_info(de, events, next_start_ts) if escalated else None
 
-            # Highlight: the arm cue after voice prompt acts as a physical highlight cue
-            # Logged alongside no_response_prompt_generated (arm cue happens right after speech)
-            highlight_shown = 1 if escalated else 0
-            highlight_ts = voice_info["voice_start_ts"] if voice_info and escalated else ""
+            highlight_ts = _find_highlight_ts(de, events, next_start_ts)
+            highlight_shown = (1 if highlight_ts else 0) if session_logs_highlights else ""
 
             # Resume latency = distraction_duration_s (already in seconds, convert to ms)
             duration_s = de.get("distraction_duration_s")
@@ -419,7 +453,7 @@ def build_intervention_events(sessions: list[dict]) -> list[dict]:
                             and float(resume_latency_ms) <= _RESUME_WINDOW_MS)
             resumed = 1 if within_window else 0
 
-            resume_stage = _determine_resume_stage(de, escalated)
+            resume_stage = _determine_resume_stage(de, escalated, events, next_start_ts)
             # If user returned attention but beyond 90-s window, downgrade
             if not within_window and resume_stage != "not_resumed":
                 resume_stage = "not_resumed"
@@ -515,8 +549,9 @@ def build_session_summary(sessions: list[dict], intervention_rows: list[dict]) -
 
         num_nonverbal_only = sum(1 for e in events_for_session if e["resumed_within_window"] == 1 and e["resume_stage"] == "resumed_after_nonverbal")
         num_voice_esc = sum(1 for e in events_for_session if e["escalated_to_voice"] == 1)
-        num_voice_success = sum(1 for e in events_for_session if e["escalated_to_voice"] == 1 and e["resumed_within_window"] == 1)
-        num_highlight = sum(1 for e in events_for_session if e["highlight_shown"] == 1)
+        num_voice_success = sum(1 for e in events_for_session if e["resume_stage"] == "resumed_after_voice")
+        highlights_unknown = any(e["highlight_shown"] == "" for e in events_for_session)
+        num_highlight = "" if highlights_unknown else sum(1 for e in events_for_session if e["highlight_shown"] == 1)
 
         rows.append({
             "participant_id": pid,

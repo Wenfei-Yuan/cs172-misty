@@ -59,6 +59,15 @@ def _fallback_reminder() -> str:
     return "You are doing fine, let's gently hop back into the sentence you were reading. We can take it one small bit at a time together."
 
 
+def fallback_focus_prompt(reason: str) -> FocusPromptResult:
+    return FocusPromptResult(
+        summary="",
+        reminder=_clean_spoken_prompt(_fallback_reminder(), _fallback_reminder()),
+        used_fallback=True,
+        reason=reason,
+    )
+
+
 def generate_focus_reminder_from_text(reading_text: str, cfg) -> FocusPromptResult:
     context = _reading_context(reading_text)
     if not context:

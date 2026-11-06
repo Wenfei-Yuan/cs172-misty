@@ -8,14 +8,18 @@ import os
 from dataclasses import dataclass
 from urllib import error, request
 
-from utils.expressions import DISTRACTION_FACE, JOY_GOOFY_FACE, show_image
-from utils.audio import play_audio_file, speak_text
+from stages.no_response_prompt import speak_no_response_prompt
+from utils.expressions import DISTRACTION_FACE, JOY_GOOFY_FACE, SPEAKING_FACE, show_image
+from utils.audio import play_audio_file, speak_text, stop_audio
+from utils.focus_prompt import fallback_focus_prompt, generate_focus_reminder_from_text
 from utils.head_control import (
     look_at_screen,
     perform_distraction_start_sequence,
     perform_head_redirect_only,
     cue_screen_with_left_arm,
+    reset_arms_down,
 )
+from utils.session_log import local_iso, seconds_between
 
 STAGE2_SOUND_CHOICES = (
     "s_Joy.wav",
@@ -45,10 +49,11 @@ def _stop_thread(stop_event, thread, timeout: float = 2.0) -> None:
     thread.join(timeout=timeout)
 
 
-def _notify_extension_sentence_highlight(log, duration_ms: int = 10000, source: str = "stage2_confused_sound") -> None:
+def _notify_extension_sentence_highlight(log, duration_ms: int = 10000, source: str = "stage2_confused_sound") -> dict:
+    """Ask the extension to highlight the current sentence. Returns {"sent", "ok", "time"}."""
     highlight_url = os.getenv("HIGHLIGHT_SERVER_URL", DEFAULT_HIGHLIGHT_URL).strip()
     if not highlight_url:
-        return
+        return {"sent": False, "ok": False, "time": None}
 
     payload = {
         "type": "highlight_current_sentence",
@@ -61,12 +66,15 @@ def _notify_extension_sentence_highlight(log, duration_ms: int = 10000, source: 
         method="POST",
         headers={"Content-Type": "application/json"},
     )
+    sent_at = local_iso()
     try:
         with request.urlopen(req, timeout=1.0) as response:
             detail = response.read().decode("utf-8") or "{}"
         log.record("extension_sentence_highlight_requested", ok=True, duration_ms=duration_ms, source=source, response=detail)
+        return {"sent": True, "ok": True, "time": sent_at}
     except (TimeoutError, error.URLError, OSError) as exc:
         log.record("extension_sentence_highlight_requested", ok=False, duration_ms=duration_ms, source=source, reason=str(exc))
+        return {"sent": True, "ok": False, "time": sent_at}
 
 
 def _notify_extension_reading_mode_offer(
@@ -263,6 +271,99 @@ def _run_stage_in_thread(motion_fn, stop_event, consume_interrupt) -> str | None
     return None
 
 
+class _RecapGeneration:
+    """Generates the recap in the background so it can be spoken right after a return.
+
+    The result is simply left unused when the participant returns during the motion.
+    """
+
+    def __init__(self, reading_text: str, cfg):
+        self.reading_text = reading_text
+        self.done = threading.Event()
+        self._result = None
+        self._error = None
+        threading.Thread(target=self._run, args=(cfg,), daemon=True).start()
+
+    def _run(self, cfg) -> None:
+        try:
+            self._result = generate_focus_reminder_from_text(self.reading_text, cfg)
+        except Exception as exc:
+            self._error = f"{type(exc).__name__}: {exc}"
+        finally:
+            self.done.set()
+
+    def prompt_or_fallback(self):
+        if not self.done.is_set():
+            return fallback_focus_prompt("generation_timeout")
+        return self._result or fallback_focus_prompt(self._error or "generation_failed")
+
+
+def _estimated_speech_s(text: str, cfg) -> float:
+    words_per_s = max(0.1, float(cfg.recap_speech_words_per_s))
+    return len(text.split()) / words_per_s + max(0.0, float(cfg.recap_speech_end_padding_s))
+
+
+def _recap_cancel_reason(signal_rx) -> str | None:
+    """Peek at the queue. A pending start must stay there for the pipeline to pick up."""
+    if signal_rx is None:
+        return None
+    if signal_rx.has_shutdown_event():
+        return "shutdown"
+    if signal_rx.has_pending_start():
+        return "start"
+    return None
+
+
+def _deliver_post_return_recap(misty, cfg, log, generation: _RecapGeneration, reengaged_at: str, signal_rx) -> None:
+    """Speak the recap after a return during the stage 3 wait.
+
+    The delay runs from the stop itself. No stop_event is passed to the speech: it is
+    still set by that same stop, and the recap is never interrupted once it starts.
+    """
+    remaining_delay_s = float(cfg.recap_delay_after_return_s) - seconds_between(reengaged_at, local_iso())
+    speak_at = time.monotonic() + max(0.0, remaining_delay_s)
+    give_up_on_generation_at = speak_at + max(0.0, float(cfg.recap_generation_wait_s))
+
+    while True:
+        cancel_reason = _recap_cancel_reason(signal_rx)
+        if cancel_reason == "shutdown":
+            log.record("post_return_recap_cancelled", reason="shutdown")
+            log.record_post_return_recap(status="cancelled_shutdown")
+            return
+        if cancel_reason == "start":
+            log.record("post_return_recap_cancelled", reason="new_disengagement")
+            log.record_post_return_recap(status="cancelled_new_disengagement")
+            return
+        now = time.monotonic()
+        if now >= speak_at and (generation.done.is_set() or now >= give_up_on_generation_at):
+            break
+        time.sleep(0.05)
+
+    dynamic = generation.prompt_or_fallback()
+    show_image(misty, SPEAKING_FACE)
+    recap_started_at = local_iso()
+    speech = speak_no_response_prompt(
+        misty, cfg, log,
+        attempt=1,
+        dynamic=dynamic,
+        current_text=generation.reading_text,
+        include_arm_cue=False,
+    )
+    played = bool(speech.get("overall_success"))
+    if played:
+        # speak_text returns while Misty is still talking; hold the pipeline until the
+        # recap ends so signals received during it are processed afterwards.
+        time.sleep(_estimated_speech_s(dynamic.reminder, cfg))
+    log.record_post_return_recap(
+        status="played" if played else "speech_failed",
+        start_time=recap_started_at,
+        delay_from_return_s=seconds_between(reengaged_at, recap_started_at),
+        used_fallback=dynamic.used_fallback,
+        end_time=local_iso(),
+        disengaged_during_recap=played and signal_rx is not None and signal_rx.has_pending_start(),
+    )
+
+
 def run_staged_distraction(
     misty,
     cfg,
@@ -273,17 +374,20 @@ def run_staged_distraction(
     current_text_getter=None,
     current_mode_getter=None,
     trigger_reason: str | None = None,
+    start_time: str | None = None,
+    signal_rx=None,
 ) -> StagedDistractionResult:
     """Staged distraction escalation policy.
+
+    start_time is when the start signal arrived. signal_rx supplies the receipt time of
+    stops and lets the post-return recap watch the queue without consuming from it.
 
     Returns StagedDistractionResult with outcome in:
       "stop"             — user recovered (stop signal received)
       "shutdown"         — shutdown received
       "sequence_complete" — all stages completed without recovery
     """
-    from stages.no_response_prompt import run_no_response
-
-    log.record_distraction_start(trigger_reason=trigger_reason)
+    log.record_distraction_start(trigger_reason=trigger_reason, start_time=start_time)
 
     stages_done = 0
 
@@ -292,6 +396,32 @@ def run_staged_distraction(
 
     def _run_motion(fn) -> str | None:
         return _run_stage_in_thread(fn, stop_event, consume_interrupt)
+
+    def _pending_interrupt() -> str | None:
+        interrupt = consume_interrupt() if consume_interrupt is not None else None
+        if interrupt in ("stop", "shutdown"):
+            return interrupt
+        if stop_event is not None and stop_event.is_set():
+            return "stop"
+        return None
+
+    def _end_at_return(recovered_at_stage: str, highlight_source: str | None = None) -> str:
+        """Close the event at the moment of the stop, then highlight. Returns that moment."""
+        reengaged_at = (signal_rx.last_stop_time() if signal_rx is not None else None) or local_iso()
+        log.record_distraction_end(end_time=reengaged_at, recovered_at_stage=recovered_at_stage)
+        if highlight_source is not None:
+            highlight = _notify_extension_sentence_highlight(
+                log, duration_ms=cfg.return_highlight_ms, source=highlight_source,
+            )
+            log.record_post_return_highlight(**highlight, duration_ms=cfg.return_highlight_ms)
+        log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
+        return reengaged_at
+
+    def _end_at_sound_return() -> None:
+        # play_audio_file is fire-and-forget, so we cannot tell whether the sound is
+        # still playing. Stopping is harmless if it already finished.
+        log.record("confused_sound_stop_requested", ok=bool(stop_audio(misty).get("overall_success")))
+        _end_at_return("sound", highlight_source="stage2_return")
 
     # ── Stage 1: SELF_RECOVERY_GRACE ─────────────────────────────────────────
     log.record("self_recovery_grace_started",
@@ -303,7 +433,7 @@ def run_staged_distraction(
         return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
     if interrupt == "stop":
         log.record("self_recovery_grace_cancelled")
-        log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
+        _end_at_return("self_recovery")
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
     log.record("self_recovery_grace_timeout")
     stages_done += 1
@@ -314,26 +444,16 @@ def run_staged_distraction(
     # ── Stage 2: CONFUSED_SOUND ──────────────────────────────────────────────
     stage2_sound_name = random.choice(STAGE2_SOUND_CHOICES)
     log.record("confused_sound_prompt_started", sound=stage2_sound_name)
-    _notify_extension_sentence_highlight(log, duration_ms=10000)
     sound_result = play_audio_file(misty, cfg, stage2_sound_name, stop_event=stop_event)
-    if sound_result.get("Joy"):
-        log.record("confused_sound_prompt_interrupted")
-        log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
-        return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
     # Check for stop/shutdown immediately after sound fires
-    if consume_interrupt is not None:
-        _chk = consume_interrupt()
-        if _chk == "shutdown":
-            log.record("distraction_shutdown", stage="confused_sound")
-            log.record_distraction_result(outcome="shutdown", sequence_completed=False, latency_s=None)
-            return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
-        if _chk == "stop":
-            log.record("confused_sound_prompt_interrupted")
-            log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
-            return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
-    if stop_event is not None and stop_event.is_set():
+    interrupt = _pending_interrupt()
+    if interrupt == "shutdown":
+        log.record("distraction_shutdown", stage="confused_sound")
+        log.record_distraction_result(outcome="shutdown", sequence_completed=False, latency_s=None)
+        return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
+    if interrupt == "stop" or sound_result.get("interrupted"):
         log.record("confused_sound_prompt_interrupted")
-        log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
+        _end_at_sound_return()
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
     log.record("confused_sound_prompt_completed")
     stages_done += 1
@@ -346,42 +466,32 @@ def run_staged_distraction(
         return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
     if interrupt == "stop":
         log.record("distraction_recovered", stage="wait_after_confused_sound")
-        log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
+        _end_at_sound_return()
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
 
-    # ── Stage 3: HEAD_REDIRECT_ONLY + LLM_CONTEXT_VOICE_PROMPT + ARM_WAVE_CUE ─
+    # ── Stage 3: HEAD_REDIRECT_ONLY + ARM_WAVE_CUE ───────────────────────────
     show_image(misty, JOY_GOOFY_FACE)
     log.record("head_redirect_only_started")
-    _notify_extension_sentence_highlight(log, duration_ms=15000, source="stage3_head_redirect")
+    recap_generation = _RecapGeneration(current_text_getter() if current_text_getter is not None else "", cfg)
 
-    def _run_stage3_head_voice_arm(se) -> None:
+    def _run_stage3_head_arm(se) -> None:
         perform_head_redirect_only(misty, cfg, screen_pos, stop_event=se)
-        if se is not None and se.is_set():
-            return
-
-        current_text = current_text_getter() if current_text_getter is not None else ""
-        run_no_response(
-            misty, cfg, log,
-            attempt=1,
-            current_text=current_text,
-            stop_event=se,
-            include_arm_cue=False,
-        )
-        if se is not None and se.is_set():
+        if se.is_set():
             return
 
         cue_screen_with_left_arm(misty, cfg, repetitions=1, stop_event=se)
+        if se.is_set():
+            # An interrupted cue returns with the arm still raised.
+            reset_arms_down(misty, cfg)
 
-    interrupt = _run_motion(
-        _run_stage3_head_voice_arm
-    )
+    interrupt = _run_motion(_run_stage3_head_arm)
     if interrupt == "shutdown":
         log.record("distraction_shutdown", stage="head_redirect_only")
         log.record_distraction_result(outcome="shutdown", sequence_completed=False, latency_s=None)
         return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
     if interrupt == "stop":
         log.record("head_redirect_only_interrupted")
-        log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
+        _end_at_return("head_redirect_motion", highlight_source="stage3_motion_return")
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
     log.record("head_redirect_only_completed")
     stages_done += 1
@@ -394,7 +504,8 @@ def run_staged_distraction(
         return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
     if interrupt == "stop":
         log.record("distraction_recovered", stage="wait_after_head_redirect")
-        log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
+        reengaged_at = _end_at_return("head_redirect_wait", highlight_source="stage3_return")
+        _deliver_post_return_recap(misty, cfg, log, recap_generation, reengaged_at, signal_rx)
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
 
     # ── Stage 4: FATIGUE_MANAGEMENT_SUPPORT ──────────────────────────────────
@@ -432,7 +543,7 @@ def run_staged_distraction(
         return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
     if interrupt == "stop":
         log.record("fatigue_support_speech_interrupted")
-        log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
+        _end_at_return("fatigue_support")
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
     log.record("fatigue_support_speech_completed")
 
@@ -451,7 +562,7 @@ def run_staged_distraction(
         return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
     if interrupt == "stop":
         log.record("distraction_recovered", stage="wait_after_fatigue_support")
-        log.record_distraction_result(outcome="stop", sequence_completed=False, latency_s=None)
+        _end_at_return("fatigue_support")
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
     log.record("fatigue_support_offer_timeout", current_mode=current_mode, recommended_mode=recommended_mode)
 

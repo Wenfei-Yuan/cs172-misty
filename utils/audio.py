@@ -113,6 +113,11 @@ def speak_text(misty, cfg, utterance: str, log=None, stage: str | None = None, *
     return combined
 
 
+def stop_audio(misty) -> dict:
+    """Stop the audio file Misty is playing, if any."""
+    return _perform_and_parse(misty, "audio_stop")
+
+
 def play_audio_file(misty, cfg, asset_id: str, stop_event=None) -> dict:
     """Fire a Misty built-in audio file (fire-and-forget). Sound plays asynchronously on robot."""
     if stop_event is not None and stop_event.is_set():

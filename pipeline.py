@@ -3,10 +3,9 @@ from __future__ import annotations
 from config import Config
 from stages.bootup import run_bootup
 from stages.distraction import run_staged_distraction
-from stages.screen_watch import run_screen_watch, default_screen_position
+from stages.screen_watch import run_screen_watch
 from stages.summary import run_summary
 from utils.audio import ensure_audio_ready
-from utils.head_control import look_at_screen
 from utils.session_id import generate_session_id
 from utils.session_log import SessionLog
 from utils.triggers import ExternalSignalReceiver
@@ -25,17 +24,6 @@ def _close_active_distraction(log, reason: str) -> None:
         close_active(reason=reason)
 
 
-def _return_to_waiting_position(misty, cfg, log, bootup_screen_pos, current_screen_pos) -> None:
-    target_screen_pos = bootup_screen_pos or current_screen_pos or default_screen_position(cfg)
-    look_at_screen(misty, target_screen_pos)
-    log.record(
-        "returned_to_waiting_position",
-        yaw=target_screen_pos.yaw,
-        pitch=target_screen_pos.pitch,
-        source="bootup" if bootup_screen_pos is not None else ("current_screen" if current_screen_pos is not None else "default_fallback"),
-    )
-
-
 def run(misty, cfg: Config) -> None:
     session_id = generate_session_id(cfg.participant_id)
     log = SessionLog(session_id=session_id, cfg=cfg)
@@ -49,7 +37,6 @@ def run(misty, cfg: Config) -> None:
     try:
         ensure_audio_ready(misty, cfg)
         screen_pos = run_bootup(misty, cfg, log)
-        bootup_screen_pos = screen_pos
         while True:
             if signal_rx.has_shutdown_event():
                 _close_active_distraction(log, "shutdown")
@@ -64,7 +51,12 @@ def run(misty, cfg: Config) -> None:
             start_signal = signal_rx.wait_for_start()
             if start_signal.stale_stop_events_cleared:
                 log.record("stale_stop_events_cleared", count=start_signal.stale_stop_events_cleared)
-            log.record("start_signal_received", event=start_signal.event, trigger_reason=start_signal.trigger_reason)
+            log.record(
+                "start_signal_received",
+                event=start_signal.event,
+                trigger_reason=start_signal.trigger_reason,
+                received_at=start_signal.received_at,
+            )
             if start_signal.event == "shutdown":
                 _close_active_distraction(log, "shutdown")
                 break
@@ -83,16 +75,15 @@ def run(misty, cfg: Config) -> None:
                 current_text_getter=signal_rx.current_text,
                 current_mode_getter=signal_rx.current_mode,
                 trigger_reason=start_signal.trigger_reason,
+                start_time=start_signal.received_at,
+                signal_rx=signal_rx,
             )
 
             if distraction.outcome == "stop":
+                # run_staged_distraction already logged the return, and the head is
+                # already on the screen: the only motion that leaves it (stage 3)
+                # brings it back itself when interrupted.
                 signal_rx.clear_redirect_stop()
-                # Only move head back if it was actually moved (stages_completed > 0).
-                # If the user self-recovered during the grace period the head never
-                # moved, so skipping the return avoids a visible micro-movement.
-                if distraction.stages_completed > 0:
-                    _return_to_waiting_position(misty, cfg, log, bootup_screen_pos, screen_pos)
-                log.record_distraction_end()
                 attempt = 0
                 skip_screen_watch_once = True
                 continue
@@ -109,7 +100,7 @@ def run(misty, cfg: Config) -> None:
                     break
                 if _pending == "stop":
                     signal_rx.clear_redirect_stop()
-                    log.record_distraction_end()
+                    log.record_distraction_end(end_time=signal_rx.last_stop_time(), recovered_at_stage="fatigue_support")
                     attempt = 0
                     skip_screen_watch_once = True
                     continue
@@ -120,7 +111,7 @@ def run(misty, cfg: Config) -> None:
                     _close_active_distraction(log, "shutdown")
                     break
                 signal_rx.clear_redirect_stop()
-                log.record_distraction_end()
+                log.record_distraction_end(end_time=signal_rx.last_stop_time(), recovered_at_stage="fatigue_support")
                 attempt = 0
                 skip_screen_watch_once = True
                 continue

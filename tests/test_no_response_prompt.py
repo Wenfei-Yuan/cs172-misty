@@ -97,6 +97,40 @@ class NoResponsePromptTests(unittest.TestCase):
         self.assertEqual(log.voice_attempts, [])
         self.assertEqual(log.records[0], ("no_response_skipped", {"attempt": 2, "reason": "stop_received_during_speech"}))
 
+    def test_speak_prompt_logs_like_run_no_response_without_generating(self) -> None:
+        spoken = []
+        log = _FakeLog()
+        dynamic = SimpleNamespace(summary="so far", reminder="Welcome back!", used_fallback=True, reason="generation_timeout")
+
+        no_response_prompt.generate_focus_reminder_from_text = lambda *args: self.fail("must not generate again")
+        no_response_prompt.cue_screen_with_left_arm = lambda *args, **kwargs: self.fail("no arm cue for a recap")
+
+        def fake_speak(misty, current_cfg, text, **kwargs):
+            spoken.append((text, kwargs))
+            return {"overall_success": True}
+
+        no_response_prompt.speak_text = fake_speak
+
+        speech = no_response_prompt.speak_no_response_prompt(
+            object(), SimpleNamespace(), log, attempt=1, dynamic=dynamic, current_text="draft", include_arm_cue=False,
+        )
+
+        self.assertEqual(speech, {"overall_success": True})
+        self.assertEqual(spoken[0][0], "Welcome back!")
+        self.assertEqual(spoken[0][1]["stage"], "no_response_prompt")
+        self.assertIsNone(spoken[0][1]["stop_event"])
+        self.assertEqual(log.voice_attempts, [True])
+        name, payload = log.records[0]
+        self.assertEqual(name, "no_response_prompt_generated")
+        self.assertEqual(payload, {
+            "attempt": 1,
+            "summary": "so far",
+            "reminder": "Welcome back!",
+            "used_fallback": True,
+            "fallback_reason": "generation_timeout",
+            "has_current_text": True,
+        })
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -85,9 +85,16 @@ class Config:
         "I noticed you're distracted. Take a breath and get back to it!",
         "Time to refocus — you're almost there. You've got this!",
     )
-    initial_self_recovery_wait_s: float = 15.0
-    confused_sound_followup_wait_s: float = 15.0
-    head_redirect_followup_wait_s: float = 120.0
+    initial_self_recovery_wait_s: float = 20.0
+    confused_sound_followup_wait_s: float = 60.0
+    head_redirect_followup_wait_s: float = 60.0
+    return_highlight_ms: int = 5000
+    recap_delay_after_return_s: float = 3.0
+    recap_generation_wait_s: float = 5.0
+    # speak_text returns before Misty finishes talking, so the end of the recap is
+    # estimated from its word count. Tune these if the logged end time drifts.
+    recap_speech_words_per_s: float = 2.5
+    recap_speech_end_padding_s: float = 0.5
     voice_prompt_followup_wait_s: float = 15.0
     fatigue_offer_wait_s: float = 20.0
     fatigue_default_mode: str = "para"

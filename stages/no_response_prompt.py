@@ -47,15 +47,26 @@ def run_no_response(misty, cfg, log, attempt: int, current_text: str = "", stop_
         log.record("no_response_skipped", attempt=attempt, reason="stop_received_during_prompt_generation")
         return
 
-    prompt = dynamic.reminder
-    speech = speak_text(misty, cfg, prompt, log=log, stage="no_response_prompt", attempt=attempt, stop_event=stop_event) or {}
+    speak_no_response_prompt(
+        misty, cfg, log,
+        attempt=attempt,
+        dynamic=dynamic,
+        current_text=current_text,
+        stop_event=stop_event,
+        include_arm_cue=include_arm_cue,
+    )
+
+
+def speak_no_response_prompt(misty, cfg, log, attempt: int, dynamic, current_text: str = "", stop_event=None, include_arm_cue: bool = True) -> dict:
+    """Speak an already generated prompt and log it. Returns the speak_text result."""
+    speech = speak_text(misty, cfg, dynamic.reminder, log=log, stage="no_response_prompt", attempt=attempt, stop_event=stop_event) or {}
     if speech.get("interrupted"):
         log.record("no_response_skipped", attempt=attempt, reason="stop_received_during_speech")
-        return
+        return speech
     if include_arm_cue:
         if stop_event is not None and stop_event.is_set():
             log.record("no_response_skipped", attempt=attempt, reason="stop_received_before_arm_cue")
-            return
+            return speech
         cue_screen_with_left_arm(misty, cfg, repetitions=1, stop_event=stop_event)
     log.record(
         "no_response_prompt_generated",
@@ -67,3 +78,4 @@ def run_no_response(misty, cfg, log, attempt: int, current_text: str = "", stop_
         has_current_text=bool((current_text or "").strip()),
     )
     log.record_voice_prompt()
+    return speech
