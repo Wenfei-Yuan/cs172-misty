@@ -68,6 +68,9 @@ class FakeReceiver:
     def current_text(self) -> str:
         return "test reading text"
 
+    def current_mode(self) -> str:
+        return "full"
+
     def clear_redirect_stop(self) -> None:
         self.clear_calls += 1
 
@@ -88,7 +91,6 @@ class PipelineCycleTests(unittest.TestCase):
             "run_screen_watch": pipeline.run_screen_watch,
             "run_staged_distraction": pipeline.run_staged_distraction,
             "run_summary": pipeline.run_summary,
-            "speak_text": pipeline.speak_text,
             "ensure_audio_ready": pipeline.ensure_audio_ready,
         }
 
@@ -108,7 +110,6 @@ class PipelineCycleTests(unittest.TestCase):
             "distraction": 0,
             "no_response": 0,
             "summary": 0,
-            "speeches": [],
             "screen_watch": 0,
         }
 
@@ -124,14 +125,13 @@ class PipelineCycleTests(unittest.TestCase):
         ]
 
         def fake_run_distraction(misty, cfg, log, screen_pos, consume_interrupt=None,
-                                  stop_event=None, current_text_getter=None, trigger_reason=None):
+                                  stop_event=None, current_text_getter=None, current_mode_getter=None, trigger_reason=None):
             calls["distraction"] += 1
             return outcomes.pop(0)
 
         pipeline.run_staged_distraction = fake_run_distraction
         pipeline.run_no_response = lambda misty, cfg, log, attempt, **kwargs: calls.__setitem__("no_response", calls["no_response"] + 1)
         pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
-        pipeline.speak_text = lambda misty, cfg, text, **kwargs: calls["speeches"].append(text)
         pipeline.ensure_audio_ready = lambda misty, cfg: {}
 
         cfg = SimpleNamespace(participant_id="wenfei", signal_host="127.0.0.1", signal_port=5050, max_attempts=3)
@@ -142,7 +142,43 @@ class PipelineCycleTests(unittest.TestCase):
         self.assertEqual(calls["no_response"], 0)
         self.assertEqual(calls["screen_watch"], 1)
         self.assertEqual(calls["summary"], 1)
-        self.assertEqual(calls["speeches"], [])
+
+    def test_bootup_position_is_used_without_any_screen_retry(self) -> None:
+        screen_pos = SimpleNamespace(yaw=45.0, pitch=0.0)
+        logs = []
+        watched = []
+        seen_by_distraction = []
+
+        def fake_bootup(misty, cfg, log):
+            logs.append(log)
+            return screen_pos
+
+        def fake_screen_watch(misty, cfg, log, position):
+            watched.append(position)
+            return position
+
+        def fake_distraction(misty, cfg, log, position, **kwargs):
+            seen_by_distraction.append(position)
+            return StagedDistractionResult(outcome="shutdown", stages_completed=0)
+
+        pipeline.SessionLog = FakeLog
+        pipeline.ExternalSignalReceiver = FakeReceiver
+        pipeline.generate_session_id = lambda participant_id: "session_test"
+        pipeline.run_bootup = fake_bootup
+        pipeline.run_screen_watch = fake_screen_watch
+        pipeline.run_staged_distraction = fake_distraction
+        pipeline.run_summary = lambda misty, cfg, log: None
+        pipeline.ensure_audio_ready = lambda misty, cfg: {}
+
+        cfg = SimpleNamespace(participant_id="wenfei", signal_host="127.0.0.1", signal_port=5050, max_attempts=3)
+
+        pipeline.run(misty=object(), cfg=cfg)
+
+        self.assertEqual(watched, [screen_pos])
+        self.assertEqual(seen_by_distraction, [screen_pos])
+        event_names = [name for name, _ in logs[0].events]
+        self.assertNotIn("screen_retry_pending", event_names)
+        self.assertNotIn("screen_search_exhausted", event_names)
 
     def test_stop_path_skips_screen_watch_once_before_next_wait(self) -> None:
         calls = {
@@ -162,15 +198,14 @@ class PipelineCycleTests(unittest.TestCase):
             return screen_pos
 
         outcomes = [
-            StagedDistractionResult(outcome="stop", stages_completed=0),
+            StagedDistractionResult(outcome="stop", stages_completed=1),
             StagedDistractionResult(outcome="shutdown", stages_completed=0),
         ]
 
         pipeline.run_screen_watch = fake_screen_watch
-        pipeline.run_staged_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None, stop_event=None, current_text_getter=None, trigger_reason=None: outcomes.pop(0)
+        pipeline.run_staged_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None, stop_event=None, current_text_getter=None, current_mode_getter=None, trigger_reason=None: outcomes.pop(0)
         pipeline.run_no_response = lambda *args, **kwargs: None
         pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
-        pipeline.speak_text = lambda *args, **kwargs: None
         pipeline.ensure_audio_ready = lambda misty, cfg: {}
 
         cfg = SimpleNamespace(participant_id="wenfei", signal_host="127.0.0.1", signal_port=5050, max_attempts=3)
@@ -203,11 +238,10 @@ class PipelineCycleTests(unittest.TestCase):
         pipeline.generate_session_id = lambda participant_id: "session_test"
         pipeline.run_bootup = lambda misty, cfg, log: SimpleNamespace(yaw=1.0, pitch=2.0)
         pipeline.run_screen_watch = lambda misty, cfg, log, screen_pos: screen_pos
-        pipeline.run_staged_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None, stop_event=None, current_text_getter=None, trigger_reason=None: StagedDistractionResult(outcome="sequence_complete", stages_completed=5)
+        pipeline.run_staged_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None, stop_event=None, current_text_getter=None, current_mode_getter=None, trigger_reason=None: StagedDistractionResult(outcome="sequence_complete", stages_completed=5)
         pipeline.look_at_screen = lambda misty, screen_pos: calls["look_at_screen"].append((screen_pos.yaw, screen_pos.pitch))
         pipeline.run_no_response = lambda misty, cfg, log, attempt, **kwargs: calls.__setitem__("no_response", calls["no_response"] + 1)
         pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
-        pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
         pipeline.ensure_audio_ready = lambda misty, cfg: {}
 
         cfg = SimpleNamespace(
@@ -244,10 +278,9 @@ class PipelineCycleTests(unittest.TestCase):
         pipeline.generate_session_id = lambda participant_id: "session_test"
         pipeline.run_bootup = lambda misty, cfg, log: SimpleNamespace(yaw=1.0, pitch=2.0)
         pipeline.run_screen_watch = lambda misty, cfg, log, screen_pos: screen_pos
-        pipeline.run_staged_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None, stop_event=None, current_text_getter=None, trigger_reason=None: StagedDistractionResult(outcome="sequence_complete", stages_completed=5)
+        pipeline.run_staged_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None, stop_event=None, current_text_getter=None, current_mode_getter=None, trigger_reason=None: StagedDistractionResult(outcome="sequence_complete", stages_completed=5)
         pipeline.run_no_response = lambda misty, cfg, log, attempt, **kwargs: calls.__setitem__("no_response", calls["no_response"] + 1)
         pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
-        pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
         pipeline.ensure_audio_ready = lambda misty, cfg: {}
 
         cfg = SimpleNamespace(
@@ -287,10 +320,9 @@ class PipelineCycleTests(unittest.TestCase):
         pipeline.generate_session_id = lambda participant_id: "session_test"
         pipeline.run_bootup = lambda misty, cfg, log: SimpleNamespace(yaw=1.0, pitch=2.0)
         pipeline.run_screen_watch = lambda misty, cfg, log, screen_pos: screen_pos
-        pipeline.run_staged_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None, stop_event=None, current_text_getter=None, trigger_reason=None: StagedDistractionResult(outcome="sequence_complete", stages_completed=5)
+        pipeline.run_staged_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None, stop_event=None, current_text_getter=None, current_mode_getter=None, trigger_reason=None: StagedDistractionResult(outcome="sequence_complete", stages_completed=5)
         pipeline.run_no_response = lambda misty, cfg, log, attempt, **kwargs: calls.__setitem__("no_response", calls["no_response"] + 1)
         pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
-        pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
         pipeline.ensure_audio_ready = lambda misty, cfg: {}
 
         cfg = SimpleNamespace(
@@ -331,10 +363,9 @@ class PipelineCycleTests(unittest.TestCase):
         pipeline.generate_session_id = lambda participant_id: "session_test"
         pipeline.run_bootup = lambda misty, cfg, log: SimpleNamespace(yaw=1.0, pitch=2.0)
         pipeline.run_screen_watch = lambda misty, cfg, log, screen_pos: screen_pos
-        pipeline.run_staged_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None, stop_event=None, current_text_getter=None, trigger_reason=None: StagedDistractionResult(outcome="sequence_complete", stages_completed=5)
+        pipeline.run_staged_distraction = lambda misty, cfg, log, screen_pos, consume_interrupt=None, stop_event=None, current_text_getter=None, current_mode_getter=None, trigger_reason=None: StagedDistractionResult(outcome="sequence_complete", stages_completed=5)
         pipeline.run_no_response = lambda misty, cfg, log, attempt, **kwargs: calls.__setitem__("no_response", calls["no_response"] + 1)
         pipeline.run_summary = lambda misty, cfg, log: calls.__setitem__("summary", calls["summary"] + 1)
-        pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
         pipeline.ensure_audio_ready = lambda misty, cfg: {}
 
         cfg = SimpleNamespace(
@@ -381,7 +412,7 @@ class PipelineCycleTests(unittest.TestCase):
         ]
 
         def fake_run_staged_distraction(misty, cfg, log, screen_pos, consume_interrupt=None,
-                                         stop_event=None, current_text_getter=None, trigger_reason=None):
+                                         stop_event=None, current_text_getter=None, current_mode_getter=None, trigger_reason=None):
             result = outcomes.pop(0)
             if result.outcome == "stop":
                 receiver_ref["instance"]._redirect_event.set()
@@ -398,7 +429,6 @@ class PipelineCycleTests(unittest.TestCase):
         pipeline.run_staged_distraction = fake_run_staged_distraction
         pipeline.run_no_response = lambda *args, **kwargs: None
         pipeline.run_summary = lambda misty, cfg, log: None
-        pipeline.speak_text = lambda misty, cfg, text, **kwargs: None
         pipeline.ensure_audio_ready = lambda misty, cfg: {}
 
         cfg = SimpleNamespace(

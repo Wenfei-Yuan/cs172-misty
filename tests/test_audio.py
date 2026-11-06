@@ -38,7 +38,7 @@ class AudioTests(unittest.TestCase):
         self.assertTrue(result["overall_success"])
         self.assertEqual(misty.actions[0][0], "speak")
         self.assertEqual(misty.actions[0][1]["Text"], "Hello!")
-        self.assertEqual(misty.actions[0][1]["voice"], DEFAULT_CHILD_VOICE)
+        self.assertEqual(misty.actions[0][1]["Voice"], DEFAULT_CHILD_VOICE)
         self.assertEqual(log.records[0][1]["voice"], DEFAULT_CHILD_VOICE)
 
     def test_speak_text_uses_configured_voice(self) -> None:
@@ -47,7 +47,7 @@ class AudioTests(unittest.TestCase):
 
         speak_text(misty, cfg, "Hi there.")
 
-        self.assertEqual(misty.actions[0][1]["voice"], "Justin")
+        self.assertEqual(misty.actions[0][1]["Voice"], "Justin")
 
 
 if __name__ == "__main__":

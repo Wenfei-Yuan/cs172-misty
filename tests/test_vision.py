@@ -39,7 +39,7 @@ class VisionUtilsTests(unittest.TestCase):
         original_constructor = openai_client.openai.OpenAI
 
         def fake_constructor(*, api_key: str, timeout: float, max_retries: int):
-            client = object()
+            client = SimpleNamespace(chat=object())
             created.append((api_key, timeout, max_retries, client))
             return client
 

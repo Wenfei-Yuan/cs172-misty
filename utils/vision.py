@@ -170,53 +170,6 @@ def _data_uri(frame: FrameCaptureResult) -> str:
     return f"data:{mime_type};base64,{frame.base64}"
 
 
-def analyze_screen_capture(frame: FrameCaptureResult, cfg) -> VisionCheckResult:
-    if not frame.ok:
-        return VisionCheckResult(ok=False, status="capture_error", reason=frame.reason)
-    try:
-        client = get_openai_client(cfg)
-        prepared_frame = _prepare_vision_frame(frame, cfg)
-        result = client.chat.completions.create(
-            model=_vision_model(cfg),
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": (
-                                "Check this camera frame from a robot. "
-                                "Reply with exactly one label: aligned, visible, or none. "
-                                "Use aligned when a computer monitor or screen is clearly visible "
-                                "and the robot is reasonably facing it. "
-                                "Use visible when a monitor or screen is present but not aligned well yet. "
-                                "Use none when no monitor or screen is visible."
-                            ),
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": _data_uri(prepared_frame)},
-                        },
-                    ],
-                }
-            ],
-        )
-        message = result.choices[0].message.content
-        if not isinstance(message, str):
-            return VisionCheckResult(ok=False, status="vlm_error", reason="non_string_response")
-        normalized = message.strip().lower()
-        print("Screen VLM response:", normalized)
-        if re.search(r'\baligned\b', normalized):
-            return VisionCheckResult(ok=True, status="aligned", model_output=message)
-        if re.search(r'\bvisible\b', normalized):
-            return VisionCheckResult(ok=True, status="visible", reason="screen_visible_not_centered", model_output=message)
-        if re.search(r'\bnone\b', normalized):
-            return VisionCheckResult(ok=True, status="no_screen", model_output=message)
-        return VisionCheckResult(ok=False, status="vlm_error", reason=f"unexpected_response:{normalized}", model_output=message)
-    except Exception as exc:
-        return VisionCheckResult(ok=False, status="vlm_error", reason=str(exc))
-
-
 def analyze_gaze_capture(frame: FrameCaptureResult, cfg) -> VisionCheckResult:
     if not frame.ok:
         return VisionCheckResult(ok=False, status="capture_error", reason=frame.reason)

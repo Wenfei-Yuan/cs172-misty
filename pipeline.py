@@ -5,7 +5,7 @@ from stages.bootup import run_bootup
 from stages.distraction import run_staged_distraction
 from stages.screen_watch import run_screen_watch, default_screen_position
 from stages.summary import run_summary
-from utils.audio import ensure_audio_ready, speak_text
+from utils.audio import ensure_audio_ready
 from utils.head_control import look_at_screen
 from utils.session_id import generate_session_id
 from utils.session_log import SessionLog
@@ -44,7 +44,6 @@ def run(misty, cfg: Config) -> None:
 
     screen_pos = None
     attempt = 0
-    screen_search_retries = 0
     skip_screen_watch_once = False
 
     try:
@@ -60,17 +59,6 @@ def run(misty, cfg: Config) -> None:
                 skip_screen_watch_once = False
             else:
                 screen_pos = run_screen_watch(misty, cfg, log, screen_pos)
-                if screen_pos is None:
-                    screen_search_retries += 1
-                    if screen_search_retries >= 3:
-                        log.record("screen_search_exhausted", retries=screen_search_retries)
-                        speak_text(misty, cfg, "I'm having trouble seeing your screen. Let me try a default position.",
-                                   log=log, stage="screen_fallback")
-                        screen_pos = default_screen_position(cfg)
-                        screen_search_retries = 0
-                    else:
-                        log.record("screen_retry_pending", attempt=screen_search_retries)
-                    continue
 
             log.record("waiting_for_start_signal")
             start_signal = signal_rx.wait_for_start()

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import time
+
 from utils.audio import speak_text
 from utils.expressions import CLOSE_FACE, SPEAKING_FACE, arm_gesture, show_image
+from utils.head_control import reset_arms_down, reset_head
 
 
 def _regenerate_csvs() -> None:
@@ -21,3 +24,6 @@ def run_summary(misty, cfg, log) -> None:
     arm_gesture(misty, "wave")
     log.save_to_file()
     _regenerate_csvs()
+    time.sleep(cfg.summary_gesture_hold_s)
+    reset_head(misty, cfg)
+    reset_arms_down(misty, cfg)

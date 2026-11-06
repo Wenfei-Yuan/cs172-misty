@@ -47,6 +47,17 @@ def reset_arms_down(misty, cfg) -> None:
                LeftArmVelocity=60, RightArmVelocity=60)
 
 
+def reset_head(misty, cfg) -> None:
+    _head_move(
+        misty,
+        timeout_s=max(0.1, float(getattr(cfg, "robot_action_timeout_s", _ACTION_TIMEOUT_S))),
+        Pitch=0,
+        Roll=0,
+        Yaw=0,
+        Velocity=int(getattr(cfg, "head_reset_velocity", 60)),
+    )
+
+
 def _estimate_motion_duration_s(start_deg: float, target_deg: float, velocity_deg_per_s: float) -> float:
     safe_velocity = max(1.0, float(velocity_deg_per_s))
     return abs(float(target_deg) - float(start_deg)) / safe_velocity

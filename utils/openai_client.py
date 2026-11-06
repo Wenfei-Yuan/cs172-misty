@@ -17,7 +17,7 @@ def _openai_max_retries(cfg) -> int:
 def _cached_openai_client(api_key: str, timeout_s: float, max_retries: int):
     client = openai.OpenAI(api_key=api_key, timeout=timeout_s, max_retries=max_retries)
     # Pre-warm the lazy @cached_property imports so they don't hang on the first
-    # VLM call during screen search.  Accessing .chat triggers the import of
+    # OpenAI call.  Accessing .chat triggers the import of
     # openai.resources (and all its sub-packages) synchronously right now,
     # before any background threads are running.
     _ = client.chat  # noqa: F841

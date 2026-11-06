@@ -53,8 +53,14 @@ The cs172-misty project is a **Misty II social robot focus companion** designed 
 │                                                    │
 │  1. BOOTUP (stages/bootup.py)                      │
 │     ├─ Show boot face                              │
+│     ├─ Lower arms, reset head to neutral, settle   │
 │     ├─ Speak greeting                              │
-│     ├─ Find screen via VLM grid search             │
+│     ├─ Say "I'm looking for your screen now."      │
+│     ├─ Wait bootup_intro_speech_wait_s for speech  │
+│     ├─ Turn head to config screen_yaw/screen_pitch │
+│     │  (+45 = left), wait screen_settle_s          │
+│     ├─ Hold bootup_screen_hold_s                   │
+│     ├─ Say "I've found the screen!" + start reading│
 │     └─ Return screen_pos                           │
 │                                                    │
 │  2. MAIN LOOP (while True):                        │
@@ -62,10 +68,7 @@ The cs172-misty project is a **Misty II social robot focus companion** designed 
 │     ├─ Check for shutdown                          │
 │     │                                              │
 │     ├─ SCREEN WATCH (stages/screen_watch.py)       │
-│     │   ├─ If cached screen_pos: reuse             │
-│     │   ├─ Else: VLM grid search (coarse + fine)   │
-│     │   ├─ Confirm alignment with VLM              │
-│     │   ├─ If failed 3x: use default position      │
+│     │   ├─ Turn head back to known screen_pos      │
 │     │   └─ Skipped once immediately after a real   │
 │     │      stop so the robot returns directly to   │
 │     │      waiting                                 │
@@ -115,8 +118,9 @@ The cs172-misty project is a **Misty II social robot focus companion** designed 
 │     │                                              │
 │  3. SUMMARY (stages/summary.py)                    │
 │     ├─ Generate and speak session summary          │
-│     ├─ Save session log as JSON                    │
-│     └─ Show closing face                           │
+│     ├─ Show closing face and wave                  │
+│     ├─ Save session log as JSON, regenerate CSVs   │
+│     └─ Reset head to neutral and lower arms        │
 └───────────────────────────────────────────────────┘
 ```
 
@@ -139,11 +143,11 @@ The cs172-misty project is a **Misty II social robot focus companion** designed 
 ### Stages (pipeline steps)
 | File | Role |
 |------|------|
-| `stages/bootup.py` | One-time init: greeting, screen detection |
-| `stages/screen_watch.py` | VLM-based screen position search (coarse + fine grid) |
+| `stages/bootup.py` | One-time init: resets head and arms, greeting, scripted turn to the configured screen position (no camera/VLM) |
+| `stages/screen_watch.py` | Holds the known screen position: `default_screen_position(cfg)` and turning the head back to it |
 | `stages/distraction.py` | Threaded distraction-start motion + interrupt polling |
 | `stages/no_response_prompt.py` | OpenAI-generated focus reminder + arm cue |
-| `stages/summary.py` | Session summary speech + log save |
+| `stages/summary.py` | Session summary speech + log save, then resets head and arms |
 
 ### Utilities
 | File | Role |
@@ -155,7 +159,7 @@ The cs172-misty project is a **Misty II social robot focus companion** designed 
 | `utils/session_id.py` | UUID-based session ID generation |
 | `utils/session_log.py` | `SessionLog` class — records events, distractions, saves JSON |
 | `utils/triggers.py` | `ExternalSignalReceiver` (HTTP event server), `StubTrigger` (testing) |
-| `utils/vision.py` | Camera capture from Misty, VLM analysis (screen alignment, gaze detection) |
+| `utils/vision.py` | Camera capture and VLM gaze helper; not imported by the live pipeline |
 
 ---
 
@@ -170,17 +174,11 @@ The cs172-misty project is a **Misty II social robot focus companion** designed 
 
 ## VLM (Vision-Language Model) Usage
 
-One active VLM path remains in the live pipeline:
+The live pipeline no longer uses a VLM or Misty's camera. The robot is positioned by hand before each session, and bootup turns its head to the fixed `screen_yaw` / `screen_pitch` from `config.py`, then announces that it found the screen.
 
-1. **Screen Alignment** (`analyze_screen_capture`): Classifies camera frame as `aligned`, `visible`, or `none` — used during screen search grid
+Yaw sign: `+` turns the robot's head to its left, `-` to its right, `0` is straight ahead. The screen is at `+45` (left); the participant is at `distraction_user_turn_yaw_deg = -45` (right).
 
-The distraction stage no longer uses live VLM gaze detection; it now uses a fixed distraction-start motion followed by stop/timeout confirmation logic in `pipeline.py`.
-
-Both functions:
-- Capture frame from Misty's RGB camera via HTTP
-- Resize/compress image (max 768px, JPEG quality 72)
-- Send to OpenAI Vision API with single-shot prompt
-- Parse response with regex for expected label
+The distraction stage does not use live VLM gaze detection either; it uses a fixed distraction-start motion followed by stop/timeout confirmation logic in `pipeline.py`. OpenAI is still used for the generated focus reminders, so `OPENAI_API_KEY` is still required.
 
 ## Session Logging
 
@@ -193,7 +191,7 @@ Both functions:
 
 - All parameters live in `config.py` as a frozen `@dataclass`
 - Loaded from `.env` file (Misty IP, OpenAI API key) + dataclass defaults
-- Includes bounded robot/speech wait settings (`robot_action_timeout_s`, `speech_timeout_s`) in addition to timing, robot motion, and VLM settings
+- Includes bounded robot/speech wait settings (`robot_action_timeout_s`, `speech_timeout_s`) in addition to timing, robot motion, and screen position (`screen_yaw`, `screen_pitch`) settings
 - Participant ID provided via `--username` CLI argument
 
 ## Running the System

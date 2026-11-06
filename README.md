@@ -1,5 +1,11 @@
 # cs172-misty
 
+## Robot placement
+
+The robot does not detect the screen. Place it before each session so that the screen is 45 degrees to its left. At bootup it turns its head to `screen_yaw` / `screen_pitch` from `config.py` and says it found the screen.
+
+Yaw sign: positive turns the robot's head to its left, negative to its right, and 0 is straight ahead.
+
 ## WebSocket protocol
 
 The WebSocket bridge runs on `ws://<host>:8765` by default.
