@@ -54,7 +54,7 @@ def reset_head(misty, cfg) -> None:
         Pitch=0,
         Roll=0,
         Yaw=0,
-        Velocity=int(getattr(cfg, "head_reset_velocity", 60)),
+        Velocity=int(getattr(cfg, "head_reset_velocity", 100)),
     )
 
 

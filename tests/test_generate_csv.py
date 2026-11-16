@@ -176,6 +176,11 @@ class ResumeStageTests(unittest.TestCase):
         self.assertEqual(row["escalated_to_voice"], 1)
         self.assertEqual(row["resume_stage"], "resumed_after_nonverbal")
 
+    def test_recap_after_a_motion_return_does_not_make_it_a_voice_resumption(self) -> None:
+        row = self._stage("head_redirect_motion", voice_prompt_used=True)
+
+        self.assertEqual(row["resume_stage"], "resumed_after_nonverbal")
+
     def test_fatigue_return_after_the_spoken_offer_is_voice(self) -> None:
         offer = {"timestamp": HIGHLIGHT, "name": "speech_attempt", "payload": {"stage": "fatigue_support"}}
 

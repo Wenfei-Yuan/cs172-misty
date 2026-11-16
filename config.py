@@ -6,6 +6,9 @@ from dataclasses import dataclass
 from misty2py.utils.env_loader import EnvLoader
 
 
+INTERVENTION_POLICIES = ("graded", "immediate")
+
+
 @dataclass(frozen=True)
 class Config:
     ip: str
@@ -55,7 +58,7 @@ class Config:
     bootup_screen_hold_s: float = 3.0
     # Bootup and summary put the head back to neutral (all axes 0), including Roll,
     # which the regular head moves never set.
-    head_reset_velocity: int = 60
+    head_reset_velocity: int = 100
     head_reset_settle_s: float = 1.5
     # Lets the summary wave finish before the arms are lowered again.
     summary_gesture_hold_s: float = 2.0
@@ -100,9 +103,24 @@ class Config:
     fatigue_default_mode: str = "para"
     fatigue_offer_enabled: bool = True
     confused_sound_name: str = "s_DisorientedConfused.wav"
+    # Phase 2 A/B switch. "graded" = current 4-stage escalation (run_staged_distraction).
+    # "immediate" = the old "study version" (commit 3803889): the robot turns to the
+    # participant at once, then no-response prompts. Unlike the old
+    # version it never ends the session by itself; only the participant ends it.
+    intervention_policy: str = "graded"
+    # Immediate policy only: sentence highlight sent to the extension when the robot
+    # redirects (the old extension highlighted for 5 s). 0 turns it off.
+    immediate_highlight_ms: int = 5000
 
 
-def load_config(participant_id: str) -> Config:
+def normalize_policy(policy: str | None) -> str:
+    value = (policy or "graded").strip().lower()
+    if value not in INTERVENTION_POLICIES:
+        raise ValueError(f"intervention policy must be one of {INTERVENTION_POLICIES}, got {policy!r}")
+    return value
+
+
+def load_config(participant_id: str, intervention_policy: str | None = None) -> Config:
     env_loader = EnvLoader()
     ip = (env_loader.get_ip() or "").strip()
     openai_key = (os.getenv("OPENAI_API_KEY") or env_loader.values.get("OPENAI_API_KEY") or "").strip()
@@ -110,4 +128,9 @@ def load_config(participant_id: str) -> Config:
         raise EnvironmentError("MISTY_IP_ADDRESS not set in .env")
     if not openai_key:
         raise EnvironmentError("OPENAI_API_KEY not set in .env")
-    return Config(ip=ip, openai_api_key=openai_key, participant_id=participant_id)
+    return Config(
+        ip=ip,
+        openai_api_key=openai_key,
+        participant_id=participant_id,
+        intervention_policy=normalize_policy(intervention_policy),
+    )

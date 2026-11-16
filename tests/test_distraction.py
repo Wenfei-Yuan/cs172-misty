@@ -403,7 +403,7 @@ class StagedReturnTests(_StagedTestCase):
         self.assertEqual(self.log.total_voice_prompts, 0)
         self.assertEqual(len(self.reading_mode_offers), 1, "stage 4 is reached")
 
-    def test_stage3_return_during_head_motion(self) -> None:
+    def test_stage3_return_during_head_motion_highlights_then_speaks_after_the_delay(self) -> None:
         seen = {}
 
         def on_head(stop_event):
@@ -412,14 +412,77 @@ class StagedReturnTests(_StagedTestCase):
 
         self.on_head = on_head
 
-        result = self.run_staged(self.cfg())
+        result = self.run_staged(self.cfg(recap_delay_after_return_s=0.2))
 
         self.assertTrue(seen["interrupted"], "the motion must be interrupted")
         self.assertEqual(result.outcome, "stop")
-        self.assertEqual(self.event()["recovered_at_stage"], "head_redirect_motion")
+        event = self.event()
+        self.assertEqual(event["recovered_at_stage"], "head_redirect_motion")
         self.assertHighlightedOnce("stage3_motion_return")
-        self.assertNoRecap()
         self.assertEqual(self.arm_runs, [], "the arm cue must not start after the interruption")
+
+        self.assertEqual(self.spoken, ["LLM recap."])
+        self.assertLess(self.timeline.index("highlight"), self.timeline.index("speak"))
+        self.assertEqual(self.timeline[self.timeline.index("speak") - 1], distraction.SPEAKING_FACE)
+        self.assertEqual(self.generations, ["current sentence"], "the recap prepared at stage start is reused")
+        self.assertEqual(event["post_return_recap"]["status"], "played")
+        self.assertGreaterEqual(event["post_return_recap"]["delay_from_return_s"], 0.2)
+        self.assertEqual(self.log.total_voice_prompts, 1)
+        attempt = next(e for e in self.log.events if e["name"] == "speech_attempt")
+        self.assertFalse(attempt["payload"]["interrupted"], "the latched stop must not cancel the recap")
+
+    def _return_during_head_motion(self, stop_event) -> None:
+        self.rx._enqueue("stop")
+        stop_event.wait(self.LONG_WAIT_S)
+
+    def test_start_after_motion_return_cancels_the_recap_and_stays_queued(self) -> None:
+        self.on_head = self._return_during_head_motion
+        self.on_highlight = lambda: self.rx._enqueue("start")
+
+        self.run_staged(self.cfg(recap_delay_after_return_s=self.LONG_WAIT_S))
+
+        event = self.event()
+        self.assertEqual(self.spoken, [])
+        self.assertEqual(event["post_return_recap"]["status"], "cancelled_new_disengagement")
+        self.assertEqual(event["recovered_at_stage"], "head_redirect_motion")
+        self.assertEqual(event["resumption_support_interrupted_at"], "before_recap")
+        self.assertTrue(self.rx.has_pending_start())
+
+    def test_start_during_speech_after_motion_return_does_not_interrupt_it(self) -> None:
+        self.on_head = self._return_during_head_motion
+        self.on_speak = lambda: self.rx._enqueue("start")
+
+        self.run_staged(self.cfg())
+
+        event = self.event()
+        self.assertEqual(self.spoken, ["LLM recap."])
+        self.assertEqual(event["post_return_recap"]["status"], "played")
+        self.assertTrue(event["disengaged_during_recap"])
+        self.assertEqual(event["resumption_support_interrupted_at"], "during_recap")
+
+    def test_generation_timeout_after_motion_return_uses_the_fallback(self) -> None:
+        release = threading.Event()
+        self.addCleanup(release.set)
+        self.generate = lambda text, cfg: release.wait(self.LONG_WAIT_S)
+        self.on_head = self._return_during_head_motion
+
+        self.run_staged(self.cfg())
+
+        self.assertEqual(self.spoken, [fallback_focus_prompt("x").reminder])
+        self.assertIs(self.event()["post_return_recap"]["used_fallback"], True)
+
+    def test_shutdown_during_stage3_motion_speaks_nothing(self) -> None:
+        def on_head(stop_event):
+            self.rx._enqueue("shutdown")
+            stop_event.wait(self.LONG_WAIT_S)
+
+        self.on_head = on_head
+
+        result = self.run_staged(self.cfg())
+
+        self.assertEqual(result.outcome, "shutdown")
+        self.assertEqual(self.highlights, [])
+        self.assertNoRecap()
 
     def test_stage3_return_during_arm_cue_lowers_the_arm(self) -> None:
         def on_arm(stop_event):
@@ -433,7 +496,8 @@ class StagedReturnTests(_StagedTestCase):
         self.assertEqual(self.event()["recovered_at_stage"], "head_redirect_motion")
         self.assertEqual(self.arm_resets, [True])
         self.assertHighlightedOnce("stage3_motion_return")
-        self.assertNoRecap()
+        self.assertEqual(self.spoken, ["LLM recap."])
+        self.assertEqual(self.event()["post_return_recap"]["status"], "played")
 
     def test_stage3_return_during_wait_highlights_then_speaks_after_the_delay(self) -> None:
         spoken_at = {}
@@ -742,6 +806,11 @@ class PipelineReturnFlowTests(_StagedTestCase):
     def run_pipeline(self, misty=None, **overrides) -> None:
         values = {"participant_id": "p", "signal_host": "127.0.0.1", "signal_port": 0}
         values.update(overrides)
+        # A flow that stops advancing would otherwise leave pipeline.run waiting forever.
+        give_up = threading.Timer(self.LONG_WAIT_S * 2, self.rx._enqueue, args=("shutdown",))
+        give_up.daemon = True
+        give_up.start()
+        self.addCleanup(give_up.cancel)
         pipeline.run(misty or object(), self.cfg(**values))
 
     def test_start_before_recap_becomes_a_new_event_from_stage1(self) -> None:
@@ -857,7 +926,8 @@ class PipelineReturnFlowTests(_StagedTestCase):
 
     def test_head_returns_to_the_screen_exactly_once(self) -> None:
         """Real stage 3 head motion: out to the participant, then one move back."""
-        self.end_of_session_after = 1
+        self.end_of_session_after = None
+        self.on_speak = lambda: self.rx._enqueue("shutdown")
         head_moves = []
 
         class FakeMisty:
@@ -871,8 +941,9 @@ class PipelineReturnFlowTests(_StagedTestCase):
             self.rx._enqueue("start")
             self.run_pipeline(misty=FakeMisty())
 
-        self.assertEqual(head_moves, [-45.0, 45.0])
+        self.assertEqual(head_moves, [-45.0, 45.0], "the recap adds no head movement")
         self.assertEqual(self.event()["recovered_at_stage"], "head_redirect_motion")
+        self.assertEqual(self.spoken, ["LLM recap."])
 
 
 if __name__ == "__main__":

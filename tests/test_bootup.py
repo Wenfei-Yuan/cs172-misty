@@ -64,7 +64,7 @@ class BootupTests(unittest.TestCase):
             ],
             [
                 ("image_show", {"FileName": bootup.BOOT_FACE}),
-                ("head_move", {"Pitch": 0, "Roll": 0, "Yaw": 0, "Velocity": 60}),
+                ("head_move", {"Pitch": 0, "Roll": 0, "Yaw": 0, "Velocity": 100}),
                 ("speak", "Hello! I'm Misty. Let's focus today!"),
                 ("speak", "I'm looking for your screen now."),
                 ("head_move", {"Yaw": 45.0, "Pitch": 0.0, "Velocity": 90}),
@@ -91,7 +91,7 @@ class BootupTests(unittest.TestCase):
         head_index = names.index("head_move")
         self.assertEqual(
             self.timeline[head_index],
-            ("head_move", {"Pitch": 0, "Roll": 0, "Yaw": 0, "Velocity": 60}),
+            ("head_move", {"Pitch": 0, "Roll": 0, "Yaw": 0, "Velocity": 100}),
         )
         self.assertEqual(self.timeline[head_index + 1], ("sleep", self.cfg.head_reset_settle_s))
         self.assertLess(head_index, names.index("speak"))

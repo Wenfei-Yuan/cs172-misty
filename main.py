@@ -8,8 +8,9 @@ env_loader = EnvLoader()
 #print(response.parse_to_dict())
 
 import argparse
+import os
 
-from config import load_config
+from config import INTERVENTION_POLICIES, load_config
 from pipeline import run
 
 
@@ -22,6 +23,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--participant",
         help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        "--policy",
+        choices=INTERVENTION_POLICIES,
+        default=(os.getenv("INTERVENTION_POLICY") or "graded").strip().lower(),
+        help="graded = current 4-stage version (default); immediate = old study version",
     )
     return parser
 
@@ -52,4 +59,5 @@ def _resolve_username(args: argparse.Namespace) -> str:
 if __name__ == "__main__":
     args = _build_parser().parse_args()
     username = _resolve_username(args)
-    run(_build_misty(), load_config(username))
+    print(f"Intervention policy: {args.policy}")
+    run(_build_misty(), load_config(username, args.policy))

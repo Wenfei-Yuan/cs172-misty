@@ -94,18 +94,14 @@ class PipelineCycleTests(unittest.TestCase):
             "run_staged_distraction": pipeline.run_staged_distraction,
             "run_summary": pipeline.run_summary,
             "ensure_audio_ready": pipeline.ensure_audio_ready,
+            # pipeline imports run_no_response for the immediate policy, so restore
+            # it instead of deleting it.
+            "run_no_response": pipeline.run_no_response,
         }
 
     def tearDown(self) -> None:
         for name, value in self.originals.items():
             setattr(pipeline, name, value)
-        # Clean up injected attributes not originally on pipeline
-        for attr in ("run_no_response",):
-            if hasattr(pipeline, attr):
-                try:
-                    delattr(pipeline, attr)
-                except AttributeError:
-                    pass
 
     def test_pipeline_rearms_for_multiple_distractions(self) -> None:
         calls = {

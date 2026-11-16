@@ -272,10 +272,7 @@ def _run_stage_in_thread(motion_fn, stop_event, consume_interrupt) -> str | None
 
 
 class _RecapGeneration:
-    """Generates the recap in the background so it can be spoken right after a return.
-
-    The result is simply left unused when the participant returns during the motion.
-    """
+    """Generates the recap in the background so it can be spoken right after a return."""
 
     def __init__(self, reading_text: str, cfg):
         self.reading_text = reading_text
@@ -315,7 +312,7 @@ def _recap_cancel_reason(signal_rx) -> str | None:
 
 
 def _deliver_post_return_recap(misty, cfg, log, generation: _RecapGeneration, reengaged_at: str, signal_rx) -> None:
-    """Speak the recap after a return during the stage 3 wait.
+    """Speak the recap after a return during stage 3.
 
     The delay runs from the stop itself. No stop_event is passed to the speech: it is
     still set by that same stop, and the recap is never interrupted once it starts.
@@ -491,7 +488,8 @@ def run_staged_distraction(
         return StagedDistractionResult(outcome="shutdown", stages_completed=stages_done)
     if interrupt == "stop":
         log.record("head_redirect_only_interrupted")
-        _end_at_return("head_redirect_motion", highlight_source="stage3_motion_return")
+        reengaged_at = _end_at_return("head_redirect_motion", highlight_source="stage3_motion_return")
+        _deliver_post_return_recap(misty, cfg, log, recap_generation, reengaged_at, signal_rx)
         return StagedDistractionResult(outcome="stop", stages_completed=stages_done)
     log.record("head_redirect_only_completed")
     stages_done += 1

@@ -13,8 +13,9 @@ import os
 import subprocess
 import sys
 import threading
+import time
 from datetime import datetime
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib import error, request
 
 HOST = "0.0.0.0"
@@ -25,6 +26,54 @@ BRIDGE_HTTP_PORT = int(os.getenv("BRIDGE_HTTP_PORT", "9877"))
 
 _pipeline_proc: subprocess.Popen | None = None
 _pipeline_lock = threading.Lock()
+_pipeline_username: str | None = None
+_pipeline_started_at: str | None = None
+_stopping = False
+
+# Phase 2 A/B switch. The researcher picks the version once on this page; every
+# session started afterwards (from here or from the participant /baseline page)
+# runs main.py with that --policy. Saved to a file so a restart keeps it.
+POLICIES = ("graded", "immediate")
+POLICY_FILE = os.getenv(
+    "POLICY_FILE",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "sessions", "intervention_policy.txt"),
+)
+_pipeline_policy: str | None = None
+
+
+def _load_policy() -> str:
+    try:
+        with open(POLICY_FILE, encoding="utf-8") as fh:
+            value = fh.read().strip().lower()
+        if value in POLICIES:
+            return value
+    except OSError:
+        pass
+    value = (os.getenv("INTERVENTION_POLICY") or "graded").strip().lower()
+    return value if value in POLICIES else "graded"
+
+
+def _save_policy(value: str) -> None:
+    os.makedirs(os.path.dirname(POLICY_FILE), exist_ok=True)
+    with open(POLICY_FILE, "w", encoding="utf-8") as fh:
+        fh.write(value + "\n")
+
+
+_current_policy = _load_policy()
+
+
+def _set_policy(value: str) -> tuple[bool, str]:
+    global _current_policy
+    value = (value or "").strip().lower()
+    if value not in POLICIES:
+        return False, f"policy must be one of {POLICIES}"
+    with _pipeline_lock:
+        _current_policy = value
+    try:
+        _save_policy(value)
+    except OSError as exc:
+        return True, f"policy set to {value} (not saved to file: {exc})"
+    return True, f"policy set to {value}"
 
 
 def _send_shutdown() -> tuple[bool, str]:
@@ -72,42 +121,80 @@ def _find_python() -> str:
     return sys.executable
 
 
-def _start_pipeline(username: str) -> tuple[bool, str]:
-    global _pipeline_proc
+def _status() -> dict:
+    with _pipeline_lock:
+        running = _pipeline_proc is not None and _pipeline_proc.poll() is None
+        return {
+            "running": running,
+            "stopping": running and _stopping,
+            "pid": _pipeline_proc.pid if running else None,
+            "username": _pipeline_username if running else None,
+            "started_at": _pipeline_started_at if running else None,
+            "running_policy": _pipeline_policy if running else None,
+            "policy": _current_policy,
+        }
+
+
+def _start_pipeline(username: str, policy: str | None = None) -> tuple[bool, str]:
+    global _pipeline_proc, _pipeline_username, _pipeline_started_at, _stopping, _pipeline_policy
     with _pipeline_lock:
         if _pipeline_proc and _pipeline_proc.poll() is None:
             return False, "Pipeline already running"
+        policy = (policy or _current_policy).strip().lower()
+        if policy not in POLICIES:
+            return False, f"policy must be one of {POLICIES}"
         script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "main.py")
         python = _find_python()
         _pipeline_proc = subprocess.Popen(
-            [python, script, "--username", username],
+            [python, script, "--username", username, "--policy", policy],
             cwd=os.path.dirname(os.path.abspath(__file__)),
         )
+        _pipeline_username = username
+        _pipeline_policy = policy
+        _pipeline_started_at = datetime.now().astimezone().isoformat()
+        _stopping = False
     _notify_bridge_recording("start", username, datetime.now().astimezone().isoformat())
-    return True, f"Pipeline started (PID {_pipeline_proc.pid})"
+    return True, f"Pipeline started (PID {_pipeline_proc.pid}, {policy})"
 
 
 def _stop_pipeline() -> tuple[bool, str]:
-    global _pipeline_proc
+    """Ask the pipeline to shut down and wait for it to exit on its own.
+
+    No timeout and no kill: the summary stage speaks, waves and then saves the
+    session log, and killing it early would lose that log. Calling this twice
+    (participant page + researcher) is safe: the second call waits for the same
+    process.
+    """
+    global _pipeline_proc, _stopping
     with _pipeline_lock:
-        if not _pipeline_proc or _pipeline_proc.poll() is not None:
+        proc = _pipeline_proc
+        if not proc or proc.poll() is not None:
             _pipeline_proc = None
             return False, "No running pipeline"
-    ok, detail = _send_shutdown()
-    # Wait for the process to actually exit
+        already_stopping = _stopping
+        _stopping = True
+    if already_stopping:
+        ok, detail = True, "shutdown already requested"
+    else:
+        ok, detail = _send_shutdown()
+        for _ in range(3):
+            if ok or proc.poll() is not None:
+                break
+            time.sleep(1)
+            ok, detail = _send_shutdown()
+        if not ok and proc.poll() is None:
+            # The pipeline never got the shutdown request; waiting would hang
+            # forever. Leave it running and report, so the researcher can retry.
+            with _pipeline_lock:
+                _stopping = False
+            return False, f"Shutdown request failed, pipeline still running: {detail}"
+    proc.wait()
     with _pipeline_lock:
-        if _pipeline_proc is not None:
-            try:
-                _pipeline_proc.wait(timeout=8)
-            except subprocess.TimeoutExpired:
-                _pipeline_proc.terminate()
-                try:
-                    _pipeline_proc.wait(timeout=3)
-                except subprocess.TimeoutExpired:
-                    _pipeline_proc.kill()
-                    _pipeline_proc.wait(timeout=2)
+        if _pipeline_proc is proc:
             _pipeline_proc = None
-    _notify_bridge_recording("stop", session_ts=datetime.now().astimezone().isoformat())
+        _stopping = False
+    if not already_stopping:
+        _notify_bridge_recording("stop", session_ts=datetime.now().astimezone().isoformat())
     return ok, detail
 
 
@@ -168,6 +255,10 @@ HTML_PAGE = """\
     transition: border-color 0.2s;
     margin-bottom: 24px;
   }
+  select {
+    width: 100%; padding: 12px 16px; border: 2px solid #ddd; border-radius: 10px;
+    font-size: 15px; margin-bottom: 24px; background: #fff;
+  }
   input[type="text"]:focus {
     border-color: #667eea;
   }
@@ -223,6 +314,12 @@ HTML_PAGE = """\
   <div class="robot-icon">🤖</div>
   <h1>Misty Controller</h1>
   <p class="subtitle">Start a reading session with Misty</p>
+
+  <label for="policy">Robot version (A/B)</label>
+  <select id="policy" onchange="setPolicy(this.value)">
+    <option value="graded">Graded — current 4-stage version</option>
+    <option value="immediate">Immediate — old study version</option>
+  </select>
 
   <label for="username">Username</label>
   <input type="text" id="username" placeholder="e.g. wenfei" autocomplete="off">
@@ -335,6 +432,21 @@ function sendCamFrames() {
   }, 'image/jpeg', 0.6);
 }
 
+async function setPolicy(value) {
+  try {
+    const res = await fetch('/api/policy', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({policy: value})
+    });
+    const data = await res.json();
+    setStatus(data.ok ? 'Version: ' + value + ' (used by the next session)' : 'Error: ' + data.detail,
+              data.ok ? 'info' : 'err');
+  } catch (e) {
+    setStatus('Request failed: ' + e.message, 'err');
+  }
+}
+
 async function startSession() {
   const username = document.getElementById('username').value.trim();
   if (!username) {
@@ -348,7 +460,7 @@ async function startSession() {
     const res = await fetch('/api/start', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username: username})
+      body: JSON.stringify({username: username, policy: document.getElementById('policy').value})
     });
     const data = await res.json();
     if (data.ok) {
@@ -390,6 +502,38 @@ async function stopSession() {
   }, 2000);
 }
 
+// Poll the backend so sessions started or ended from the participant
+// reading page (/baseline on the bridge) show up here too.
+async function pollStatus() {
+  try {
+    const res = await fetch('/api/status');
+    const d = await res.json();
+    const btnStart = document.getElementById('btnStart');
+    const btnStop = document.getElementById('btnStop');
+    const user = document.getElementById('username');
+    const pol = document.getElementById('policy');
+    if (document.activeElement !== pol && d.policy) pol.value = d.policy;
+    pol.disabled = !!d.running;
+    if (d.running) {
+      btnStart.disabled = true;
+      btnStop.disabled = !!d.stopping;
+      user.disabled = true;
+      if (d.username && !user.value) user.value = d.username;
+      setStatus(d.stopping ? 'Ending session... waiting for Misty to finish 👋'
+                           : 'Session running: ' + d.username + ' [' + d.running_policy + '] (PID ' + d.pid + ', since ' + (d.started_at || '').slice(11, 19) + ')',
+                d.stopping ? 'info' : 'ok');
+    } else if (btnStart.disabled && !btnStop.disabled) {
+      // finished elsewhere
+      btnStart.disabled = false;
+      btnStop.disabled = true;
+      user.disabled = false;
+      setStatus('No session running', 'info');
+    }
+  } catch (e) {}
+}
+setInterval(pollStatus, 2000);
+pollStatus();
+
 // Auto-connect to camera bridge server on page load
 connectBridge();
 </script>
@@ -400,6 +544,9 @@ connectBridge();
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
+        if self.path == "/api/status":
+            self._json_response(200, {"ok": True, **_status()})
+            return
         if self.path == "/" or self.path == "/index.html":
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -422,8 +569,16 @@ class Handler(BaseHTTPRequestHandler):
             if not username:
                 self._json_response(400, {"ok": False, "detail": "username required"})
                 return
-            ok, detail = _start_pipeline(username)
+            ok, detail = _start_pipeline(username, payload.get("policy"))
             self._json_response(200 if ok else 409, {"ok": ok, "detail": detail})
+
+        elif self.path == "/api/policy":
+            try:
+                payload = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                payload = {}
+            ok, detail = _set_policy(str(payload.get("policy", "")))
+            self._json_response(200 if ok else 400, {"ok": ok, "detail": detail, "policy": _current_policy})
 
         elif self.path == "/api/stop":
             ok, detail = _stop_pipeline()
@@ -443,9 +598,10 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = HTTPServer((HOST, PORT), Handler)
+    server = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"Misty Web Controller running at http://{HOST}:{PORT}")
     print("Open this URL in your browser to control the robot.")
+    print(f"Robot version (A/B policy): {_current_policy}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

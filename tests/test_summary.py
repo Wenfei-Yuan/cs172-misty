@@ -75,7 +75,7 @@ class SummaryTests(unittest.TestCase):
                 ("save_log", None),
                 ("csv", None),
                 ("sleep", self.cfg.summary_gesture_hold_s),
-                ("head_move", {"Pitch": 0, "Roll": 0, "Yaw": 0, "Velocity": 60}),
+                ("head_move", {"Pitch": 0, "Roll": 0, "Yaw": 0, "Velocity": 100}),
                 ("arms_move", {
                     "LeftArmPosition": 80,
                     "RightArmPosition": 80,
