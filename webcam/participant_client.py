@@ -612,6 +612,19 @@ async def calibrate_reference_pose(cap):
     }
 
 
+async def _report_camera_error(websocket, reason: str) -> None:
+    """Tell server.py the camera did not start, so the reading page can show it."""
+    try:
+        await websocket.send(json.dumps({
+            "source": "webcam",
+            "type": "camera_error",
+            "reason": reason,
+            "timestamp": time.time(),
+        }))
+    except Exception as exc:
+        print(f"无法上报摄像头错误 ({reason}): {exc}")
+
+
 async def run_client():
     cap = None
     camera_active = asyncio.Event()
@@ -688,6 +701,7 @@ async def run_client():
                             if not cap.isOpened():
                                 print("无法打开摄像头，等待重试...")
                                 camera_active.clear()
+                                await _report_camera_error(websocket, "camera_open_failed")
                                 continue
 
                             calibration = await calibrate_reference_pose(cap)
@@ -696,6 +710,7 @@ async def run_client():
                                 cap.release()
                                 cap = None
                                 camera_active.clear()
+                                await _report_camera_error(websocket, "calibration_failed")
                                 continue
 
                             reference_yaw = calibration["reference_yaw"]

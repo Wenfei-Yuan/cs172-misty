@@ -354,12 +354,67 @@ def unregister_client(websocket) -> None:
         _log("server", "console", "[对照组] webcam 已断开")
 
 
+# ── Camera status (for the participant reading page) ──────────────────
+# The participant page asks "did the camera really start?". participant_client
+# reports calibration_complete (camera opened + calibrated) or camera_error.
+# Every start_camera that reaches the webcam opens a new attempt; a repeated
+# start_camera while the camera is already on keeps the current result.
+camera_status = {
+    "camera_on": False,
+    "attempt_started_at": None,
+    "calibrated_at": None,
+    "error": None,
+    "error_at": None,
+}
+
+
+def note_camera_command(cmd_type: str | None) -> None:
+    if cmd_type == "start_camera":
+        if not camera_status["camera_on"] or camera_status["error"]:
+            camera_status.update(
+                camera_on=True,
+                attempt_started_at=_local_iso(),
+                calibrated_at=None,
+                error=None,
+                error_at=None,
+            )
+    elif cmd_type == "stop_camera":
+        camera_status["camera_on"] = False
+
+
+def note_webcam_report(payload: dict) -> bool:
+    msg_type = payload.get("type")
+    if msg_type == "calibration_complete":
+        camera_status.update(calibrated_at=_local_iso(), error=None, error_at=None)
+        return True
+    if msg_type == "camera_error":
+        camera_status.update(
+            error=str(payload.get("reason") or "camera_error"),
+            error_at=_local_iso(),
+            camera_on=False,
+        )
+        return True
+    return False
+
+
+def camera_status_snapshot() -> dict:
+    return {
+        "ok": True,
+        "type": "camera_status",
+        "webcam_connected": role_clients.get("webcam") is not None,
+        "control_mode": CONTROL_MODE,
+        **camera_status,
+    }
+
+
 async def send_role_command(role: str, payload: dict) -> tuple[bool, str]:
     target = role_clients.get(role)
     if target is None:
         return False, f"{role}_not_connected"
     try:
         await target.send(json.dumps(payload))
+        if role == "webcam":
+            note_camera_command(payload.get("type"))
         return True, "ok"
     except websockets.ConnectionClosed:
         unregister_client(target)
@@ -832,6 +887,14 @@ async def handler(websocket):
             try:
                 _payload = json.loads(message.strip())
                 _msg_type = _payload.get("type")
+                if _msg_type == "camera_status":
+                    await websocket.send(json.dumps(camera_status_snapshot()))
+                    continue
+                if source_role == "webcam" and note_webcam_report(_payload):
+                    _log("webcam", "server", f"摄像头状态更新: {_msg_type}")
+                    if _msg_type == "camera_error":
+                        await websocket.send(json.dumps({"ok": True, "type": "camera_error_ack"}))
+                        continue
                 if isinstance(_msg_type, str) and _msg_type.startswith("control_session_"):
                     result = await handle_control_session_command(_payload)
                     _log("server", source_role, f"WebSocket 定向发送 -> {source_role}: {json.dumps(result, ensure_ascii=False)}")
@@ -841,6 +904,7 @@ async def handler(websocket):
                     webcam_ws = role_clients.get("webcam")
                     if webcam_ws is not None and webcam_ws is not websocket:
                         await webcam_ws.send(message)
+                        note_camera_command(_msg_type)
                         _log("server", "webcam", f"已转发指令: {_msg_type}")
                         await websocket.send(json.dumps({"ok": True, "type": _msg_type, "relayed": True}))
                     else:

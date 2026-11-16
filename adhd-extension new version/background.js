@@ -81,7 +81,10 @@ chrome.action.onClicked.addListener(async (tab) => {
     return chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["reader.js"] })
       .then(() => chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["modes.js"] }))
       .then(() => chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["phases.js"] }))
-      .then(() => chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["logger.js"] }));
+      .then(() => chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["logger.js"] }))
+      // Study reading pages only (the script checks for the page marker itself):
+      // puts Start Reading / End Reading on top of the reader overlay.
+      .then(() => chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["study_controls.js"] }));
   })
   .catch(err => console.error("[ADHD Reader] Injection failed:", err));
 });

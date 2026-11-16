@@ -589,6 +589,101 @@ def _send_control_session_via_server(action: str, username: str = "") -> dict:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  Participant-controlled reading flow (/baseline -> /read/<X> -> quiz)
+# ═══════════════════════════════════════════════════════════════════════════
+from reading_flow import ReadingFlow  # noqa: E402
+
+WEB_CONTROLLER_URL = os.getenv("WEB_CONTROLLER_URL", "http://127.0.0.1:8080").rstrip("/")
+QUIZ_URLS = {
+    # Qualtrics links; ?pid=&cond=&passage= are appended. Empty -> local /done page.
+    "aria": os.getenv("QUIZ_URL_ARIA", "").strip(),
+    "baseline": os.getenv("QUIZ_URL_BASELINE", "").strip(),
+}
+
+
+def _http_json(method: str, url: str, payload: dict | None = None, timeout: float | None = 10) -> tuple[int, dict]:
+    from urllib import request as _rq, error as _er
+    data = json.dumps(payload or {}).encode() if method == "POST" else None
+    req = _rq.Request(url, data=data, method=method)
+    req.add_header("Content-Type", "application/json")
+    try:
+        with _rq.urlopen(req, timeout=timeout) as resp:
+            return resp.status, json.loads(resp.read().decode() or "{}")
+    except _er.HTTPError as exc:
+        try:
+            return exc.code, json.loads(exc.read().decode() or "{}")
+        except Exception:
+            return exc.code, {"ok": False, "detail": str(exc)}
+    except Exception as exc:
+        return 0, {"ok": False, "detail": str(exc)}
+
+
+def _rf_query_control_status() -> dict:
+    res = _send_control_session_via_server("status")
+    if res.get("ok") or res.get("detail") == "control_mode_disabled":
+        return res
+    return {}  # server.py unreachable
+
+
+def _rf_start_pipeline(username: str) -> tuple[bool, str]:
+    code, data = _http_json("POST", f"{WEB_CONTROLLER_URL}/api/start", {"username": username}, timeout=15)
+    if code == 0:
+        return False, f"web_controller not reachable at {WEB_CONTROLLER_URL}"
+    return bool(data.get("ok")), str(data.get("detail") or "")
+
+
+def _rf_stop_pipeline() -> None:
+    # web_controller waits (no timeout) until main.py exits after its summary.
+    code, data = _http_json("POST", f"{WEB_CONTROLLER_URL}/api/stop", {}, timeout=None)
+    print(f"[reading] web_controller stop -> {code} {data}")
+
+
+def _rf_camera_command(cmd_type: str) -> bool:
+    global _camera_status
+    ok = _send_to_participant({"type": cmd_type})
+    if not ok:
+        ok = _send_camera_via_server(cmd_type)
+    if ok:
+        _camera_status = "streaming" if cmd_type == "start_camera" else "connected"
+    return ok
+
+
+def _rf_recording_command(action: str, username: str = "participant", session_ts: str = "") -> dict:
+    if PARTICIPANT_CLIENT_MODE:
+        return _send_recording_via_server(action, username, session_ts)
+    if action == "start":
+        return _request_recording_start(username, session_ts)
+    return _request_recording_stop(session_ts)
+
+
+def _rf_query_camera_status() -> dict:
+    try:
+        from websockets.sync.client import connect as ws_sync_connect
+        with ws_sync_connect(BRIDGE_WS_URL, open_timeout=3) as ws:
+            ws.send(json.dumps({"type": "camera_status"}))
+            result = json.loads(ws.recv(timeout=3))
+            return result if isinstance(result, dict) and result.get("type") == "camera_status" else {}
+    except Exception as e:
+        print(f"[reading] camera_status query failed: {e}")
+        return {}
+
+
+reading_flow = ReadingFlow(
+    query_control_status=_rf_query_control_status,
+    start_pipeline=_rf_start_pipeline,
+    stop_pipeline=_rf_stop_pipeline,
+    camera_command=_rf_camera_command,
+    recording_command=_rf_recording_command,
+    control_session=_send_control_session_via_server,
+    register_control_participant=_register_control_participant,
+    query_camera_status=_rf_query_camera_status,
+    events_path=os.path.join(_SESSIONS_DIR, "reading_events.jsonl"),
+    materials_dir=os.path.join(_dir, "reading_materials"),
+    quiz_urls=QUIZ_URLS,
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  Participant HTML page — camera is HIDDEN, controlled by researcher
 # ═══════════════════════════════════════════════════════════════════════════
 PARTICIPANT_PAGE = r"""
@@ -1133,7 +1228,7 @@ if (PARTICIPANT_CLIENT_MODE) {
 # ═══════════════════════════════════════════════════════════════════════════
 #  HTTP server — participant page + camera control API
 # ═══════════════════════════════════════════════════════════════════════════
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1526,7 +1621,22 @@ class _BridgeHTTPHandler(BaseHTTPRequestHandler):
             self._cors()
             self.end_headers()
             self.wfile.write(body)
-        elif self.path == "/baseline":
+        elif self.path.split("?", 1)[0] == "/baseline":
+            self._html(reading_flow.baseline_page())
+        elif self.path.split("?", 1)[0].startswith("/read/"):
+            passage = self.path.split("?", 1)[0][len("/read/"):].strip("/").upper()
+            page = reading_flow.reading_page(passage)
+            if page is None:
+                self.send_response(404)
+                self.end_headers()
+            else:
+                self._html(page)
+        elif self.path.split("?", 1)[0] == "/done":
+            self._html(reading_flow.done_page())
+        elif self.path == "/api/reading/status":
+            code, data = reading_flow.reading_status()
+            self._json(code, data)
+        elif self.path == "/baseline-legacy":
             page = BASELINE_PAGE.replace("__WS_PORT__", str(LOCAL_PORT)).replace("__PARTICIPANT_CLIENT_MODE__", "true" if PARTICIPANT_CLIENT_MODE else "false")
             body = page.encode("utf-8")
             self.send_response(200)
@@ -1621,6 +1731,22 @@ class _BridgeHTTPHandler(BaseHTTPRequestHandler):
                 payload = {}
             participant_id = str(payload.get("participant_id") or payload.get("username") or _control_participant_status().get("participant_id") or "").strip()
             self._json(200, _send_control_session_via_server("start", participant_id))
+        elif self.path in ("/api/session/start", "/api/reading/start", "/api/reading/end"):
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length) if length else b""
+            try:
+                payload = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                payload = {}
+            if not isinstance(payload, dict):
+                payload = {}
+            if self.path == "/api/session/start":
+                code, data = reading_flow.session_start(payload)
+            elif self.path == "/api/reading/start":
+                code, data = reading_flow.reading_start(payload)
+            else:
+                code, data = reading_flow.reading_end(payload)
+            self._json(code, data)
         elif self.path == "/api/control/session/stop":
             self._json(200, _send_control_session_via_server("stop"))
         elif self.path == "/api/control/participant/register":
@@ -1645,6 +1771,15 @@ class _BridgeHTTPHandler(BaseHTTPRequestHandler):
     def _cors(self):
         self.send_header("Access-Control-Allow-Origin", "*")
 
+    def _html(self, page: str):
+        body = page.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self._cors()
+        self.end_headers()
+        self.wfile.write(body)
+
     def _json(self, code, data):
         body = json.dumps(data).encode("utf-8")
         self.send_response(code)
@@ -1658,7 +1793,9 @@ class _BridgeHTTPHandler(BaseHTTPRequestHandler):
 
 
 def _run_http_server():
-    srv = HTTPServer(("0.0.0.0", HTTP_PORT), _BridgeHTTPHandler)
+    # Threaded: /api/session/start waits on web_controller, which calls back
+    # into /api/recording/start here; a single-threaded server would deadlock.
+    srv = ThreadingHTTPServer(("0.0.0.0", HTTP_PORT), _BridgeHTTPHandler)
     print(f"[CameraHTTP] Participant page at http://0.0.0.0:{HTTP_PORT}")
     srv.serve_forever()
 
@@ -2641,6 +2778,8 @@ async def main() -> None:
         print(f"Participant: run  python participant_client.py  (local detection mode)")
     else:
         print(f"Participant: open http://<this-ip>:{HTTP_PORT}  (standalone camera page)")
+    print(f"Reading:     participant opens http://<this-ip>:{HTTP_PORT}/baseline?passage=<A|B|C|D>")
+    print(f"             quiz links: QUIZ_URL_ARIA={QUIZ_URLS['aria'] or '(none -> /done)'}  QUIZ_URL_BASELINE={QUIZ_URLS['baseline'] or '(none -> /done)'}")
     print(f"Researcher:  open http://localhost:{HTTP_PORT}/researcher  (camera control + preview)\n")
 
     if PARTICIPANT_CLIENT_MODE:

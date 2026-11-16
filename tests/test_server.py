@@ -434,5 +434,51 @@ class ControlSessionCommandTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertFalse(result["control_mode"])
 
+class CameraStatusTests(unittest.TestCase):
+    def setUp(self) -> None:
+        server.client_roles.clear()
+        server.role_clients.clear()
+        server.camera_status.update(camera_on=False, attempt_started_at=None,
+                                    calibrated_at=None, error=None, error_at=None)
+
+    def test_start_then_calibration_reports_success(self) -> None:
+        server.note_camera_command("start_camera")
+        self.assertTrue(server.camera_status["camera_on"])
+        self.assertIsNone(server.camera_status["calibrated_at"])
+        self.assertTrue(server.note_webcam_report({"type": "calibration_complete"}))
+        self.assertIsNotNone(server.camera_status["calibrated_at"])
+
+    def test_repeated_start_keeps_current_result(self) -> None:
+        server.note_camera_command("start_camera")
+        server.note_webcam_report({"type": "calibration_complete"})
+        calibrated = server.camera_status["calibrated_at"]
+        server.note_camera_command("start_camera")  # researcher + participant both clicked
+        self.assertEqual(server.camera_status["calibrated_at"], calibrated)
+
+    def test_error_then_new_attempt_resets(self) -> None:
+        server.note_camera_command("start_camera")
+        server.note_webcam_report({"type": "camera_error", "reason": "calibration_failed"})
+        self.assertEqual(server.camera_status["error"], "calibration_failed")
+        self.assertFalse(server.camera_status["camera_on"])
+        server.note_camera_command("start_camera")
+        self.assertIsNone(server.camera_status["error"])
+        self.assertIsNone(server.camera_status["calibrated_at"])
+
+    def test_stop_then_start_needs_new_calibration(self) -> None:
+        server.note_camera_command("start_camera")
+        server.note_webcam_report({"type": "calibration_complete"})
+        server.note_camera_command("stop_camera")
+        server.note_camera_command("start_camera")
+        self.assertIsNone(server.camera_status["calibrated_at"])
+
+    def test_snapshot_reports_webcam_connection(self) -> None:
+        self.assertFalse(server.camera_status_snapshot()["webcam_connected"])
+        server.role_clients["webcam"] = object()
+        self.assertTrue(server.camera_status_snapshot()["webcam_connected"])
+
+    def test_other_messages_are_not_camera_reports(self) -> None:
+        self.assertFalse(server.note_webcam_report({"type": "posture"}))
+
+
 if __name__ == "__main__":
     unittest.main()
