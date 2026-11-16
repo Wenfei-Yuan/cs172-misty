@@ -15,7 +15,7 @@ try:
 except ImportError:
     from posture_logic import compute_full_recovery, compute_reengage_threshold, compute_screen_facing
 
-SERVER_IP = "10.5.15.160"   # 改成你的电脑IP
+SERVER_IP = os.getenv("SERVER_IP", "127.0.0.1")   # 运行 server.py 的电脑；都在同一台 Mac 上就是 127.0.0.1，否则用 SERVER_IP=... 指定
 SERVER_PORT = 8765
 WS_URL = f"ws://{SERVER_IP}:{SERVER_PORT}"
 RECONNECT_DELAY = 3.0
